@@ -59,10 +59,11 @@ export default function SentenceBuilder({ level, onComplete, onBack }: SentenceB
     setAvailableWords([...currentSentence.words].sort(() => Math.random() - 0.5));
     setSelectedWords([]);
     setShowFeedback(false);
+    setIsCorrect(false);
   };
 
   const handleWordClick = (word: string, fromAvailable: boolean) => {
-    if (showFeedback) return;
+    if (showFeedback && isCorrect) return;
 
     if (fromAvailable) {
       setSelectedWords([...selectedWords, word]);
@@ -136,6 +137,7 @@ export default function SentenceBuilder({ level, onComplete, onBack }: SentenceB
                       variant="default"
                       className="text-3xl h-16 px-6 bg-blue-500 hover:bg-blue-600"
                       onClick={() => handleWordClick(word, false)}
+                      disabled={showFeedback && isCorrect}
                     >
                       {word}
                     </Button>
@@ -151,7 +153,7 @@ export default function SentenceBuilder({ level, onComplete, onBack }: SentenceB
                   variant="outline"
                   className="text-3xl h-16 px-6"
                   onClick={() => handleWordClick(word, true)}
-                  disabled={showFeedback}
+                  disabled={showFeedback && isCorrect}
                 >
                   {word}
                 </Button>
@@ -162,7 +164,6 @@ export default function SentenceBuilder({ level, onComplete, onBack }: SentenceB
               <Button
                 variant="outline"
                 onClick={resetQuestion}
-                disabled={showFeedback}
                 className="text-lg"
               >
                 <RotateCcw className="w-4 h-4 mr-2" />
