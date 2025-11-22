@@ -1,49 +1,43 @@
-# Chinese Learning Game - MVP Todo List
+# Authentication & Payment Web Application - MVP Todo List
 
-## Files to Create/Modify:
+## Overview
+Build a web application with user authentication (email/password + social login UI) and Stripe payment integration ($1 payment feature).
 
-1. **index.html** - Update title to "学中文 - Learn Chinese Game"
+## Core Files to Create (Maximum 8 files)
 
-2. **src/pages/Index.tsx** - Main game page with:
-   - Welcome screen with game title and start button
-   - Game mode selection (Vocabulary Match, Character Quiz, Sentence Builder)
-   - Level selection (5 levels)
-   - Score display and progress tracking
+1. **src/pages/Index.tsx** - Landing page with hero section, features, and $1 payment CTA
+2. **src/pages/Login.tsx** - Login page with email/password and social login buttons
+3. **src/pages/Signup.tsx** - Registration page with form validation
+4. **src/pages/Dashboard.tsx** - Protected user dashboard after login
+5. **src/pages/Payment.tsx** - Stripe payment checkout page
+6. **src/contexts/AuthContext.tsx** - Authentication context for managing user state
+7. **src/lib/stripe.ts** - Stripe configuration and helper functions
+8. **src/App.tsx** - Update routing and add protected routes
 
-3. **src/components/VocabularyGame.tsx** - Vocabulary matching game:
-   - Display Chinese character with pinyin
-   - Multiple choice answers in English
-   - Audio pronunciation (text-to-speech simulation)
-   - Visual feedback for correct/incorrect answers
+## Implementation Details
 
-4. **src/components/CharacterQuiz.tsx** - Character recognition quiz:
-   - Show English word
-   - Select correct Chinese character from options
-   - Progressive difficulty
+### Authentication Flow
+- Use localStorage to store user session (email, name, login status)
+- Social login buttons (Google, Facebook, Twitter) - UI only, ready for OAuth integration
+- Protected routes that redirect to login if not authenticated
+- Logout functionality
 
-5. **src/components/SentenceBuilder.tsx** - Sentence building exercise:
-   - Drag and drop Chinese words to form sentences
-   - Translation hints
-   - Validation feedback
+### Payment Integration
+- Stripe Elements for card input
+- $1 fixed payment amount
+- Payment confirmation page
+- Mock Stripe key (user can replace with their own)
 
-6. **src/data/vocabulary.ts** - Vocabulary database:
-   - Intermediate level words (animals, food, daily activities, family)
-   - Structure: { chinese, pinyin, english, category, level }
+### Design
+- Modern, professional landing page with gradient backgrounds
+- Clean authentication forms with validation
+- Responsive design for mobile and desktop
+- Use shadcn-ui components throughout
 
-7. **src/components/ProgressTracker.tsx** - Progress display:
-   - Stars earned
-   - Current level
-   - Points system
-   - Encouraging messages
-
-8. **src/components/GameComplete.tsx** - Completion screen:
-   - Celebration animation
-   - Summary of performance
-   - Option to replay or advance
-
-## Implementation Strategy:
-- Keep it simple with localStorage for progress tracking
-- Use shadcn-ui components (Button, Card, Badge, Progress)
-- Colorful, child-friendly design with Tailwind CSS
-- Responsive layout for tablets and computers
-- Maximum 8 code files (within limit)
+## Tech Stack
+- React + TypeScript
+- shadcn-ui components
+- Tailwind CSS
+- React Router for navigation
+- Stripe.js for payments
+- localStorage for demo authentication
