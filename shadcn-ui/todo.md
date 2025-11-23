@@ -1,43 +1,34 @@
-# Authentication & Payment Web Application - MVP Todo List
+# Supabase Authentication Integration Plan
 
 ## Overview
-Build a web application with user authentication (email/password + social login UI) and Stripe payment integration ($1 payment feature).
+Replace localStorage authentication with Supabase Auth to enable social login (Google, Facebook, Twitter, LinkedIn).
 
-## Core Files to Create (Maximum 8 files)
-
-1. **src/pages/Index.tsx** - Landing page with hero section, features, and $1 payment CTA
-2. **src/pages/Login.tsx** - Login page with email/password and social login buttons
-3. **src/pages/Signup.tsx** - Registration page with form validation
-4. **src/pages/Dashboard.tsx** - Protected user dashboard after login
-5. **src/pages/Payment.tsx** - Stripe payment checkout page
-6. **src/contexts/AuthContext.tsx** - Authentication context for managing user state
-7. **src/lib/stripe.ts** - Stripe configuration and helper functions
-8. **src/App.tsx** - Update routing and add protected routes
+## Files to Update
+1. ✅ Create Supabase client configuration
+2. ✅ Update AuthContext to use Supabase Auth
+3. ✅ Update Login page with Supabase social login
+4. ✅ Update Signup page with Supabase social login
+5. ✅ Update Dashboard to use Supabase user data
+6. ✅ Install @supabase/supabase-js dependency
+7. ✅ Test and verify authentication flow
 
 ## Implementation Details
 
-### Authentication Flow
-- Use localStorage to store user session (email, name, login status)
-- Social login buttons (Google, Facebook, Twitter) - UI only, ready for OAuth integration
-- Protected routes that redirect to login if not authenticated
-- Logout functionality
+### 1. Supabase Client Setup
+- Create `/src/lib/supabase.ts` with Supabase client initialization
+- Use environment variables for Supabase URL and anon key
 
-### Payment Integration
-- Stripe Elements for card input
-- $1 fixed payment amount
-- Payment confirmation page
-- Mock Stripe key (user can replace with their own)
+### 2. AuthContext Updates
+- Replace localStorage logic with Supabase Auth methods
+- Implement `signUp`, `signInWithPassword`, `signInWithOAuth`
+- Handle session management with Supabase
+- Listen to auth state changes
 
-### Design
-- Modern, professional landing page with gradient backgrounds
-- Clean authentication forms with validation
-- Responsive design for mobile and desktop
-- Use shadcn-ui components throughout
+### 3. Login/Signup Pages
+- Connect social login buttons to Supabase OAuth
+- Update form handlers to use Supabase methods
+- Add proper error handling
 
-## Tech Stack
-- React + TypeScript
-- shadcn-ui components
-- Tailwind CSS
-- React Router for navigation
-- Stripe.js for payments
-- localStorage for demo authentication
+### 4. Protected Routes
+- Verify authentication using Supabase session
+- Redirect unauthenticated users appropriately

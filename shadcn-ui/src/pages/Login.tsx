@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Mail, Lock, Chrome, Facebook, Twitter } from 'lucide-react';
+import { Mail, Lock, Chrome, Facebook, Twitter, Linkedin } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -14,7 +14,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, loginWithProvider } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,9 +32,14 @@ export default function Login() {
     setLoading(false);
   };
 
-  const handleSocialLogin = (provider: string) => {
-    // Placeholder for social login integration
-    setError(`${provider} login will be available once OAuth is configured`);
+  const handleSocialLogin = async (provider: 'google' | 'facebook' | 'twitter' | 'linkedin_oidc') => {
+    try {
+      setError('');
+      await loginWithProvider(provider);
+      // OAuth will redirect automatically
+    } catch (err) {
+      setError(`Failed to login with ${provider}. Please try again.`);
+    }
   };
 
   return (
@@ -98,15 +103,18 @@ export default function Login() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            <Button variant="outline" onClick={() => handleSocialLogin('Google')} className="w-full">
+          <div className="grid grid-cols-4 gap-3">
+            <Button variant="outline" onClick={() => handleSocialLogin('google')} className="w-full">
               <Chrome className="h-4 w-4" />
             </Button>
-            <Button variant="outline" onClick={() => handleSocialLogin('Facebook')} className="w-full">
+            <Button variant="outline" onClick={() => handleSocialLogin('facebook')} className="w-full">
               <Facebook className="h-4 w-4" />
             </Button>
-            <Button variant="outline" onClick={() => handleSocialLogin('Twitter')} className="w-full">
+            <Button variant="outline" onClick={() => handleSocialLogin('twitter')} className="w-full">
               <Twitter className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" onClick={() => handleSocialLogin('linkedin_oidc')} className="w-full">
+              <Linkedin className="h-4 w-4" />
             </Button>
           </div>
         </CardContent>

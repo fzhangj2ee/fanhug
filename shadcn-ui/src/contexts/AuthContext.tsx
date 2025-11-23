@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface User {
   email: string;
@@ -6,62 +8,78 @@ interface User {
   id: string;
 }
 
-interface StoredUser {
-  id: string;
-  email: string;
-  password: string;
-  name: string;
-}
-
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
   signup: (email: string, password: string, name: string) => Promise<boolean>;
-  logout: () => void;
+  loginWithProvider: (provider: 'google' | 'facebook' | 'twitter' | 'linkedin_oidc') => Promise<void>;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in on mount
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    // Check active session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(mapSupabaseUser(session.user));
+      }
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(mapSupabaseUser(session.user));
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  const mapSupabaseUser = (supabaseUser: SupabaseUser): User => {
+    return {
+      id: supabaseUser.id,
+      email: supabaseUser.email || '',
+      name: supabaseUser.user_metadata?.name || supabaseUser.user_metadata?.full_name || supabaseUser.email?.split('@')[0] || 'User',
+    };
+  };
 
   const signup = async (email: string, password: string, name: string): Promise<boolean> => {
     try {
-      // Get existing users
-      const usersData = localStorage.getItem('users');
-      const users: StoredUser[] = usersData ? JSON.parse(usersData) : [];
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            full_name: name,
+          },
+        },
+      });
 
-      // Check if user already exists
-      if (users.find((u: StoredUser) => u.email === email)) {
+      if (error) {
+        console.error('Signup error:', error.message);
         return false;
       }
 
-      // Create new user
-      const newUser: StoredUser = {
-        id: Math.random().toString(36).substr(2, 9),
-        email,
-        password, // In production, this should be hashed
-        name,
-      };
+      if (data.user) {
+        setUser(mapSupabaseUser(data.user));
+        return true;
+      }
 
-      users.push(newUser);
-      localStorage.setItem('users', JSON.stringify(users));
-
-      // Auto login after signup
-      const userSession = { id: newUser.id, email: newUser.email, name: newUser.name };
-      setUser(userSession);
-      localStorage.setItem('user', JSON.stringify(userSession));
-
-      return true;
+      return false;
     } catch (error) {
       console.error('Signup error:', error);
       return false;
@@ -70,15 +88,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const usersData = localStorage.getItem('users');
-      const users: StoredUser[] = usersData ? JSON.parse(usersData) : [];
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      const foundUser = users.find((u: StoredUser) => u.email === email && u.password === password);
+      if (error) {
+        console.error('Login error:', error.message);
+        return false;
+      }
 
-      if (foundUser) {
-        const userSession = { id: foundUser.id, email: foundUser.email, name: foundUser.name };
-        setUser(userSession);
-        localStorage.setItem('user', JSON.stringify(userSession));
+      if (data.user) {
+        setUser(mapSupabaseUser(data.user));
         return true;
       }
 
@@ -89,9 +110,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+  const loginWithProvider = async (provider: 'google' | 'facebook' | 'twitter' | 'linkedin_oidc'): Promise<void> => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (error) {
+        console.error(`${provider} login error:`, error.message);
+        throw error;
+      }
+    } catch (error) {
+      console.error(`${provider} login error:`, error);
+      throw error;
+    }
+  };
+
+  const logout = async (): Promise<void> => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Logout error:', error.message);
+      }
+      setUser(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
@@ -100,8 +147,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         login,
         signup,
+        loginWithProvider,
         logout,
         isAuthenticated: !!user,
+        loading,
       }}
     >
       {children}

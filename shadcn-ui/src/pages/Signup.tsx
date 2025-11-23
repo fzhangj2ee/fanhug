@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Mail, Lock, User, Chrome, Facebook, Twitter } from 'lucide-react';
+import { Mail, Lock, User, Chrome, Facebook, Twitter, Linkedin } from 'lucide-react';
 
 export default function Signup() {
   const [name, setName] = useState('');
@@ -16,7 +16,7 @@ export default function Signup() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { signup } = useAuth();
+  const { signup, loginWithProvider } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,14 +39,20 @@ export default function Signup() {
     if (success) {
       navigate('/dashboard');
     } else {
-      setError('Email already exists. Please use a different email or login.');
+      setError('Failed to create account. Email may already be in use.');
     }
 
     setLoading(false);
   };
 
-  const handleSocialSignup = (provider: string) => {
-    setError(`${provider} signup will be available once OAuth is configured`);
+  const handleSocialSignup = async (provider: 'google' | 'facebook' | 'twitter' | 'linkedin_oidc') => {
+    try {
+      setError('');
+      await loginWithProvider(provider);
+      // OAuth will redirect automatically
+    } catch (err) {
+      setError(`Failed to sign up with ${provider}. Please try again.`);
+    }
   };
 
   return (
@@ -142,15 +148,18 @@ export default function Signup() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            <Button variant="outline" onClick={() => handleSocialSignup('Google')} className="w-full">
+          <div className="grid grid-cols-4 gap-3">
+            <Button variant="outline" onClick={() => handleSocialSignup('google')} className="w-full">
               <Chrome className="h-4 w-4" />
             </Button>
-            <Button variant="outline" onClick={() => handleSocialSignup('Facebook')} className="w-full">
+            <Button variant="outline" onClick={() => handleSocialSignup('facebook')} className="w-full">
               <Facebook className="h-4 w-4" />
             </Button>
-            <Button variant="outline" onClick={() => handleSocialSignup('Twitter')} className="w-full">
-              <Twitter className="h-4 w-4" />
+            <Button variant="outline" onClick={() => handleSocialSignup('twitter')} className="w-full">
+              <Linkedin className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" onClick={() => handleSocialSignup('linkedin_oidc')} className="w-full">
+              <Linkedin className="h-4 w-4" />
             </Button>
           </div>
         </CardContent>
