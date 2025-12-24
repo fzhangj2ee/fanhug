@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { WalletProvider } from '@/contexts/WalletContext';
 import { BettingProvider } from '@/contexts/BettingContext';
+import { LiveOddsProvider } from '@/contexts/LiveOddsContext';
 import Index from './pages/Index';
 import LiveBetting from './pages/LiveBetting';
 import MyBets from './pages/MyBets';
@@ -17,16 +18,18 @@ const App = () => (
     <TooltipProvider>
       <WalletProvider>
         <BettingProvider>
-          <Toaster />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/live" element={<LiveBetting />} />
-              <Route path="/my-bets" element={<MyBets />} />
-              <Route path="/wallet" element={<Wallet />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
+          <LiveOddsProvider>
+            <Toaster />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/live" element={<LiveBetting />} />
+                <Route path="/my-bets" element={<MyBets />} />
+                <Route path="/wallet" element={<Wallet />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </LiveOddsProvider>
         </BettingProvider>
       </WalletProvider>
     </TooltipProvider>

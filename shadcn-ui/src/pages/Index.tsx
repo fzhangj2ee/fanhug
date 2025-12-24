@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { fetchGames } from '@/lib/sportsApi';
+import { useLiveOdds } from '@/contexts/LiveOddsContext';
 import GameCard from '@/components/GameCard';
 import BetSlip from '@/components/BetSlip';
 import WalletBalance from '@/components/WalletBalance';
@@ -8,14 +10,23 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Index() {
-  const { data: games, isLoading } = useQuery({
+  const { data: fetchedGames, isLoading } = useQuery({
     queryKey: ['games'],
     queryFn: fetchGames,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 30000,
   });
 
-  const liveGames = games?.filter((game) => game.isLive) || [];
-  const upcomingGames = games?.filter((game) => !game.isLive) || [];
+  const { games, setGames } = useLiveOdds();
+
+  useEffect(() => {
+    if (fetchedGames) {
+      setGames(fetchedGames);
+    }
+  }, [fetchedGames, setGames]);
+
+  const displayGames = games.length > 0 ? games : fetchedGames || [];
+  const liveGames = displayGames.filter((game) => game.isLive);
+  const upcomingGames = displayGames.filter((game) => !game.isLive);
 
   return (
     <div className="min-h-screen bg-[#0F1419]">
