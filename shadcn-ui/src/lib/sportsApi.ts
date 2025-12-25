@@ -1,6 +1,6 @@
 import { Game } from '@/types/betting';
 
-const ODDS_API_KEY = '9b4f890ea83a9e038d109d08ed91df84';
+const ODDS_API_KEY = 'c8e5155794a017d6eb1e721942e01a31';
 const ODDS_API_BASE = 'https://api.the-odds-api.com/v4';
 
 // Sport mappings
