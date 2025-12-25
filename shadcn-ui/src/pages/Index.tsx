@@ -3,84 +3,115 @@ import { useEffect } from 'react';
 import { fetchAllGames } from '@/lib/sportsApi';
 import { useLiveOdds } from '@/contexts/LiveOddsContext';
 import GameCard from '@/components/GameCard';
+import BetSlip from '@/components/BetSlip';
+import WalletBalance from '@/components/WalletBalance';
 import Navbar from '@/components/Navbar';
-import { Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Index() {
-  const { liveOdds } = useLiveOdds();
-
-  const { data: games, isLoading, error } = useQuery({
+  const { data: fetchedGames, isLoading } = useQuery({
     queryKey: ['games'],
     queryFn: fetchAllGames,
-    refetchInterval: 60000, // Refetch every minute to get new games
+    refetchInterval: 30000,
   });
 
+  const { games, setGames, liveOdds } = useLiveOdds();
+
   useEffect(() => {
-    document.title = 'Sports Betting Platform - Live Odds';
-  }, []);
+    if (fetchedGames) {
+      setGames(fetchedGames);
+    }
+  }, [fetchedGames, setGames]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <Navbar />
-        <div className="flex items-center justify-center h-[calc(100vh-64px)]">
-          <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <Navbar />
-        <div className="flex items-center justify-center h-[calc(100vh-64px)]">
-          <div className="text-center">
-            <p className="text-red-400 mb-4">Error loading games</p>
-            <p className="text-gray-400 text-sm">Please try again later</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const now = new Date();
-  const liveGames = games?.filter((game) => game.isLive) || [];
-  const upcomingGames = games?.filter((game) => !game.isLive && game.startTime > now) || [];
+  const displayGames = games.length > 0 ? games : fetchedGames || [];
+  const liveGames = displayGames.filter((game) => game.isLive);
+  const upcomingGames = displayGames.filter((game) => !game.isLive);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-[#0F1419]">
       <Navbar />
+
+      {/* Hero Section */}
+      <div className="relative h-[400px] overflow-hidden">
+        <img
+          src="/assets/hero-sports-stadium.jpg"
+          alt="Sports Stadium"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0F1419] via-[#0F1419]/50 to-transparent" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <h1 className="text-5xl font-bold text-white">Welcome to BetPro</h1>
+            <p className="text-xl text-[#8B949E]">Place your bets on live sports with real-time odds</p>
+          </div>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-8">
-        {/* Live Games Section */}
-        {liveGames.length > 0 && (
-          <div className="mb-12">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-              <h2 className="text-3xl font-bold text-white">Live Now</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {liveGames.map((game) => (
-                <GameCard key={game.id} game={game} liveOdds={liveOdds[game.id]} />
-              ))}
+        <div className="mb-6">
+          <WalletBalance />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-8">
+            {/* Live Games */}
+            {liveGames.length > 0 && (
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <h2 className="text-2xl font-bold text-white">Live Now</h2>
+                  <Badge className="bg-[#FF3B30] text-white">
+                    <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-2" />
+                    {liveGames.length} Live
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {isLoading ? (
+                    <>
+                      <Skeleton className="h-[200px] bg-[#1C2128]" />
+                      <Skeleton className="h-[200px] bg-[#1C2128]" />
+                    </>
+                  ) : (
+                    liveGames.map((game) => (
+                      <GameCard 
+                        key={game.id} 
+                        game={game} 
+                        liveOdds={liveOdds?.[game.id]}
+                      />
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Upcoming Games */}
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-4">Upcoming Games</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {isLoading ? (
+                  <>
+                    <Skeleton className="h-[200px] bg-[#1C2128]" />
+                    <Skeleton className="h-[200px] bg-[#1C2128]" />
+                    <Skeleton className="h-[200px] bg-[#1C2128]" />
+                    <Skeleton className="h-[200px] bg-[#1C2128]" />
+                  </>
+                ) : (
+                  upcomingGames.map((game) => (
+                    <GameCard 
+                      key={game.id} 
+                      game={game} 
+                      liveOdds={liveOdds?.[game.id]}
+                    />
+                  ))
+                )}
+              </div>
             </div>
           </div>
-        )}
 
-        {/* Upcoming Games Section */}
-        <div>
-          <h2 className="text-3xl font-bold text-white mb-6">Upcoming Games</h2>
-          {upcomingGames.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-400">No upcoming games available</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {upcomingGames.map((game) => (
-                <GameCard key={game.id} game={game} liveOdds={liveOdds[game.id]} />
-              ))}
-            </div>
-          )}
+          {/* Bet Slip */}
+          <div className="lg:sticky lg:top-20 lg:self-start">
+            <BetSlip />
+          </div>
         </div>
       </div>
     </div>
