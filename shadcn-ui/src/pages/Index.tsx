@@ -30,8 +30,8 @@ export default function Index() {
     };
 
     loadGames();
-    // Refresh games every 30 seconds
-    const interval = setInterval(loadGames, 30000);
+    // Refresh games every 60 seconds to conserve API quota
+    const interval = setInterval(loadGames, 60000);
     return () => clearInterval(interval);
   }, [setLiveGames]);
 
@@ -48,19 +48,44 @@ export default function Index() {
     sport => sportCounts[sport] > 0
   );
 
+  // Dynamic breadcrumb based on selected sport
+  const getBreadcrumb = () => {
+    if (selectedSport === 'all') {
+      return (
+        <>
+          <span>Sportsbook</span>
+          <span>/</span>
+          <span className="text-white">All Sports</span>
+        </>
+      );
+    }
+    
+    const sportNames: Record<string, string> = {
+      'NFL': 'NFL',
+      'NBA': 'NBA',
+      'MLB': 'MLB',
+      'NHL': 'NHL',
+      'Soccer': 'Soccer'
+    };
+
+    return (
+      <>
+        <span>Sportsbook</span>
+        <span>/</span>
+        <span className="text-white">{sportNames[selectedSport] || selectedSport}</span>
+      </>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-[#0d0f10]">
       <Navbar />
       
       <div className="container mx-auto px-4 py-6">
-        {/* Breadcrumb */}
+        {/* Dynamic Breadcrumb */}
         <div className="mb-4">
           <div className="flex items-center gap-2 text-sm text-[#b1bad3]">
-            <span>Sportsbook</span>
-            <span>/</span>
-            <span>Football Odds</span>
-            <span>/</span>
-            <span className="text-white">NFL Odds</span>
+            {getBreadcrumb()}
           </div>
         </div>
 
