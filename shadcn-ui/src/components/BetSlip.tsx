@@ -27,6 +27,35 @@ export default function BetSlip() {
     }
   };
 
+  const getBetDescription = (item: typeof betSlip[0]) => {
+    const getTeamAbbreviation = (teamName: string) => {
+      const parts = teamName.split(' ');
+      return parts[parts.length - 1].substring(0, 3).toUpperCase();
+    };
+
+    switch (item.betType) {
+      case 'spread-away':
+        return `${getTeamAbbreviation(item.game.awayTeam)} ${item.spreadValue && item.spreadValue > 0 ? '+' : ''}${item.spreadValue}`;
+      case 'spread-home':
+        return `${getTeamAbbreviation(item.game.homeTeam)} ${item.spreadValue && item.spreadValue > 0 ? '+' : ''}${item.spreadValue}`;
+      case 'over':
+        return `O ${item.totalValue}`;
+      case 'under':
+        return `U ${item.totalValue}`;
+      case 'away':
+        return getTeamAbbreviation(item.game.awayTeam);
+      case 'home':
+        return getTeamAbbreviation(item.game.homeTeam);
+      default:
+        return 'Unknown';
+    }
+  };
+
+  const formatAmericanOdds = (odds: number) => {
+    if (odds > 0) return `+${odds}`;
+    return odds.toString();
+  };
+
   if (betSlip.length === 0) {
     return (
       <Card className="bg-[#1C2128] border-[#2A2F36]">
@@ -62,10 +91,10 @@ export default function BetSlip() {
                   {item.game.homeTeam} vs {item.game.awayTeam}
                 </p>
                 <p className="text-[#8B949E] text-xs">
-                  {item.betType === 'home' ? item.game.homeTeam : item.betType === 'away' ? item.game.awayTeam : 'Draw'}
+                  {getBetDescription(item)}
                 </p>
                 <p className="text-[#00C853] text-sm font-mono font-bold mt-1">
-                  {item.odds.toFixed(2)}
+                  {formatAmericanOdds(item.odds)}
                 </p>
               </div>
               <Button

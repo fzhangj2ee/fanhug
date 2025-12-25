@@ -4,15 +4,17 @@ import { useWallet } from './WalletContext';
 
 interface BetSlipItem {
   game: Game;
-  betType: 'home' | 'away' | 'draw';
+  betType: 'home' | 'away' | 'spread-home' | 'spread-away' | 'over' | 'under';
   odds: number;
   stake: number;
+  spreadValue?: number; // For spread bets
+  totalValue?: number; // For over/under bets
 }
 
 interface BettingContextType {
   betSlip: BetSlipItem[];
   bets: Bet[];
-  addToBetSlip: (game: Game, betType: 'home' | 'away' | 'draw', odds: number) => void;
+  addToBetSlip: (game: Game, betType: 'home' | 'away' | 'spread-home' | 'spread-away' | 'over' | 'under', odds: number, value?: number) => void;
   removeFromBetSlip: (gameId: string) => void;
   updateStake: (gameId: string, stake: number) => void;
   placeBets: () => boolean;
@@ -34,16 +36,30 @@ export function BettingProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('bets', JSON.stringify(bets));
   }, [bets]);
 
-  const addToBetSlip = (game: Game, betType: 'home' | 'away' | 'draw', odds: number) => {
+  const addToBetSlip = (
+    game: Game, 
+    betType: 'home' | 'away' | 'spread-home' | 'spread-away' | 'over' | 'under', 
+    odds: number,
+    value?: number
+  ) => {
     const existing = betSlip.find((item) => item.game.id === game.id);
     if (existing) {
       setBetSlip(
         betSlip.map((item) =>
-          item.game.id === game.id ? { ...item, betType, odds } : item
+          item.game.id === game.id 
+            ? { ...item, betType, odds, spreadValue: value, totalValue: value } 
+            : item
         )
       );
     } else {
-      setBetSlip([...betSlip, { game, betType, odds, stake: 100 }]);
+      setBetSlip([...betSlip, { 
+        game, 
+        betType, 
+        odds, 
+        stake: 100,
+        spreadValue: value,
+        totalValue: value
+      }]);
     }
   };
 
@@ -80,6 +96,7 @@ export function BettingProvider({ children }: { children: React.ReactNode }) {
       stake: item.stake,
       potentialWin: item.stake * item.odds,
       status: 'pending',
+      timestamp: new Date(),
       placedAt: new Date().toISOString(),
     }));
 

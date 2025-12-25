@@ -47,7 +47,7 @@ export default function GameCard({ game }: GameCardProps) {
 
     return (
       <button
-        onClick={() => addToBetSlip(game, betType, odds)}
+        onClick={() => addToBetSlip(game, betType, odds, value)}
         className={cn(
           'flex flex-col items-center justify-center py-3 px-2 bg-[#1a1d1f] hover:bg-[#2a2d2f] border border-[#2a2d2f] transition-all duration-200 min-w-[80px] relative group',
           isIncreasing && 'border-green-500/30 bg-green-500/5',
