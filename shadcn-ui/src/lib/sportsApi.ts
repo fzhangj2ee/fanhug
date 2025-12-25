@@ -27,6 +27,7 @@ interface OddsApiGame {
       outcomes: Array<{
         name: string;
         price: number;
+        point?: number;
       }>;
     }>;
   }>;
@@ -41,6 +42,15 @@ function americanToDecimal(americanOdds: number): number {
   }
 }
 
+// Convert decimal odds to American odds
+function decimalToAmerican(decimalOdds: number): number {
+  if (decimalOdds >= 2.0) {
+    return Math.round((decimalOdds - 1) * 100);
+  } else {
+    return Math.round(-100 / (decimalOdds - 1));
+  }
+}
+
 // Convert Odds API response to our Game format
 function convertToGame(apiGame: OddsApiGame, isLive: boolean = false): Game | null {
   try {
@@ -51,6 +61,13 @@ function convertToGame(apiGame: OddsApiGame, isLive: boolean = false): Game | nu
 
     // Get h2h (moneyline) market
     const h2hMarket = bookmaker.markets.find(m => m.key === 'h2h');
+    
+    // Get spreads market
+    const spreadsMarket = bookmaker.markets.find(m => m.key === 'spreads');
+    
+    // Get totals market
+    const totalsMarket = bookmaker.markets.find(m => m.key === 'totals');
+
     if (!h2hMarket || h2hMarket.outcomes.length < 2) return null;
 
     const homeOutcome = h2hMarket.outcomes.find(o => o.name === apiGame.home_team);
@@ -58,7 +75,7 @@ function convertToGame(apiGame: OddsApiGame, isLive: boolean = false): Game | nu
 
     if (!homeOutcome || !awayOutcome) return null;
 
-    // Convert odds to decimal format
+    // Convert odds to decimal format for compatibility
     const homeOdds = americanToDecimal(homeOutcome.price);
     const awayOdds = americanToDecimal(awayOutcome.price);
 
@@ -76,7 +93,7 @@ function convertToGame(apiGame: OddsApiGame, isLive: boolean = false): Game | nu
     // Check if game is live (started within last 3 hours)
     const isGameLive = isLive || (commenceTime <= now && (now.getTime() - commenceTime.getTime()) < 3 * 60 * 60 * 1000);
 
-    return {
+    const game: Game = {
       id: apiGame.id,
       homeTeam: apiGame.home_team,
       awayTeam: apiGame.away_team,
@@ -88,7 +105,45 @@ function convertToGame(apiGame: OddsApiGame, isLive: boolean = false): Game | nu
       isLive: isGameLive,
       homeScore: isGameLive ? Math.floor(Math.random() * 50) : undefined,
       awayScore: isGameLive ? Math.floor(Math.random() * 50) : undefined,
+      
+      // Moneyline (American odds)
+      moneyline: {
+        home: homeOutcome.price,
+        away: awayOutcome.price,
+      },
     };
+
+    // Add spread if available
+    if (spreadsMarket && spreadsMarket.outcomes.length >= 2) {
+      const homeSpread = spreadsMarket.outcomes.find(o => o.name === apiGame.home_team);
+      const awaySpread = spreadsMarket.outcomes.find(o => o.name === apiGame.away_team);
+      
+      if (homeSpread && awaySpread && homeSpread.point !== undefined && awaySpread.point !== undefined) {
+        game.spread = {
+          home: homeSpread.point,
+          homeOdds: homeSpread.price,
+          away: awaySpread.point,
+          awayOdds: awaySpread.price,
+        };
+      }
+    }
+
+    // Add total if available
+    if (totalsMarket && totalsMarket.outcomes.length >= 2) {
+      const overOutcome = totalsMarket.outcomes.find(o => o.name === 'Over');
+      const underOutcome = totalsMarket.outcomes.find(o => o.name === 'Under');
+      
+      if (overOutcome && underOutcome && overOutcome.point !== undefined) {
+        game.total = {
+          over: overOutcome.point,
+          overOdds: overOutcome.price,
+          under: underOutcome.point || overOutcome.point,
+          underOdds: underOutcome.price,
+        };
+      }
+    }
+
+    return game;
   } catch (error) {
     console.error('Error converting game:', error);
     return null;
@@ -99,7 +154,7 @@ function convertToGame(apiGame: OddsApiGame, isLive: boolean = false): Game | nu
 async function fetchGamesFromAPI(sportKey: string): Promise<Game[]> {
   try {
     const response = await fetch(
-      `${ODDS_API_BASE}/sports/${sportKey}/odds/?apiKey=${ODDS_API_KEY}&regions=us&markets=h2h&bookmakers=draftkings,fanduel,betmgm`
+      `${ODDS_API_BASE}/sports/${sportKey}/odds/?apiKey=${ODDS_API_KEY}&regions=us&markets=h2h,spreads,totals&bookmakers=draftkings,fanduel,betmgm`
     );
 
     if (!response.ok) {
