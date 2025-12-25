@@ -49,7 +49,7 @@ export default function GameCard({ game }: GameCardProps) {
       <button
         onClick={() => addToBetSlip(game, betType, odds, value)}
         className={cn(
-          'flex flex-col items-center justify-center py-3 px-2 bg-[#1a1d1f] hover:bg-[#2a2d2f] border border-[#2a2d2f] transition-all duration-200 min-w-[80px] relative group',
+          'flex flex-col items-center justify-center px-2 bg-[#1a1d1f] hover:bg-[#2a2d2f] border border-[#2a2d2f] transition-all duration-200 min-w-[80px] relative group h-[60px]',
           isIncreasing && 'border-green-500/30 bg-green-500/5',
           isDecreasing && 'border-red-500/30 bg-red-500/5'
         )}
@@ -114,7 +114,7 @@ export default function GameCard({ game }: GameCardProps) {
           {/* Teams Column */}
           <div className="divide-y divide-[#1a1d1f]">
             {/* Away Team */}
-            <div className="flex items-center gap-3 px-4 py-3 bg-[#0d0f10]">
+            <div className="flex items-center gap-3 px-4 bg-[#0d0f10] h-[60px]">
               <div className="w-6 h-6 bg-[#1a1d1f] rounded flex items-center justify-center">
                 <span className="text-[10px] font-bold text-[#b1bad3]">
                   {getTeamAbbreviation(game.awayTeam)}
@@ -126,7 +126,7 @@ export default function GameCard({ game }: GameCardProps) {
               )}
             </div>
             {/* Home Team */}
-            <div className="flex items-center gap-3 px-4 py-3 bg-[#0d0f10]">
+            <div className="flex items-center gap-3 px-4 bg-[#0d0f10] h-[60px]">
               <div className="w-6 h-6 bg-[#1a1d1f] rounded flex items-center justify-center">
                 <span className="text-[10px] font-bold text-[#b1bad3]">
                   {getTeamAbbreviation(game.homeTeam)}
@@ -152,8 +152,8 @@ export default function GameCard({ game }: GameCardProps) {
                 </>
               ) : (
                 <>
-                  <div className="py-3 px-2 bg-[#1a1d1f]/30 min-h-[52px]"></div>
-                  <div className="py-3 px-2 bg-[#1a1d1f]/30 min-h-[52px]"></div>
+                  <div className="px-2 bg-[#1a1d1f]/30 h-[60px]"></div>
+                  <div className="px-2 bg-[#1a1d1f]/30 h-[60px]"></div>
                 </>
               )}
             </div>
@@ -172,8 +172,8 @@ export default function GameCard({ game }: GameCardProps) {
                 </>
               ) : (
                 <>
-                  <div className="py-3 px-2 bg-[#1a1d1f]/30 min-h-[52px]"></div>
-                  <div className="py-3 px-2 bg-[#1a1d1f]/30 min-h-[52px]"></div>
+                  <div className="px-2 bg-[#1a1d1f]/30 h-[60px]"></div>
+                  <div className="px-2 bg-[#1a1d1f]/30 h-[60px]"></div>
                 </>
               )}
             </div>
@@ -192,8 +192,8 @@ export default function GameCard({ game }: GameCardProps) {
                 </>
               ) : (
                 <>
-                  <div className="py-3 px-2 bg-[#1a1d1f]/30 min-h-[52px]"></div>
-                  <div className="py-3 px-2 bg-[#1a1d1f]/30 min-h-[52px]"></div>
+                  <div className="px-2 bg-[#1a1d1f]/30 h-[60px]"></div>
+                  <div className="px-2 bg-[#1a1d1f]/30 h-[60px]"></div>
                 </>
               )}
             </div>
