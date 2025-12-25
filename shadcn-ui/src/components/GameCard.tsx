@@ -1,24 +1,28 @@
 import { Game } from '@/types/betting';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useBetting } from '@/contexts/BettingContext';
 import { useLiveOdds } from '@/contexts/LiveOddsContext';
-import { Clock, TrendingUp, TrendingDown } from 'lucide-react';
+import { Star, TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 interface GameCardProps {
   game: Game;
-  liveOdds?: Record<string, unknown>;
 }
 
 export default function GameCard({ game }: GameCardProps) {
   const { addToBetSlip } = useBetting();
   const { oddsChanges } = useLiveOdds();
+  const [isFavorite, setIsFavorite] = useState(false);
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
   };
 
   const formatAmericanOdds = (odds: number) => {
@@ -26,168 +30,186 @@ export default function GameCard({ game }: GameCardProps) {
     return odds.toString();
   };
 
-  const getOddsChange = (field: 'homeOdds' | 'awayOdds' | 'drawOdds') => {
+  const getOddsChange = (field: 'homeOdds' | 'awayOdds') => {
     const key = `${game.id}-${field.replace('Odds', '')}`;
     return oddsChanges.get(key);
   };
 
-  const renderOddsButton = (
+  const renderOddsCell = (
     odds: number,
-    betType: 'home' | 'away' | 'draw' | 'spread-home' | 'spread-away' | 'over' | 'under',
-    field: 'homeOdds' | 'awayOdds' | 'drawOdds',
-    label?: string,
-    line?: number
+    betType: 'home' | 'away' | 'spread-home' | 'spread-away' | 'over' | 'under',
+    field: 'homeOdds' | 'awayOdds',
+    value?: number
   ) => {
     const change = getOddsChange(field);
     const isIncreasing = change?.direction === 'up';
     const isDecreasing = change?.direction === 'down';
 
     return (
-      <Button
+      <button
         onClick={() => addToBetSlip(game, betType, odds)}
         className={cn(
-          'bg-[#0F1419] hover:bg-[#00C853] text-white border border-[#2A2F36] hover:border-[#00C853] font-mono font-bold min-w-[80px] transition-all duration-300 relative',
-          isIncreasing && 'border-green-500 bg-green-500/10',
-          isDecreasing && 'border-red-500 bg-red-500/10'
+          'flex flex-col items-center justify-center py-3 px-2 bg-[#1a1d1f] hover:bg-[#2a2d2f] border border-[#2a2d2f] transition-all duration-200 min-w-[80px] relative group',
+          isIncreasing && 'border-green-500/30 bg-green-500/5',
+          isDecreasing && 'border-red-500/30 bg-red-500/5'
         )}
       >
-        <div className="flex flex-col items-center">
-          {label && <span className="text-[10px] text-[#8B949E]">{label}</span>}
-          {line !== undefined && <span className="text-xs">{line > 0 ? `+${line}` : line}</span>}
-          <span className={cn(
-            'transition-all duration-300',
-            isIncreasing && 'text-green-400',
-            isDecreasing && 'text-red-400'
-          )}>
-            {formatAmericanOdds(odds)}
+        {value !== undefined && (
+          <span className="text-[11px] text-[#b1bad3] font-medium mb-0.5">
+            {value > 0 ? `+${value}` : value}
           </span>
-        </div>
+        )}
+        <span className={cn(
+          'text-sm font-bold transition-colors',
+          isIncreasing ? 'text-green-400' : isDecreasing ? 'text-red-400' : 'text-[#53d337]'
+        )}>
+          {formatAmericanOdds(odds)}
+        </span>
         {isIncreasing && (
-          <TrendingUp className="h-3 w-3 ml-1 text-green-400 animate-bounce absolute top-1 right-1" />
+          <TrendingUp className="h-3 w-3 text-green-400 absolute top-1 right-1" />
         )}
         {isDecreasing && (
-          <TrendingDown className="h-3 w-3 ml-1 text-red-400 animate-bounce absolute top-1 right-1" />
+          <TrendingDown className="h-3 w-3 text-red-400 absolute top-1 right-1" />
         )}
-      </Button>
+      </button>
     );
   };
 
+  const getTeamAbbreviation = (teamName: string) => {
+    const parts = teamName.split(' ');
+    return parts[parts.length - 1].substring(0, 3).toUpperCase();
+  };
+
   return (
-    <Card className="bg-[#1C2128] border-[#2A2F36] hover:border-[#00C853] transition-all duration-200">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <Badge variant="secondary" className="bg-[#0F1419] text-white border-[#2A2F36]">
-            {game.sport}
-          </Badge>
-          {game.isLive ? (
+    <Card className="bg-[#0d0f10] border-[#1a1d1f] hover:border-[#2a2d2f] transition-all duration-200 overflow-hidden">
+      <div className="p-0">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-2 border-b border-[#1a1d1f]">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsFavorite(!isFavorite)}
+              className="text-[#b1bad3] hover:text-[#53d337] transition-colors"
+            >
+              <Star className={cn("h-4 w-4", isFavorite && "fill-[#53d337] text-[#53d337]")} />
+            </button>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-[#FF3B30] rounded-full animate-pulse" />
-              <span className="text-[#FF3B30] text-xs font-bold">LIVE</span>
+              <span className="text-xs text-[#b1bad3] font-medium">{game.awayTeam}</span>
+              <span className="text-[#5f6368] text-xs">AT</span>
+              <span className="text-xs text-[#b1bad3] font-medium">{game.homeTeam}</span>
             </div>
+          </div>
+          {game.isLive ? (
+            <Badge className="bg-[#53d337] text-black text-[10px] font-bold px-2 py-0.5">
+              LIVE
+            </Badge>
           ) : (
-            <div className="flex items-center gap-1 text-[#8B949E] text-xs">
-              <Clock className="h-3 w-3" />
+            <Badge className="bg-[#53d337] text-black text-[10px] font-bold px-2 py-0.5">
               {formatTime(game.startTime)}
-            </div>
+            </Badge>
           )}
         </div>
 
-        <div className="mb-3">
-          <div className="text-white font-medium text-sm mb-1">
-            {game.awayTeam}
-            {game.isLive && game.awayScore !== undefined && (
-              <span className="text-[#00C853] text-lg font-bold ml-2">{game.awayScore}</span>
-            )}
+        {/* Game Grid */}
+        <div className="grid grid-cols-[1fr_auto_auto_auto] divide-x divide-[#1a1d1f]">
+          {/* Teams Column */}
+          <div className="divide-y divide-[#1a1d1f]">
+            {/* Away Team */}
+            <div className="flex items-center gap-3 px-4 py-3 bg-[#0d0f10]">
+              <div className="w-6 h-6 bg-[#1a1d1f] rounded flex items-center justify-center">
+                <span className="text-[10px] font-bold text-[#b1bad3]">
+                  {getTeamAbbreviation(game.awayTeam)}
+                </span>
+              </div>
+              <span className="text-sm text-white font-medium flex-1">{game.awayTeam}</span>
+              {game.isLive && game.awayScore !== undefined && (
+                <span className="text-lg font-bold text-white">{game.awayScore}</span>
+              )}
+            </div>
+            {/* Home Team */}
+            <div className="flex items-center gap-3 px-4 py-3 bg-[#0d0f10]">
+              <div className="w-6 h-6 bg-[#1a1d1f] rounded flex items-center justify-center">
+                <span className="text-[10px] font-bold text-[#b1bad3]">
+                  {getTeamAbbreviation(game.homeTeam)}
+                </span>
+              </div>
+              <span className="text-sm text-white font-medium flex-1">{game.homeTeam}</span>
+              {game.isLive && game.homeScore !== undefined && (
+                <span className="text-lg font-bold text-white">{game.homeScore}</span>
+              )}
+            </div>
           </div>
-          <div className="text-white font-medium text-sm">
-            {game.homeTeam}
-            {game.isLive && game.homeScore !== undefined && (
-              <span className="text-[#00C853] text-lg font-bold ml-2">{game.homeScore}</span>
-            )}
+
+          {/* Spread Column */}
+          <div className="min-w-[80px]">
+            <div className="text-center py-1.5 bg-[#0d0f10] border-b border-[#1a1d1f]">
+              <span className="text-[10px] text-[#b1bad3] font-semibold uppercase">Spread</span>
+            </div>
+            <div className="divide-y divide-[#1a1d1f]">
+              {game.spread ? (
+                <>
+                  {renderOddsCell(game.spread.awayOdds, 'spread-away', 'awayOdds', game.spread.away)}
+                  {renderOddsCell(game.spread.homeOdds, 'spread-home', 'homeOdds', game.spread.home)}
+                </>
+              ) : (
+                <>
+                  <div className="py-3 px-2 bg-[#1a1d1f]/30 min-h-[52px]"></div>
+                  <div className="py-3 px-2 bg-[#1a1d1f]/30 min-h-[52px]"></div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Total Column */}
+          <div className="min-w-[80px]">
+            <div className="text-center py-1.5 bg-[#0d0f10] border-b border-[#1a1d1f]">
+              <span className="text-[10px] text-[#b1bad3] font-semibold uppercase">Total</span>
+            </div>
+            <div className="divide-y divide-[#1a1d1f]">
+              {game.total ? (
+                <>
+                  {renderOddsCell(game.total.overOdds, 'over', 'homeOdds', game.total.over)}
+                  {renderOddsCell(game.total.underOdds, 'under', 'awayOdds', game.total.under)}
+                </>
+              ) : (
+                <>
+                  <div className="py-3 px-2 bg-[#1a1d1f]/30 min-h-[52px]"></div>
+                  <div className="py-3 px-2 bg-[#1a1d1f]/30 min-h-[52px]"></div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Moneyline Column */}
+          <div className="min-w-[80px]">
+            <div className="text-center py-1.5 bg-[#0d0f10] border-b border-[#1a1d1f]">
+              <span className="text-[10px] text-[#b1bad3] font-semibold uppercase">Moneyline</span>
+            </div>
+            <div className="divide-y divide-[#1a1d1f]">
+              {game.moneyline ? (
+                <>
+                  {renderOddsCell(game.moneyline.away, 'away', 'awayOdds')}
+                  {renderOddsCell(game.moneyline.home, 'home', 'homeOdds')}
+                </>
+              ) : (
+                <>
+                  <div className="py-3 px-2 bg-[#1a1d1f]/30 min-h-[52px]"></div>
+                  <div className="py-3 px-2 bg-[#1a1d1f]/30 min-h-[52px]"></div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
-        <Tabs defaultValue="moneyline" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-[#0F1419]">
-            <TabsTrigger value="moneyline" className="text-xs">Moneyline</TabsTrigger>
-            <TabsTrigger value="spread" className="text-xs" disabled={!game.spread}>Spread</TabsTrigger>
-            <TabsTrigger value="total" className="text-xs" disabled={!game.total}>Total</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="moneyline" className="mt-3">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="text-center">
-                <div className="text-[#8B949E] text-xs mb-1 truncate">{game.awayTeam}</div>
-                {game.moneyline && renderOddsButton(
-                  game.moneyline.away,
-                  'away',
-                  'awayOdds'
-                )}
-              </div>
-              <div className="text-center">
-                <div className="text-[#8B949E] text-xs mb-1 truncate">{game.homeTeam}</div>
-                {game.moneyline && renderOddsButton(
-                  game.moneyline.home,
-                  'home',
-                  'homeOdds'
-                )}
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="spread" className="mt-3">
-            {game.spread && (
-              <div className="grid grid-cols-2 gap-2">
-                <div className="text-center">
-                  <div className="text-[#8B949E] text-xs mb-1 truncate">{game.awayTeam}</div>
-                  {renderOddsButton(
-                    game.spread.awayOdds,
-                    'spread-away',
-                    'awayOdds',
-                    undefined,
-                    game.spread.away
-                  )}
-                </div>
-                <div className="text-center">
-                  <div className="text-[#8B949E] text-xs mb-1 truncate">{game.homeTeam}</div>
-                  {renderOddsButton(
-                    game.spread.homeOdds,
-                    'spread-home',
-                    'homeOdds',
-                    undefined,
-                    game.spread.home
-                  )}
-                </div>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="total" className="mt-3">
-            {game.total && (
-              <div className="grid grid-cols-2 gap-2">
-                <div className="text-center">
-                  <div className="text-[#8B949E] text-xs mb-1">Over</div>
-                  {renderOddsButton(
-                    game.total.overOdds,
-                    'over',
-                    'homeOdds',
-                    `O ${game.total.over}`
-                  )}
-                </div>
-                <div className="text-center">
-                  <div className="text-[#8B949E] text-xs mb-1">Under</div>
-                  {renderOddsButton(
-                    game.total.underOdds,
-                    'under',
-                    'awayOdds',
-                    `U ${game.total.under}`
-                  )}
-                </div>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </CardContent>
+        {/* Footer - More Bets */}
+        <div className="px-4 py-2 border-t border-[#1a1d1f] bg-[#0d0f10]">
+          <Button 
+            variant="ghost" 
+            className="w-full text-[#53d337] hover:text-[#53d337] hover:bg-[#1a1d1f] text-xs font-semibold"
+          >
+            More Bets →
+          </Button>
+        </div>
+      </div>
     </Card>
   );
 }

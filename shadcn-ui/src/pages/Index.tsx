@@ -1,115 +1,148 @@
-import { useQuery } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { fetchAllGames } from '@/lib/sportsApi';
-import { useLiveOdds } from '@/contexts/LiveOddsContext';
+import { Game } from '@/types/betting';
 import GameCard from '@/components/GameCard';
-import BetSlip from '@/components/BetSlip';
-import WalletBalance from '@/components/WalletBalance';
 import Navbar from '@/components/Navbar';
+import BetSlip from '@/components/BetSlip';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Loader2 } from 'lucide-react';
+import { useLiveOdds } from '@/contexts/LiveOddsContext';
 
 export default function Index() {
-  const { data: fetchedGames, isLoading } = useQuery({
-    queryKey: ['games'],
-    queryFn: fetchAllGames,
-    refetchInterval: 30000,
-  });
-
-  const { games, setGames, liveOdds } = useLiveOdds();
+  const [games, setGames] = useState<Game[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedSport, setSelectedSport] = useState<string>('all');
+  const { setGames: setLiveGames } = useLiveOdds();
 
   useEffect(() => {
-    if (fetchedGames) {
-      setGames(fetchedGames);
-    }
-  }, [fetchedGames, setGames]);
+    const loadGames = async () => {
+      try {
+        setLoading(true);
+        const fetchedGames = await fetchAllGames();
+        setGames(fetchedGames);
+        setLiveGames(fetchedGames);
+      } catch (error) {
+        console.error('Error loading games:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const displayGames = games.length > 0 ? games : fetchedGames || [];
-  const liveGames = displayGames.filter((game) => game.isLive);
-  const upcomingGames = displayGames.filter((game) => !game.isLive);
+    loadGames();
+    // Refresh games every 30 seconds
+    const interval = setInterval(loadGames, 30000);
+    return () => clearInterval(interval);
+  }, [setLiveGames]);
+
+  const filteredGames = selectedSport === 'all' 
+    ? games 
+    : games.filter(game => game.sport === selectedSport);
+
+  const sportCounts = games.reduce((acc, game) => {
+    acc[game.sport] = (acc[game.sport] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const availableSports = ['NFL', 'NBA', 'MLB', 'NHL', 'Soccer'].filter(
+    sport => sportCounts[sport] > 0
+  );
 
   return (
-    <div className="min-h-screen bg-[#0F1419]">
+    <div className="min-h-screen bg-[#0d0f10]">
       <Navbar />
-
-      {/* Hero Section */}
-      <div className="relative h-[400px] overflow-hidden">
-        <img
-          src="/assets/hero-sports-stadium.jpg"
-          alt="Sports Stadium"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0F1419] via-[#0F1419]/50 to-transparent" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center space-y-4">
-            <h1 className="text-5xl font-bold text-white">Welcome to BetPro</h1>
-            <p className="text-xl text-[#8B949E]">Place your bets on live sports with real-time odds</p>
+      
+      <div className="container mx-auto px-4 py-6">
+        {/* Breadcrumb */}
+        <div className="mb-4">
+          <div className="flex items-center gap-2 text-sm text-[#b1bad3]">
+            <span>Sportsbook</span>
+            <span>/</span>
+            <span>Football Odds</span>
+            <span>/</span>
+            <span className="text-white">NFL Odds</span>
           </div>
         </div>
-      </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <WalletBalance />
-        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
+          {/* Main Content */}
+          <div>
+            {/* Sport Tabs */}
+            <div className="mb-6 bg-[#0d0f10] border border-[#1a1d1f] rounded-lg p-1">
+              <Tabs value={selectedSport} onValueChange={setSelectedSport} className="w-full">
+                <TabsList className="w-full bg-transparent h-auto p-0 gap-1">
+                  <TabsTrigger 
+                    value="all" 
+                    className="flex-1 data-[state=active]:bg-[#1a1d1f] data-[state=active]:text-white text-[#b1bad3] rounded py-2"
+                  >
+                    All Sports
+                    {games.length > 0 && (
+                      <Badge className="ml-2 bg-[#53d337] text-black text-xs">
+                        {games.length}
+                      </Badge>
+                    )}
+                  </TabsTrigger>
+                  {availableSports.map(sport => (
+                    <TabsTrigger 
+                      key={sport}
+                      value={sport}
+                      className="flex-1 data-[state=active]:bg-[#1a1d1f] data-[state=active]:text-white text-[#b1bad3] rounded py-2"
+                    >
+                      {sport}
+                      <Badge className="ml-2 bg-[#53d337] text-black text-xs">
+                        {sportCounts[sport]}
+                      </Badge>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-8">
-            {/* Live Games */}
-            {liveGames.length > 0 && (
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <h2 className="text-2xl font-bold text-white">Live Now</h2>
-                  <Badge className="bg-[#FF3B30] text-white">
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-2" />
-                    {liveGames.length} Live
-                  </Badge>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {isLoading ? (
-                    <>
-                      <Skeleton className="h-[200px] bg-[#1C2128]" />
-                      <Skeleton className="h-[200px] bg-[#1C2128]" />
-                    </>
-                  ) : (
-                    liveGames.map((game) => (
-                      <GameCard 
-                        key={game.id} 
-                        game={game} 
-                        liveOdds={liveOdds?.[game.id]}
-                      />
-                    ))
-                  )}
-                </div>
+            {/* Secondary Tabs */}
+            <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-2">
+              <button className="px-4 py-2 bg-[#1a1d1f] text-white text-sm font-semibold rounded whitespace-nowrap border-b-2 border-[#53d337]">
+                GAME LINES
+              </button>
+              <button className="px-4 py-2 bg-transparent text-[#b1bad3] text-sm font-semibold rounded whitespace-nowrap hover:bg-[#1a1d1f] transition-colors">
+                TD SCORERS
+              </button>
+              <button className="px-4 py-2 bg-transparent text-[#b1bad3] text-sm font-semibold rounded whitespace-nowrap hover:bg-[#1a1d1f] transition-colors">
+                PASSING PROPS
+              </button>
+              <button className="px-4 py-2 bg-transparent text-[#b1bad3] text-sm font-semibold rounded whitespace-nowrap hover:bg-[#1a1d1f] transition-colors">
+                RECEIVING PROPS
+              </button>
+              <button className="px-4 py-2 bg-transparent text-[#b1bad3] text-sm font-semibold rounded whitespace-nowrap hover:bg-[#1a1d1f] transition-colors">
+                RUSHING PROPS
+              </button>
+            </div>
+
+            {/* Date Filter */}
+            <div className="mb-4">
+              <span className="text-sm text-[#b1bad3] font-semibold">Today</span>
+            </div>
+
+            {/* Games List */}
+            {loading ? (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="h-8 w-8 animate-spin text-[#53d337]" />
+              </div>
+            ) : filteredGames.length === 0 ? (
+              <div className="text-center py-20">
+                <p className="text-[#b1bad3] text-lg">No games available</p>
+                <p className="text-[#5f6368] text-sm mt-2">Check back later for upcoming games</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredGames.map(game => (
+                  <GameCard key={game.id} game={game} />
+                ))}
               </div>
             )}
-
-            {/* Upcoming Games */}
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-4">Upcoming Games</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {isLoading ? (
-                  <>
-                    <Skeleton className="h-[200px] bg-[#1C2128]" />
-                    <Skeleton className="h-[200px] bg-[#1C2128]" />
-                    <Skeleton className="h-[200px] bg-[#1C2128]" />
-                    <Skeleton className="h-[200px] bg-[#1C2128]" />
-                  </>
-                ) : (
-                  upcomingGames.map((game) => (
-                    <GameCard 
-                      key={game.id} 
-                      game={game} 
-                      liveOdds={liveOdds?.[game.id]}
-                    />
-                  ))
-                )}
-              </div>
-            </div>
           </div>
 
-          {/* Bet Slip */}
-          <div className="lg:sticky lg:top-20 lg:self-start">
+          {/* Bet Slip Sidebar */}
+          <div className="lg:sticky lg:top-6 h-fit">
             <BetSlip />
           </div>
         </div>
