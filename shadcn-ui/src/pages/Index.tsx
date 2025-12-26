@@ -13,6 +13,7 @@ export default function Index() {
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSport, setSelectedSport] = useState<string>('all');
+  const [todayCategory, setTodayCategory] = useState<string>('all');
   const { setGames: setLiveGames } = useLiveOdds();
 
   useEffect(() => {
@@ -39,6 +40,11 @@ export default function Index() {
     ? games 
     : games.filter(game => game.sport === selectedSport);
 
+  // Further filter by today category
+  const todayFilteredGames = todayCategory === 'all'
+    ? filteredGames
+    : filteredGames.filter(game => game.sport === todayCategory);
+
   const sportCounts = games.reduce((acc, game) => {
     acc[game.sport] = (acc[game.sport] || 0) + 1;
     return acc;
@@ -46,6 +52,16 @@ export default function Index() {
 
   const availableSports = ['NFL', 'NBA', 'MLB', 'NHL', 'Soccer'].filter(
     sport => sportCounts[sport] > 0
+  );
+
+  // Get counts for today category filter (based on current sport selection)
+  const todayCategoryCounts = filteredGames.reduce((acc, game) => {
+    acc[game.sport] = (acc[game.sport] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const availableTodayCategories = ['NFL', 'NBA', 'MLB', 'NHL', 'Soccer'].filter(
+    sport => todayCategoryCounts[sport] > 0
   );
 
   // Dynamic breadcrumb based on selected sport
@@ -147,19 +163,46 @@ export default function Index() {
               <span className="text-sm text-[#b1bad3] font-semibold">Today</span>
             </div>
 
+            {/* Category Filter Row */}
+            <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-2">
+              <button 
+                onClick={() => setTodayCategory('all')}
+                className={`px-4 py-2 text-sm font-semibold rounded-full whitespace-nowrap transition-colors ${
+                  todayCategory === 'all' 
+                    ? 'bg-[#53d337] text-black' 
+                    : 'bg-[#1a1d1f] text-[#b1bad3] hover:bg-[#2a2d2f]'
+                }`}
+              >
+                All
+              </button>
+              {availableTodayCategories.map(sport => (
+                <button 
+                  key={sport}
+                  onClick={() => setTodayCategory(sport)}
+                  className={`px-4 py-2 text-sm font-semibold rounded-full whitespace-nowrap transition-colors ${
+                    todayCategory === sport 
+                      ? 'bg-[#53d337] text-black' 
+                      : 'bg-[#1a1d1f] text-[#b1bad3] hover:bg-[#2a2d2f]'
+                  }`}
+                >
+                  {sport}
+                </button>
+              ))}
+            </div>
+
             {/* Games List */}
             {loading ? (
               <div className="flex items-center justify-center py-20">
                 <Loader2 className="h-8 w-8 animate-spin text-[#53d337]" />
               </div>
-            ) : filteredGames.length === 0 ? (
+            ) : todayFilteredGames.length === 0 ? (
               <div className="text-center py-20">
                 <p className="text-[#b1bad3] text-lg">No games available</p>
                 <p className="text-[#5f6368] text-sm mt-2">Check back later for upcoming games</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {filteredGames.map(game => (
+                {todayFilteredGames.map(game => (
                   <GameCard key={game.id} game={game} />
                 ))}
               </div>
