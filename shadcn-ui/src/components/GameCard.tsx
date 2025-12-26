@@ -103,7 +103,7 @@ export default function GameCard({ game }: GameCardProps) {
     <Card className="bg-[#0d0f10] border-[#1a1d1f] hover:border-[#2a2d2f] transition-all duration-200 overflow-hidden">
       <div className="p-0">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-2 border-b border-[#1a1d1f]">
+        <div className="flex items-center justify-between px-4 py-2 border-b border-gray-700">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsFavorite(!isFavorite)}
@@ -129,21 +129,21 @@ export default function GameCard({ game }: GameCardProps) {
         </div>
 
         {/* Betting Odds Header Row - Full Width */}
-        <div className="grid grid-cols-4 border-b border-[#1a1d1f]">
+        <div className="grid grid-cols-4 border-b border-gray-700">
           <div className="bg-[#0d0f10]"></div>
-          <div className="text-center py-1.5 bg-[#0d0f10] border-l border-[#1a1d1f]">
+          <div className="text-center py-1.5 bg-[#0d0f10] border-l border-gray-700">
             <span className="text-[10px] text-[#b1bad3] font-semibold uppercase">Spread</span>
           </div>
-          <div className="text-center py-1.5 bg-[#0d0f10] border-l border-[#1a1d1f]">
+          <div className="text-center py-1.5 bg-[#0d0f10] border-l border-gray-700">
             <span className="text-[10px] text-[#b1bad3] font-semibold uppercase">Total</span>
           </div>
-          <div className="text-center py-1.5 bg-[#0d0f10] border-l border-[#1a1d1f]">
+          <div className="text-center py-1.5 bg-[#0d0f10] border-l border-gray-700">
             <span className="text-[10px] text-[#b1bad3] font-semibold uppercase">Moneyline</span>
           </div>
         </div>
 
         {/* Away Team Row */}
-        <div className="grid grid-cols-4 border-b border-[#1a1d1f]">
+        <div className="grid grid-cols-4 border-b border-gray-700">
           {/* Away Team Info */}
           <div className="flex items-center gap-3 px-4 bg-[#0d0f10] h-[60px]">
             <div className="w-6 h-6 bg-[#1a1d1f] rounded flex items-center justify-center">
@@ -158,7 +158,7 @@ export default function GameCard({ game }: GameCardProps) {
           </div>
 
           {/* Away Spread */}
-          <div className="border-l border-[#1a1d1f]">
+          <div className="border-l border-gray-700">
             {game.spread ? (
               renderOddsCell(game.spread.awayOdds, 'spread-away', 'awayOdds', game.spread.away)
             ) : (
@@ -167,7 +167,7 @@ export default function GameCard({ game }: GameCardProps) {
           </div>
 
           {/* Away Total (Over) */}
-          <div className="border-l border-[#1a1d1f]">
+          <div className="border-l border-gray-700">
             {game.total ? (
               renderOddsCell(game.total.overOdds, 'over', 'homeOdds', game.total.over)
             ) : (
@@ -176,7 +176,7 @@ export default function GameCard({ game }: GameCardProps) {
           </div>
 
           {/* Away Moneyline */}
-          <div className="border-l border-[#1a1d1f]">
+          <div className="border-l border-gray-700">
             {game.moneyline ? (
               renderOddsCell(game.moneyline.away, 'away', 'awayOdds')
             ) : (
@@ -201,7 +201,7 @@ export default function GameCard({ game }: GameCardProps) {
           </div>
 
           {/* Home Spread */}
-          <div className="border-l border-[#1a1d1f]">
+          <div className="border-l border-gray-700">
             {game.spread ? (
               renderOddsCell(game.spread.homeOdds, 'spread-home', 'homeOdds', game.spread.home)
             ) : (
@@ -210,7 +210,7 @@ export default function GameCard({ game }: GameCardProps) {
           </div>
 
           {/* Home Total (Under) */}
-          <div className="border-l border-[#1a1d1f]">
+          <div className="border-l border-gray-700">
             {game.total ? (
               renderOddsCell(game.total.underOdds, 'under', 'awayOdds', game.total.under)
             ) : (
@@ -219,7 +219,7 @@ export default function GameCard({ game }: GameCardProps) {
           </div>
 
           {/* Home Moneyline */}
-          <div className="border-l border-[#1a1d1f]">
+          <div className="border-l border-gray-700">
             {game.moneyline ? (
               renderOddsCell(game.moneyline.home, 'home', 'homeOdds')
             ) : (
