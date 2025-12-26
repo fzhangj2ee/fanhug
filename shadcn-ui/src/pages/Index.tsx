@@ -236,22 +236,10 @@ export default function Index() {
               </div>
             )}
 
-            {/* Secondary Tabs */}
-            <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-2">
+            {/* Game Lines Tab - Only this tab visible */}
+            <div className="mb-4">
               <button className="px-4 py-2 bg-[#1a1d1f] text-white text-sm font-semibold rounded whitespace-nowrap border-b-2 border-[#53d337]">
                 GAME LINES
-              </button>
-              <button className="px-4 py-2 bg-transparent text-[#b1bad3] text-sm font-semibold rounded whitespace-nowrap hover:bg-[#1a1d1f] transition-colors">
-                TD SCORERS
-              </button>
-              <button className="px-4 py-2 bg-transparent text-[#b1bad3] text-sm font-semibold rounded whitespace-nowrap hover:bg-[#1a1d1f] transition-colors">
-                PASSING PROPS
-              </button>
-              <button className="px-4 py-2 bg-transparent text-[#b1bad3] text-sm font-semibold rounded whitespace-nowrap hover:bg-[#1a1d1f] transition-colors">
-                RECEIVING PROPS
-              </button>
-              <button className="px-4 py-2 bg-transparent text-[#b1bad3] text-sm font-semibold rounded whitespace-nowrap hover:bg-[#1a1d1f] transition-colors">
-                RUSHING PROPS
               </button>
             </div>
 
