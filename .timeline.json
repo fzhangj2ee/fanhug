@@ -1,5 +1,5 @@
 {
-  "timeline_index": 261,
+  "timeline_index": 310,
   "planner": {
     "Team Leader": {
       "1": {
@@ -15,7 +15,7 @@
         "start_at": 1766782524.0432215,
         "end_at": 1766782993.134863
       },
-      "current_task_id": "6",
+      "current_task_id": "10",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [],
@@ -79,7 +79,77 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1766785123.6725445,
-        "end_at": 1766785196.2099998
+        "end_at": 1766785577.4936442
+      },
+      "7": {
+        "task_id": "7",
+        "dependent_task_ids": [],
+        "instruction": "Design authentication system architecture and choose authentication provider:\n\n**Requirements:**\n1. Research and select an authentication provider that supports OAuth2 social logins\n2. Recommended options: Supabase Auth, Firebase Authentication, Auth0, or NextAuth.js\n3. Consider factors: ease of integration, cost, social provider support, session management\n4. Design the authentication flow and system architecture\n5. Plan OAuth2 integration for social logins: Google, Facebook, Twitter/X, GitHub\n6. Document the chosen solution and implementation approach\n\n**Deliverables:**\n- Architecture design document\n- Selected authentication provider with justification\n- OAuth2 flow diagram\n- Implementation plan with technical details\n\n**File Location:**\n- Save architecture document to `/workspace/shadcn-ui/docs/design/auth_architecture.md`\n\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly with implementation.",
+        "task_type": "general",
+        "code": "",
+        "result": "",
+        "is_success": false,
+        "is_finished": true,
+        "assignee": "Bob",
+        "start_at": 1766785577.4936507,
+        "end_at": 1766785738.4863405
+      },
+      "8": {
+        "task_id": "8",
+        "dependent_task_ids": [
+          "7"
+        ],
+        "instruction": "Create login/signup UI components with social login buttons:\n\n**Requirements:**\n1. Create a login page with email/password form\n2. Create a signup page with registration form\n3. Add social login buttons for: Google, Facebook, Twitter/X, GitHub\n4. Match the current dark theme design (#0d0f10 background, #53d337 accent)\n5. Implement responsive design for mobile and desktop\n6. Add form validation and error handling UI\n7. Create loading states and success/error messages\n8. Follow the existing UI component patterns using shadcn-ui\n\n**UI Components to Create:**\n- `/workspace/shadcn-ui/src/pages/Login.tsx` - Login page\n- `/workspace/shadcn-ui/src/pages/Signup.tsx` - Signup page\n- `/workspace/shadcn-ui/src/components/SocialLoginButtons.tsx` - Social login buttons component\n- `/workspace/shadcn-ui/src/components/AuthForm.tsx` - Reusable auth form component\n\n**Design Requirements:**\n- Dark theme matching existing design\n- Green accent color (#53d337)\n- Clean, modern UI\n- Clear call-to-action buttons\n- Social login buttons with brand colors and icons\n- Form validation feedback\n\n**Dependencies:**\n- Use architecture design from task 7 at `/workspace/shadcn-ui/docs/design/auth_architecture.md`\n\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly with implementation.",
+        "task_type": "general",
+        "code": "",
+        "result": "",
+        "is_success": false,
+        "is_finished": true,
+        "assignee": "Alex",
+        "start_at": 1766785738.486379,
+        "end_at": 1766785918.2878306
+      },
+      "9": {
+        "task_id": "9",
+        "dependent_task_ids": [
+          "8"
+        ],
+        "instruction": "Implement authentication logic with OAuth2 flows and session management:\n\n**Requirements:**\n1. Set up the chosen authentication provider (from task 7)\n2. Implement OAuth2 flows for social logins (Google, Facebook, Twitter/X, GitHub)\n3. Implement email/password authentication\n4. Set up session management and token handling\n5. Create authentication context for global state management\n6. Implement protected route wrapper component\n7. Add authentication hooks (useAuth, useUser, etc.)\n8. Handle authentication errors and edge cases\n9. Implement logout functionality\n10. Add token refresh logic if needed\n\n**Files to Create/Modify:**\n- `/workspace/shadcn-ui/src/lib/auth.ts` - Authentication service/helper functions\n- `/workspace/shadcn-ui/src/contexts/AuthContext.tsx` - Authentication context\n- `/workspace/shadcn-ui/src/hooks/useAuth.ts` - Authentication hooks\n- `/workspace/shadcn-ui/src/components/ProtectedRoute.tsx` - Protected route wrapper\n- Update `/workspace/shadcn-ui/src/pages/Login.tsx` - Connect to auth logic\n- Update `/workspace/shadcn-ui/src/pages/Signup.tsx` - Connect to auth logic\n\n**Implementation Details:**\n- Follow the architecture design from task 7\n- Integrate with the UI components from task 8\n- Implement secure token storage\n- Handle authentication state persistence\n- Add proper error handling and user feedback\n\n**Environment Variables:**\n- Add necessary API keys and configuration to `.env` file\n- Document required environment variables\n\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly with implementation.",
+        "task_type": "general",
+        "code": "",
+        "result": "",
+        "is_success": false,
+        "is_finished": true,
+        "assignee": "Alex",
+        "start_at": 1766785918.2878726,
+        "end_at": 1766786139.814623
+      },
+      "10": {
+        "task_id": "10",
+        "dependent_task_ids": [
+          "9"
+        ],
+        "instruction": "Integrate authentication with existing features:\n\n**Requirements:**\n1. Protect betting-related routes (require login to place bets)\n2. Connect user authentication to wallet functionality\n3. Link bets to authenticated user accounts\n4. Update navigation to show login/logout buttons\n5. Add user menu dropdown in header with profile link\n6. Persist user's betting history and wallet balance\n7. Update BettingContext to work with authenticated users\n8. Show user-specific data in My Bets page\n9. Add authentication checks before allowing bet placement\n\n**Files to Modify:**\n- `/workspace/shadcn-ui/src/App.tsx` - Add authentication provider and protected routes\n- `/workspace/shadcn-ui/src/components/Navigation.tsx` or header component - Add login/logout buttons\n- `/workspace/shadcn-ui/src/contexts/BettingContext.tsx` - Integrate with user authentication\n- `/workspace/shadcn-ui/src/pages/MyBets.tsx` - Show user-specific bets\n- `/workspace/shadcn-ui/src/pages/Wallet.tsx` - Connect to user account\n- `/workspace/shadcn-ui/src/pages/Index.tsx` - Add authentication checks for betting\n\n**Implementation Details:**\n- Use authentication context from task 9\n- Add user ID to bet records\n- Implement user-specific data fetching\n- Show appropriate UI based on authentication state\n- Redirect to login page when authentication is required\n\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly with implementation.",
+        "task_type": "general",
+        "code": "",
+        "result": "",
+        "is_success": false,
+        "is_finished": false,
+        "assignee": "Alex",
+        "start_at": 1766786139.8146596
+      },
+      "11": {
+        "task_id": "11",
+        "dependent_task_ids": [
+          "10"
+        ],
+        "instruction": "Create user profile management page:\n\n**Requirements:**\n1. Create a user profile page showing account information\n2. Display user details (name, email, avatar)\n3. Show account creation date and login history\n4. Add ability to update profile information\n5. Add ability to change password (for email/password accounts)\n6. Show connected social accounts\n7. Add option to link/unlink social accounts\n8. Display user statistics (total bets, win rate, etc.)\n9. Match the dark theme design of the application\n\n**Files to Create:**\n- `/workspace/shadcn-ui/src/pages/Profile.tsx` - User profile page\n- `/workspace/shadcn-ui/src/components/ProfileSettings.tsx` - Profile settings component\n- `/workspace/shadcn-ui/src/components/AccountSecurity.tsx` - Security settings component\n\n**Features:**\n- View and edit profile information\n- Change password functionality\n- View login history\n- Manage connected social accounts\n- View betting statistics\n- Account settings and preferences\n\n**Design:**\n- Match existing dark theme\n- Use shadcn-ui components\n- Responsive layout\n- Clear sections for different settings\n\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly with implementation.",
+        "task_type": "general",
+        "code": "",
+        "result": "",
+        "is_success": false,
+        "is_finished": false,
+        "assignee": "Alex"
       }
     }
   },
@@ -345,7 +415,56 @@
     "258": 1,
     "259": 1,
     "260": 1,
-    "261": 1
+    "261": 1,
+    "262": 1,
+    "263": 1,
+    "264": 1,
+    "265": 1,
+    "266": 1,
+    "267": 1,
+    "268": 1,
+    "269": 1,
+    "270": 1,
+    "271": 1,
+    "272": 1,
+    "273": 1,
+    "274": 1,
+    "275": 1,
+    "276": 1,
+    "277": 1,
+    "278": 1,
+    "279": 1,
+    "280": 1,
+    "281": 1,
+    "282": 1,
+    "283": 1,
+    "284": 1,
+    "285": 1,
+    "286": 1,
+    "287": 1,
+    "288": 1,
+    "289": 1,
+    "290": 1,
+    "291": 1,
+    "292": 1,
+    "293": 1,
+    "294": 1,
+    "295": 1,
+    "296": 1,
+    "297": 1,
+    "298": 1,
+    "299": 1,
+    "300": 1,
+    "301": 1,
+    "302": 1,
+    "303": 1,
+    "304": 1,
+    "305": 1,
+    "306": 1,
+    "307": 1,
+    "308": 1,
+    "309": 1,
+    "310": 1
   },
   "preview_servers": {},
   "preview_server": {
