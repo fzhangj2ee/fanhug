@@ -6,6 +6,7 @@ import { useLiveOdds } from '@/contexts/LiveOddsContext';
 import { Star, TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import TeamLogo from '@/components/TeamLogo';
 
 interface GameCardProps {
   game: Game;
@@ -94,11 +95,6 @@ export default function GameCard({ game }: GameCardProps) {
     );
   };
 
-  const getTeamAbbreviation = (teamName: string) => {
-    const parts = teamName.split(' ');
-    return parts[parts.length - 1].substring(0, 3).toUpperCase();
-  };
-
   return (
     <Card className="bg-[#0d0f10] border-[#1a1d1f] hover:border-[#2a2d2f] transition-all duration-200 overflow-hidden">
       <div className="p-0">
@@ -146,14 +142,10 @@ export default function GameCard({ game }: GameCardProps) {
         <div className="grid grid-cols-4 border-b border-gray-700">
           {/* Away Team Info */}
           <div className="flex items-center gap-3 px-4 bg-[#0d0f10] h-[60px]">
-            <div className="w-6 h-6 bg-[#1a1d1f] rounded flex items-center justify-center">
-              <span className="text-[10px] font-bold text-[#b1bad3]">
-                {getTeamAbbreviation(game.awayTeam)}
-              </span>
-            </div>
+            <TeamLogo teamName={game.awayTeam} sport={game.sport} size="md" />
             <span className="text-sm text-white font-medium flex-1">{game.awayTeam}</span>
             {game.isLive && game.awayScore !== undefined && (
-              <span className="text-lg font-bold text-white">{game.awayScore}</span>
+              <span className="text-lg font-bold text-white tabular-nums">{game.awayScore}</span>
             )}
           </div>
 
@@ -189,14 +181,10 @@ export default function GameCard({ game }: GameCardProps) {
         <div className="grid grid-cols-4">
           {/* Home Team Info */}
           <div className="flex items-center gap-3 px-4 bg-[#0d0f10] h-[60px]">
-            <div className="w-6 h-6 bg-[#1a1d1f] rounded flex items-center justify-center">
-              <span className="text-[10px] font-bold text-[#b1bad3]">
-                {getTeamAbbreviation(game.homeTeam)}
-              </span>
-            </div>
+            <TeamLogo teamName={game.homeTeam} sport={game.sport} size="md" />
             <span className="text-sm text-white font-medium flex-1">{game.homeTeam}</span>
             {game.isLive && game.homeScore !== undefined && (
-              <span className="text-lg font-bold text-white">{game.homeScore}</span>
+              <span className="text-lg font-bold text-white tabular-nums">{game.homeScore}</span>
             )}
           </div>
 
