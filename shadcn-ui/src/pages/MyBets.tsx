@@ -5,9 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function MyBets() {
   const { bets, settleBet } = useBetting();
+  const navigate = useNavigate();
 
   const pendingBets = bets.filter((bet) => bet.status === 'pending');
   const wonBets = bets.filter((bet) => bet.status === 'won');
@@ -16,6 +18,10 @@ export default function MyBets() {
   const totalWon = wonBets.reduce((sum, bet) => sum + bet.potentialWin, 0);
   const totalLost = lostBets.reduce((sum, bet) => sum + bet.stake, 0);
   const netProfit = totalWon - totalLost;
+
+  const handleHomeClick = () => {
+    navigate('/');
+  };
 
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
@@ -101,7 +107,7 @@ export default function MyBets() {
 
   return (
     <div className="min-h-screen bg-[#0F1419]">
-      <Navbar />
+      <Navbar onHomeClick={handleHomeClick} isHomeActive={false} />
 
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-white mb-6">My Bets</h1>
