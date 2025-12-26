@@ -14,14 +14,22 @@ export default function BetSlip() {
   const { betSlip, removeFromBetSlip, updateStake, placeBets, clearBetSlip } = useBetting();
   const { balance } = useWallet();
   const { oddsChanges } = useLiveOdds();
-  const [showDetails, setShowDetails] = useState(false);
 
   const totalStake = betSlip.reduce((sum, item) => sum + item.stake, 0);
   const totalPotentialWin = betSlip.reduce((sum, item) => sum + item.stake * item.odds, 0);
 
+  // Check if all bets have valid stakes (> 0)
+  const hasValidStakes = betSlip.length > 0 && betSlip.every(item => item.stake > 0);
+  const canPlaceBets = hasValidStakes && totalStake <= balance;
+
   const handlePlaceBets = () => {
     if (totalStake > balance) {
       toast.error('Insufficient balance!');
+      return;
+    }
+
+    if (!hasValidStakes) {
+      toast.error('Please enter a valid stake amount for all bets');
       return;
     }
 
@@ -45,9 +53,9 @@ export default function BetSlip() {
       case 'spread-home':
         return `${getTeamAbbreviation(item.game.homeTeam)} ${item.spreadValue && item.spreadValue > 0 ? '+' : ''}${item.spreadValue}`;
       case 'over':
-        return `O ${item.totalValue}`;
+        return `Over ${item.totalValue}`;
       case 'under':
-        return `U ${item.totalValue}`;
+        return `Under ${item.totalValue}`;
       case 'away':
         return getTeamAbbreviation(item.game.awayTeam);
       case 'home':
@@ -146,137 +154,117 @@ export default function BetSlip() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4 p-4">
+        {/* SINGLES Section Header */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-white text-sm font-bold uppercase">SINGLES</h3>
+        </div>
+
         {/* Bet Items */}
         {betSlip.map((item) => {
           const oddsChange = getOddsChange(item.game.id, item.betType);
           const isIncreasing = oddsChange?.direction === 'up';
           const isDecreasing = oddsChange?.direction === 'down';
+          const itemPayout = item.stake > 0 ? (item.stake * item.odds) : 0;
 
           return (
-            <div key={item.game.id} className="bg-[#1a1d1f] rounded-lg overflow-hidden">
-              {/* Bet Header */}
-              <div className="flex items-center justify-between px-3 py-2 bg-[#0d0f10] border-b border-[#1a1d1f]">
-                <span className="text-[#b1bad3] text-xs font-semibold uppercase">
-                  {getBetTypeLabel(item.betType)}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeFromBetSlip(item.game.id)}
-                  className="text-[#b1bad3] hover:text-white p-1 h-auto"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* Bet Content */}
-              <div className="p-3 space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-white text-sm font-medium">
-                      {item.game.awayTeam} @ {item.game.homeTeam}
-                    </p>
-                    <p className="text-[#b1bad3] text-xs mt-0.5">
+            <div key={item.game.id} className="bg-[#1a1d1f] rounded-lg p-3 space-y-3">
+              {/* Bet Header with Remove Button */}
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeFromBetSlip(item.game.id)}
+                      className="text-[#b1bad3] hover:text-white p-0 h-auto -ml-1"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <span className="text-white text-sm font-medium">
                       {getBetDescription(item)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {isIncreasing && (
-                      <TrendingUp className="h-3 w-3 text-green-400" />
-                    )}
-                    {isDecreasing && (
-                      <TrendingDown className="h-3 w-3 text-red-400" />
-                    )}
-                    <span className={cn(
-                      'text-sm font-bold font-mono',
-                      isIncreasing ? 'text-green-400' : isDecreasing ? 'text-red-400' : 'text-[#53d337]'
-                    )}>
-                      {formatAmericanOdds(item.odds)}
                     </span>
                   </div>
+                  <div className="flex items-center gap-2 ml-6">
+                    <span className="text-[#b1bad3] text-xs">
+                      {getBetTypeLabel(item.betType)}
+                    </span>
+                  </div>
+                  <p className="text-[#b1bad3] text-xs mt-1 ml-6">
+                    {item.game.homeTeam} @ {item.game.awayTeam}
+                  </p>
                 </div>
-
-                {/* Stake Input */}
-                <div className="space-y-1">
-                  <label className="text-[#b1bad3] text-xs font-medium">Stake</label>
-                  <Input
-                    type="number"
-                    min="10"
-                    step="10"
-                    value={item.stake}
-                    onChange={(e) => updateStake(item.game.id, Number(e.target.value))}
-                    className="bg-[#0d0f10] border-[#2a2d2f] text-white h-9"
-                  />
-                </div>
-
-                {/* Potential Win */}
-                <div className="flex justify-between items-center pt-2 border-t border-[#2a2d2f]">
-                  <span className="text-[#b1bad3] text-xs">To Win:</span>
-                  <span className="text-[#53d337] font-bold text-sm">
-                    ${(item.stake * item.odds).toFixed(2)}
+                <div className="flex items-center gap-1">
+                  {isIncreasing && (
+                    <TrendingUp className="h-3 w-3 text-green-400" />
+                  )}
+                  {isDecreasing && (
+                    <TrendingDown className="h-3 w-3 text-red-400" />
+                  )}
+                  <span className={cn(
+                    'text-sm font-bold font-mono',
+                    isIncreasing ? 'text-green-400' : isDecreasing ? 'text-red-400' : 'text-white'
+                  )}>
+                    {formatAmericanOdds(item.odds)}
                   </span>
                 </div>
+              </div>
+
+              {/* Stake Input with $ prefix */}
+              <div className="space-y-1">
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white text-sm font-medium">
+                    $
+                  </span>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={item.stake || ''}
+                    onChange={(e) => {
+                      const value = e.target.value === '' ? 0 : Number(e.target.value);
+                      updateStake(item.game.id, Math.max(0, value));
+                    }}
+                    placeholder="0.00"
+                    className="bg-[#0d0f10] border-[#2a2d2f] text-white h-10 pl-7 pr-3 text-sm font-medium"
+                  />
+                </div>
+                {item.stake > 0 && (
+                  <p className="text-[#b1bad3] text-xs">
+                    Payout: ${itemPayout.toFixed(2)}
+                  </p>
+                )}
               </div>
             </div>
           );
         })}
 
-        {/* Summary Section */}
-        <div className="bg-[#1a1d1f] rounded-lg p-3 space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-[#b1bad3]">Total Wagered</span>
-            <span className="text-white font-bold">${totalStake.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-[#b1bad3]">Total Potential Payout</span>
-            <span className="text-[#53d337] font-bold">${totalPotentialWin.toFixed(2)}</span>
-          </div>
-        </div>
-
-        {/* View Bets Details */}
-        <button
-          onClick={() => setShowDetails(!showDetails)}
-          className="w-full flex items-center justify-between px-3 py-2 bg-[#1a1d1f] rounded-lg text-white text-sm font-medium hover:bg-[#2a2d2f] transition-colors"
-        >
-          <span>View Bets Details</span>
-          <span className={cn(
-            'transition-transform',
-            showDetails && 'rotate-180'
-          )}>
-            ▼
-          </span>
-        </button>
-
-        {showDetails && (
-          <div className="bg-[#1a1d1f] rounded-lg p-3 space-y-2 text-xs">
-            <div className="flex justify-between">
-              <span className="text-[#b1bad3]">Current Balance:</span>
-              <span className="text-white">${balance.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[#b1bad3]">After Bet Balance:</span>
-              <span className="text-white">${(balance - totalStake).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[#b1bad3]">Number of Bets:</span>
-              <span className="text-white">{betSlip.length}</span>
-            </div>
-          </div>
-        )}
-
         {/* Place Bet Button */}
         <Button
           onClick={handlePlaceBets}
-          className="w-full bg-[#53d337] hover:bg-[#45b82e] text-black font-bold text-base py-6"
-          disabled={totalStake > balance}
+          disabled={!canPlaceBets}
+          className={cn(
+            "w-full font-bold text-base py-6 transition-all",
+            canPlaceBets
+              ? "bg-[#53d337] hover:bg-[#45b82e] text-black"
+              : "bg-[#2a2d2f] text-[#6b6e70] cursor-not-allowed hover:bg-[#2a2d2f]"
+          )}
         >
-          View My Bets
+          <div className="flex flex-col items-center">
+            <span>Place Bet ${totalStake.toFixed(2)}</span>
+            {canPlaceBets && (
+              <span className="text-xs font-normal mt-0.5">
+                Total Payout: ${totalPotentialWin.toFixed(2)}
+              </span>
+            )}
+          </div>
         </Button>
 
-        {/* Keep Picks in Bet Slip */}
-        <button className="w-full text-center text-[#53d337] text-sm font-semibold hover:underline">
-          Keep Picks in Bet Slip
-        </button>
+        {/* Error message for insufficient balance */}
+        {totalStake > balance && (
+          <p className="text-red-400 text-xs text-center">
+            Insufficient balance. Please reduce your stake or add funds.
+          </p>
+        )}
 
         {/* Live Odds Update Section */}
         <div className="border-t border-[#1a1d1f] pt-4 space-y-3">
