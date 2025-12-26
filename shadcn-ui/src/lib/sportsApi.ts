@@ -191,6 +191,64 @@ async function fetchGamesFromAPI(sportKey: string): Promise<Game[]> {
   }
 }
 
+// Fetch live scores from The Odds API (for in-progress games)
+export async function fetchLiveScores(sportKey: string): Promise<Map<string, { homeScore: number; awayScore: number }>> {
+  try {
+    const response = await fetch(
+      `${ODDS_API_BASE}/sports/${sportKey}/scores/?apiKey=${ODDS_API_KEY}&daysFrom=1`
+    );
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data: OddsApiScore[] = await response.json();
+    const scoresMap = new Map<string, { homeScore: number; awayScore: number }>();
+
+    data.forEach(scoreData => {
+      // Only process games that are NOT completed (live games)
+      if (!scoreData.completed && scoreData.scores && scoreData.scores.length > 0) {
+        const homeScore = scoreData.scores.find(s => s.name === scoreData.home_team);
+        const awayScore = scoreData.scores.find(s => s.name === scoreData.away_team);
+
+        if (homeScore && awayScore) {
+          scoresMap.set(scoreData.id, {
+            homeScore: parseInt(homeScore.score),
+            awayScore: parseInt(awayScore.score),
+          });
+        }
+      }
+    });
+
+    return scoresMap;
+  } catch (error) {
+    console.error(`Error fetching live scores for ${sportKey}:`, error);
+    return new Map();
+  }
+}
+
+// Fetch all live scores across all sports
+export async function fetchAllLiveScores(): Promise<Map<string, { homeScore: number; awayScore: number }>> {
+  try {
+    const sportKeys = Object.values(SPORT_KEYS);
+    const allScoresPromises = sportKeys.map(sportKey => fetchLiveScores(sportKey));
+    const allScoresArrays = await Promise.all(allScoresPromises);
+    
+    // Merge all maps
+    const mergedMap = new Map<string, { homeScore: number; awayScore: number }>();
+    allScoresArrays.forEach(scoresMap => {
+      scoresMap.forEach((score, id) => {
+        mergedMap.set(id, score);
+      });
+    });
+    
+    return mergedMap;
+  } catch (error) {
+    console.error('Error fetching all live scores:', error);
+    return new Map();
+  }
+}
+
 // Fetch game scores from The Odds API
 export async function fetchGameScores(sportKey: string): Promise<Map<string, Game>> {
   try {
@@ -304,17 +362,34 @@ export async function fetchAllCompletedGames(): Promise<Map<string, Game>> {
   }
 }
 
-// Fetch all sports games
+// Fetch all sports games with live scores
 export async function fetchAllGames(): Promise<Game[]> {
   try {
     const sportKeys = Object.values(SPORT_KEYS);
     const allGamesPromises = sportKeys.map(sportKey => fetchGamesFromAPI(sportKey));
     const allGamesArrays = await Promise.all(allGamesPromises);
     
-    // Flatten and sort by start time
-    const allGames = allGamesArrays.flat().sort((a, b) => 
-      a.startTime.getTime() - b.startTime.getTime()
-    );
+    // Flatten games
+    let allGames = allGamesArrays.flat();
+    
+    // Fetch live scores for all sports
+    const liveScores = await fetchAllLiveScores();
+    
+    // Merge live scores into games
+    allGames = allGames.map(game => {
+      const score = liveScores.get(game.id);
+      if (score && game.isLive) {
+        return {
+          ...game,
+          homeScore: score.homeScore,
+          awayScore: score.awayScore,
+        };
+      }
+      return game;
+    });
+    
+    // Sort by start time
+    allGames.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
     return allGames;
   } catch (error) {
