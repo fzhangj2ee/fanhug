@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { fetchLiveGames } from '@/lib/sportsApi';
 import { useLiveOdds } from '@/contexts/LiveOddsContext';
 import GameCard from '@/components/GameCard';
@@ -10,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Activity } from 'lucide-react';
 
 export default function LiveBetting() {
+  const navigate = useNavigate();
   const { data: fetchedGames, isLoading } = useQuery({
     queryKey: ['live-games'],
     queryFn: fetchLiveGames,
@@ -24,11 +26,15 @@ export default function LiveBetting() {
     }
   }, [fetchedGames, setGames]);
 
+  const handleHomeClick = () => {
+    navigate('/');
+  };
+
   const displayGames = games.length > 0 ? games.filter(g => g.isLive) : fetchedGames || [];
 
   return (
     <div className="min-h-screen bg-[#0F1419]">
-      <Navbar />
+      <Navbar onHomeClick={handleHomeClick} isHomeActive={false} />
 
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
