@@ -1,5 +1,5 @@
 {
-  "timeline_index": 246,
+  "timeline_index": 251,
   "planner": {
     "Team Leader": {
       "1": {
@@ -15,7 +15,7 @@
         "start_at": 1766782524.0432215,
         "end_at": 1766782993.134863
       },
-      "current_task_id": "3",
+      "current_task_id": "4",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [],
@@ -40,7 +40,20 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1766783922.0397696,
-        "end_at": 1766784034.6461372
+        "end_at": 1766784370.3515303
+      },
+      "4": {
+        "task_id": "4",
+        "dependent_task_ids": [],
+        "instruction": "Investigate and fix incorrect score display in the game table:\n\n**Issue:**\n- Game Lines → All tab is displaying \"14:16\" as the score\n- Actual live score should be \"1 0\"\n- Scores appear to be incorrect or not updating properly from the API\n\n**Investigation Steps:**\n1. Check how live scores are being fetched in `/workspace/shadcn-ui/src/lib/sportsApi.ts`\n2. Verify the score data structure in the API response\n3. Check how scores are displayed in `/workspace/shadcn-ui/src/components/GameCard.tsx`\n4. Ensure the score update logic is working correctly\n5. Check if there's a mismatch between simulated scores and actual API scores\n\n**Root Cause Analysis:**\n- Determine if scores are being fetched from the API correctly\n- Check if there's a caching issue\n- Verify if the score display logic is using the right data source\n- Check if simulated scores are overriding real API scores\n\n**Fix Requirements:**\n1. Ensure live scores are fetched accurately from The Odds API\n2. Display actual game scores, not simulated/random scores\n3. Update scores in real-time for live games\n4. Remove any hardcoded or simulated score generation for live games\n5. Ensure score format matches the actual game (e.g., \"1 0\" not \"14:16\")\n\n**Files to Check and Modify:**\n- `/workspace/shadcn-ui/src/lib/sportsApi.ts` - Score fetching logic\n- `/workspace/shadcn-ui/src/components/GameCard.tsx` - Score display\n- `/workspace/shadcn-ui/src/contexts/LiveOddsContext.tsx` - Live updates context\n- `/workspace/shadcn-ui/src/pages/Index.tsx` - Main page with game list\n\n**Testing:**\n- Verify scores match actual game scores\n- Check that live games show correct current scores\n- Ensure scores update properly during games\n- Test with multiple sports (NFL, NBA, MLB, NHL, Soccer)\n\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly with implementation.",
+        "task_type": "general",
+        "code": "",
+        "result": "",
+        "is_success": false,
+        "is_finished": true,
+        "assignee": "Alex",
+        "start_at": 1766784370.3515337,
+        "end_at": 1766784463.3944132
       }
     }
   },
@@ -291,7 +304,12 @@
     "243": 1,
     "244": 1,
     "245": 1,
-    "246": 1
+    "246": 1,
+    "247": 1,
+    "248": 1,
+    "249": 1,
+    "250": 1,
+    "251": 1
   },
   "preview_servers": {},
   "preview_server": {

@@ -119,8 +119,9 @@ function convertToGame(apiGame: OddsApiGame, isLive: boolean = false): Game | nu
       startTime: commenceTime,
       isLive: isGameLive,
       status: isGameLive ? 'in_progress' : 'scheduled',
-      homeScore: isGameLive ? Math.floor(Math.random() * 50) : undefined,
-      awayScore: isGameLive ? Math.floor(Math.random() * 50) : undefined,
+      // Don't show scores unless we have actual data from the scores API
+      homeScore: undefined,
+      awayScore: undefined,
       
       // Moneyline (American odds)
       moneyline: {
