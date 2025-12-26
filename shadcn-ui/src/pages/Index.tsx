@@ -36,6 +36,11 @@ export default function Index() {
     return () => clearInterval(interval);
   }, [setLiveGames]);
 
+  // Reset todayCategory to 'all' when selectedSport changes
+  useEffect(() => {
+    setTodayCategory('all');
+  }, [selectedSport]);
+
   const filteredGames = selectedSport === 'all' 
     ? games 
     : games.filter(game => game.sport === selectedSport);
