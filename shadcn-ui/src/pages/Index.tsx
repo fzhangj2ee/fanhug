@@ -53,6 +53,7 @@ export default function Index() {
     setViewMode('home');
     setSidebarSelectedSport(null);
     setSelectedSport('all');
+    setTodayCategory('all');
   };
 
   const filteredGames = viewMode === 'sport' && sidebarSelectedSport
@@ -133,7 +134,7 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-[#0d0f10]">
-      <Navbar />
+      <Navbar onHomeClick={handleHomeClick} isHomeActive={viewMode === 'home'} />
       
       <div className="container mx-auto px-4 py-6">
         {/* Dynamic Breadcrumb */}
