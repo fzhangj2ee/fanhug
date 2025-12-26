@@ -1,5 +1,5 @@
 {
-  "timeline_index": 256,
+  "timeline_index": 261,
   "planner": {
     "Team Leader": {
       "1": {
@@ -15,7 +15,7 @@
         "start_at": 1766782524.0432215,
         "end_at": 1766782993.134863
       },
-      "current_task_id": "5",
+      "current_task_id": "6",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [],
@@ -66,7 +66,20 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1766784656.7465487,
-        "end_at": 1766784762.737503
+        "end_at": 1766785123.6725407
+      },
+      "6": {
+        "task_id": "6",
+        "dependent_task_ids": [],
+        "instruction": "Fix the Total column display to show \"O\" (Over) and \"U\" (Under) labels instead of \"+\" symbols:\n\n**Issue:**\n- In the game table, the Total column currently displays \"+\" in both cells\n- This is confusing as users cannot distinguish between Over and Under bets\n- Should display \"O\" for Over and \"U\" for Under, similar to DraftKings\n\n**Current Behavior:**\n- Top cell (away team row): Shows \"+\" with the total value\n- Bottom cell (home team row): Shows \"+\" with the total value\n\n**Expected Behavior:**\n- Top cell (away team row): Show \"O\" (Over) with the total value\n- Bottom cell (home team row): Show \"U\" (Under) with the total value\n\n**Files to Modify:**\n- `/workspace/shadcn-ui/src/components/GameCard.tsx` - Update the Total column rendering logic\n\n**Implementation Details:**\n1. Locate the Total column rendering code in GameCard.tsx\n2. Find where the spread value is being displayed (currently showing \"+\")\n3. For the Over bet (away team row), display \"O\" followed by the total value\n4. For the Under bet (home team row), display \"U\" followed by the total value\n5. Ensure proper formatting and alignment\n\n**Example:**\nCurrent: `+45.5` and `+45.5`\nExpected: `O 45.5` and `U 45.5`\n\n**Testing:**\n- Verify \"O\" appears in the top cell (Over)\n- Verify \"U\" appears in the bottom cell (Under)\n- Check that the total value is displayed correctly\n- Ensure alignment and spacing look good\n- Test across different sports and games\n\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly with implementation.",
+        "task_type": "general",
+        "code": "",
+        "result": "",
+        "is_success": false,
+        "is_finished": true,
+        "assignee": "Alex",
+        "start_at": 1766785123.6725445,
+        "end_at": 1766785196.2099998
       }
     }
   },
@@ -327,7 +340,12 @@
     "253": 1,
     "254": 1,
     "255": 1,
-    "256": 1
+    "256": 1,
+    "257": 1,
+    "258": 1,
+    "259": 1,
+    "260": 1,
+    "261": 1
   },
   "preview_servers": {},
   "preview_server": {

@@ -65,6 +65,18 @@ export default function GameCard({ game }: GameCardProps) {
     const isIncreasing = change?.direction === 'up';
     const isDecreasing = change?.direction === 'down';
 
+    // Format the value display based on bet type
+    let displayValue = '';
+    if (value !== undefined) {
+      if (betType === 'over') {
+        displayValue = `O ${value}`;
+      } else if (betType === 'under') {
+        displayValue = `U ${value}`;
+      } else {
+        displayValue = value > 0 ? `+${value}` : value.toString();
+      }
+    }
+
     return (
       <button
         onClick={() => addToBetSlip(game, betType, odds, value)}
@@ -74,9 +86,9 @@ export default function GameCard({ game }: GameCardProps) {
           isDecreasing && 'border-red-500/30 bg-red-500/5'
         )}
       >
-        {value !== undefined && (
+        {displayValue && (
           <span className="text-[11px] text-[#b1bad3] font-medium mb-0.5">
-            {value > 0 ? `+${value}` : value}
+            {displayValue}
           </span>
         )}
         <span className={cn(
