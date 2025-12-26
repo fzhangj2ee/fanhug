@@ -1,80 +1,157 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Home, TrendingUp, History, Wallet } from 'lucide-react';
+import { Trophy, Zap, Receipt, Wallet as WalletIcon, LogIn, User, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
 
-interface NavbarProps {
-  onHomeClick?: () => void;
-  isHomeActive?: boolean;
-}
-
-export default function Navbar({ onHomeClick, isHomeActive = true }: NavbarProps) {
+export default function Navbar() {
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
-  const isActive = (path: string) => {
-    if (path === '/') {
-      return isHomeActive;
-    }
-    return location.pathname === path;
-  };
+  const isActive = (path: string) => location.pathname === path;
 
-  const handleHomeClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (onHomeClick) {
-      onHomeClick();
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success('Logged out successfully');
+    } catch (error) {
+      toast.error('Failed to logout');
     }
   };
 
   return (
-    <nav className="bg-[#0F1419] border-b border-[#2A2F36] sticky top-0 z-50">
+    <nav className="bg-[#0d0f10] border-b border-[#1a1d1f] sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2" onClick={handleHomeClick}>
-            <img src="/assets/logo-betting.png" alt="Logo" className="h-8 w-8" />
-            <span className="text-white text-xl font-bold">BetPro</span>
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2">
+            <Trophy className="h-6 w-6 text-[#53d337]" />
+            <span className="text-xl font-bold text-white">BetPro</span>
           </Link>
 
-          <div className="flex items-center gap-2">
+          {/* Navigation Links */}
+          <div className="flex items-center space-x-2">
             <Button
-              variant={isActive('/') ? 'default' : 'ghost'}
-              className={isActive('/') ? 'bg-[#00C853] hover:bg-[#00E676]' : 'text-[#8B949E] hover:text-white'}
-              onClick={handleHomeClick}
+              asChild
+              variant="ghost"
+              className={`${
+                isActive('/')
+                  ? 'text-[#53d337] bg-[#53d337]/10'
+                  : 'text-[#8B949E] hover:text-white hover:bg-[#1a1d1f]'
+              }`}
             >
-              <Home className="h-4 w-4 mr-2" />
-              Home
+              <Link to="/">
+                <Trophy className="h-4 w-4 mr-2" />
+                Home
+              </Link>
             </Button>
 
             <Button
               asChild
-              variant={isActive('/live') ? 'default' : 'ghost'}
-              className={isActive('/live') ? 'bg-[#00C853] hover:bg-[#00E676]' : 'text-[#8B949E] hover:text-white'}
+              variant="ghost"
+              className={`${
+                isActive('/live')
+                  ? 'text-[#53d337] bg-[#53d337]/10'
+                  : 'text-[#8B949E] hover:text-white hover:bg-[#1a1d1f]'
+              }`}
             >
               <Link to="/live">
-                <TrendingUp className="h-4 w-4 mr-2" />
+                <Zap className="h-4 w-4 mr-2" />
                 Live
               </Link>
             </Button>
 
             <Button
               asChild
-              variant={isActive('/my-bets') ? 'default' : 'ghost'}
-              className={isActive('/my-bets') ? 'bg-[#00C853] hover:bg-[#00E676]' : 'text-[#8B949E] hover:text-white'}
+              variant="ghost"
+              className={`${
+                isActive('/my-bets')
+                  ? 'text-[#53d337] bg-[#53d337]/10'
+                  : 'text-[#8B949E] hover:text-white hover:bg-[#1a1d1f]'
+              }`}
             >
               <Link to="/my-bets">
-                <History className="h-4 w-4 mr-2" />
+                <Receipt className="h-4 w-4 mr-2" />
                 My Bets
               </Link>
             </Button>
 
             <Button
               asChild
-              variant={isActive('/wallet') ? 'default' : 'ghost'}
-              className={isActive('/wallet') ? 'bg-[#00C853] hover:bg-[#00E676]' : 'text-[#8B949E] hover:text-white'}
+              variant="ghost"
+              className={`${
+                isActive('/wallet')
+                  ? 'text-[#53d337] bg-[#53d337]/10'
+                  : 'text-[#8B949E] hover:text-white hover:bg-[#1a1d1f]'
+              }`}
             >
               <Link to="/wallet">
-                <Wallet className="h-4 w-4 mr-2" />
+                <WalletIcon className="h-4 w-4 mr-2" />
                 Wallet
               </Link>
             </Button>
+
+            {/* Authentication Section */}
+            <div className="ml-4 pl-4 border-l border-[#2a2d2f]">
+              {!user ? (
+                <Button
+                  asChild
+                  className="bg-[#53d337] hover:bg-[#45b82d] text-black font-bold"
+                >
+                  <Link to="/login">
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Login
+                  </Link>
+                </Button>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="text-[#8B949E] hover:text-white hover:bg-[#1a1d1f]"
+                    >
+                      <User className="h-4 w-4 mr-2" />
+                      <span className="max-w-[150px] truncate">
+                        {user.user_metadata?.full_name || user.email}
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="bg-[#1a1d1f] border-[#2a2d2f] w-56"
+                  >
+                    <DropdownMenuLabel className="text-white">
+                      My Account
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-[#2a2d2f]" />
+                    <DropdownMenuItem
+                      asChild
+                      className="text-[#b1bad3] hover:text-white hover:bg-[#2a2d2f] cursor-pointer"
+                    >
+                      <Link to="/profile" className="flex items-center">
+                        <User className="h-4 w-4 mr-2" />
+                        Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="text-[#b1bad3] hover:text-white hover:bg-[#2a2d2f] cursor-pointer"
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
           </div>
         </div>
       </div>
