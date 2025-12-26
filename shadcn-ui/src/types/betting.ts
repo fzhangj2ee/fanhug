@@ -29,6 +29,14 @@ export interface Game {
     under: number; // Total points (e.g., 45.5)
     underOdds: number; // American odds for under
   };
+  
+  // Game status and results
+  status?: 'scheduled' | 'in_progress' | 'final' | 'postponed' | 'cancelled';
+  completedAt?: string; // ISO timestamp when game finished
+  periodScores?: {
+    home: number[];
+    away: number[];
+  };
 }
 
 export interface Bet {
@@ -43,6 +51,9 @@ export interface Bet {
   status: 'pending' | 'won' | 'lost';
   marketType?: 'moneyline' | 'spread' | 'total';
   line?: number; // For spread/total bets
+  placedAt?: string; // ISO timestamp
+  settledAt?: string; // ISO timestamp
+  payout?: number; // Actual payout for won bets
 }
 
 export interface Transaction {

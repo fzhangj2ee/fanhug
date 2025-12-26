@@ -33,6 +33,21 @@ interface OddsApiGame {
   }>;
 }
 
+interface OddsApiScore {
+  id: string;
+  sport_key: string;
+  sport_title: string;
+  commence_time: string;
+  completed: boolean;
+  home_team: string;
+  away_team: string;
+  scores: Array<{
+    name: string;
+    score: string;
+  }> | null;
+  last_update: string | null;
+}
+
 // Convert American odds to decimal odds
 function americanToDecimal(americanOdds: number): number {
   if (americanOdds > 0) {
@@ -103,6 +118,7 @@ function convertToGame(apiGame: OddsApiGame, isLive: boolean = false): Game | nu
       league: apiGame.sport_title,
       startTime: commenceTime,
       isLive: isGameLive,
+      status: isGameLive ? 'in_progress' : 'scheduled',
       homeScore: isGameLive ? Math.floor(Math.random() * 50) : undefined,
       awayScore: isGameLive ? Math.floor(Math.random() * 50) : undefined,
       
@@ -171,6 +187,119 @@ async function fetchGamesFromAPI(sportKey: string): Promise<Game[]> {
   } catch (error) {
     console.error(`Error fetching ${sportKey} games:`, error);
     return [];
+  }
+}
+
+// Fetch game scores from The Odds API
+export async function fetchGameScores(sportKey: string): Promise<Map<string, Game>> {
+  try {
+    const response = await fetch(
+      `${ODDS_API_BASE}/sports/${sportKey}/scores/?apiKey=${ODDS_API_KEY}&daysFrom=3`
+    );
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data: OddsApiScore[] = await response.json();
+    const scoresMap = new Map<string, Game>();
+
+    data.forEach(scoreData => {
+      if (scoreData.completed && scoreData.scores) {
+        const homeScore = scoreData.scores.find(s => s.name === scoreData.home_team);
+        const awayScore = scoreData.scores.find(s => s.name === scoreData.away_team);
+
+        if (homeScore && awayScore) {
+          // Determine sport category
+          let sport = 'Other';
+          if (scoreData.sport_key.includes('football')) sport = 'NFL';
+          else if (scoreData.sport_key.includes('basketball')) sport = 'NBA';
+          else if (scoreData.sport_key.includes('baseball')) sport = 'MLB';
+          else if (scoreData.sport_key.includes('hockey')) sport = 'NHL';
+          else if (scoreData.sport_key.includes('soccer')) sport = 'Soccer';
+
+          const finalHomeScore = parseInt(homeScore.score);
+          const finalAwayScore = parseInt(awayScore.score);
+
+          // Generate simulated period scores based on final score
+          const periodScores = generatePeriodScores(sport, finalHomeScore, finalAwayScore);
+
+          const game: Game = {
+            id: scoreData.id,
+            homeTeam: scoreData.home_team,
+            awayTeam: scoreData.away_team,
+            homeOdds: 1.0,
+            awayOdds: 1.0,
+            sport,
+            league: scoreData.sport_title,
+            startTime: new Date(scoreData.commence_time),
+            isLive: false,
+            status: 'final',
+            homeScore: finalHomeScore,
+            awayScore: finalAwayScore,
+            completedAt: scoreData.last_update || new Date().toISOString(),
+            periodScores,
+          };
+
+          scoresMap.set(scoreData.id, game);
+        }
+      }
+    });
+
+    return scoresMap;
+  } catch (error) {
+    console.error(`Error fetching ${sportKey} scores:`, error);
+    return new Map();
+  }
+}
+
+// Generate simulated period scores that add up to final score
+function generatePeriodScores(sport: string, finalHome: number, finalAway: number) {
+  const periods = sport === 'NBA' ? 4 : sport === 'NFL' ? 4 : sport === 'NHL' ? 3 : sport === 'MLB' ? 9 : 2;
+  
+  const homeScores: number[] = [];
+  const awayScores: number[] = [];
+  
+  let remainingHome = finalHome;
+  let remainingAway = finalAway;
+  
+  for (let i = 0; i < periods - 1; i++) {
+    const homeScore = Math.floor(Math.random() * (remainingHome / (periods - i))) + Math.floor(remainingHome / (periods * 2));
+    const awayScore = Math.floor(Math.random() * (remainingAway / (periods - i))) + Math.floor(remainingAway / (periods * 2));
+    
+    homeScores.push(Math.max(0, Math.min(homeScore, remainingHome)));
+    awayScores.push(Math.max(0, Math.min(awayScore, remainingAway)));
+    
+    remainingHome -= homeScores[i];
+    remainingAway -= awayScores[i];
+  }
+  
+  // Last period gets remaining points
+  homeScores.push(Math.max(0, remainingHome));
+  awayScores.push(Math.max(0, remainingAway));
+  
+  return { home: homeScores, away: awayScores };
+}
+
+// Fetch all completed game scores
+export async function fetchAllCompletedGames(): Promise<Map<string, Game>> {
+  try {
+    const sportKeys = Object.values(SPORT_KEYS);
+    const allScoresPromises = sportKeys.map(sportKey => fetchGameScores(sportKey));
+    const allScoresArrays = await Promise.all(allScoresPromises);
+    
+    // Merge all maps
+    const mergedMap = new Map<string, Game>();
+    allScoresArrays.forEach(scoresMap => {
+      scoresMap.forEach((game, id) => {
+        mergedMap.set(id, game);
+      });
+    });
+    
+    return mergedMap;
+  } catch (error) {
+    console.error('Error fetching all completed games:', error);
+    return new Map();
   }
 }
 
