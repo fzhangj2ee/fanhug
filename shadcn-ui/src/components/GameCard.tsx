@@ -1,6 +1,5 @@
 import { Game } from '@/types/betting';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useBetting } from '@/contexts/BettingContext';
 import { useLiveOdds } from '@/contexts/LiveOddsContext';
@@ -69,7 +68,7 @@ export default function GameCard({ game }: GameCardProps) {
       <button
         onClick={() => addToBetSlip(game, betType, odds, value)}
         className={cn(
-          'flex flex-col items-center justify-center px-2 bg-[#1a1d1f] hover:bg-[#2a2d2f] border border-[#2a2d2f] transition-all duration-200 min-w-[80px] relative group h-[60px]',
+          'flex flex-col items-center justify-center px-2 bg-[#1a1d1f] hover:bg-[#2a2d2f] transition-all duration-200 w-full relative group h-[60px]',
           isIncreasing && 'border-green-500/30 bg-green-500/5',
           isDecreasing && 'border-red-500/30 bg-red-500/5'
         )}
@@ -129,94 +128,103 @@ export default function GameCard({ game }: GameCardProps) {
           )}
         </div>
 
-        {/* Game Grid */}
-        <div className="grid grid-cols-[1fr_auto_auto_auto] divide-x divide-[#1a1d1f]">
-          {/* Teams Column */}
-          <div className="divide-y divide-[#1a1d1f]">
-            {/* Away Team */}
-            <div className="flex items-center gap-3 px-4 bg-[#0d0f10] h-[60px]">
-              <div className="w-6 h-6 bg-[#1a1d1f] rounded flex items-center justify-center">
-                <span className="text-[10px] font-bold text-[#b1bad3]">
-                  {getTeamAbbreviation(game.awayTeam)}
-                </span>
-              </div>
-              <span className="text-sm text-white font-medium flex-1">{game.awayTeam}</span>
-              {game.isLive && game.awayScore !== undefined && (
-                <span className="text-lg font-bold text-white">{game.awayScore}</span>
-              )}
+        {/* Betting Odds Header Row - Full Width */}
+        <div className="grid grid-cols-4 border-b border-[#1a1d1f]">
+          <div className="bg-[#0d0f10]"></div>
+          <div className="text-center py-1.5 bg-[#0d0f10] border-l border-[#1a1d1f]">
+            <span className="text-[10px] text-[#b1bad3] font-semibold uppercase">Spread</span>
+          </div>
+          <div className="text-center py-1.5 bg-[#0d0f10] border-l border-[#1a1d1f]">
+            <span className="text-[10px] text-[#b1bad3] font-semibold uppercase">Total</span>
+          </div>
+          <div className="text-center py-1.5 bg-[#0d0f10] border-l border-[#1a1d1f]">
+            <span className="text-[10px] text-[#b1bad3] font-semibold uppercase">Moneyline</span>
+          </div>
+        </div>
+
+        {/* Away Team Row */}
+        <div className="grid grid-cols-4 border-b border-[#1a1d1f]">
+          {/* Away Team Info */}
+          <div className="flex items-center gap-3 px-4 bg-[#0d0f10] h-[60px]">
+            <div className="w-6 h-6 bg-[#1a1d1f] rounded flex items-center justify-center">
+              <span className="text-[10px] font-bold text-[#b1bad3]">
+                {getTeamAbbreviation(game.awayTeam)}
+              </span>
             </div>
-            {/* Home Team */}
-            <div className="flex items-center gap-3 px-4 bg-[#0d0f10] h-[60px]">
-              <div className="w-6 h-6 bg-[#1a1d1f] rounded flex items-center justify-center">
-                <span className="text-[10px] font-bold text-[#b1bad3]">
-                  {getTeamAbbreviation(game.homeTeam)}
-                </span>
-              </div>
-              <span className="text-sm text-white font-medium flex-1">{game.homeTeam}</span>
-              {game.isLive && game.homeScore !== undefined && (
-                <span className="text-lg font-bold text-white">{game.homeScore}</span>
-              )}
-            </div>
+            <span className="text-sm text-white font-medium flex-1">{game.awayTeam}</span>
+            {game.isLive && game.awayScore !== undefined && (
+              <span className="text-lg font-bold text-white">{game.awayScore}</span>
+            )}
           </div>
 
-          {/* Spread Column */}
-          <div className="min-w-[80px]">
-            <div className="text-center py-1.5 bg-[#0d0f10] border-b border-[#1a1d1f]">
-              <span className="text-[10px] text-[#b1bad3] font-semibold uppercase">Spread</span>
-            </div>
-            <div className="divide-y divide-[#1a1d1f]">
-              {game.spread ? (
-                <>
-                  {renderOddsCell(game.spread.awayOdds, 'spread-away', 'awayOdds', game.spread.away)}
-                  {renderOddsCell(game.spread.homeOdds, 'spread-home', 'homeOdds', game.spread.home)}
-                </>
-              ) : (
-                <>
-                  <div className="px-2 bg-[#1a1d1f]/30 h-[60px]"></div>
-                  <div className="px-2 bg-[#1a1d1f]/30 h-[60px]"></div>
-                </>
-              )}
-            </div>
+          {/* Away Spread */}
+          <div className="border-l border-[#1a1d1f]">
+            {game.spread ? (
+              renderOddsCell(game.spread.awayOdds, 'spread-away', 'awayOdds', game.spread.away)
+            ) : (
+              <div className="bg-[#1a1d1f]/30 h-[60px]"></div>
+            )}
           </div>
 
-          {/* Total Column */}
-          <div className="min-w-[80px]">
-            <div className="text-center py-1.5 bg-[#0d0f10] border-b border-[#1a1d1f]">
-              <span className="text-[10px] text-[#b1bad3] font-semibold uppercase">Total</span>
-            </div>
-            <div className="divide-y divide-[#1a1d1f]">
-              {game.total ? (
-                <>
-                  {renderOddsCell(game.total.overOdds, 'over', 'homeOdds', game.total.over)}
-                  {renderOddsCell(game.total.underOdds, 'under', 'awayOdds', game.total.under)}
-                </>
-              ) : (
-                <>
-                  <div className="px-2 bg-[#1a1d1f]/30 h-[60px]"></div>
-                  <div className="px-2 bg-[#1a1d1f]/30 h-[60px]"></div>
-                </>
-              )}
-            </div>
+          {/* Away Total (Over) */}
+          <div className="border-l border-[#1a1d1f]">
+            {game.total ? (
+              renderOddsCell(game.total.overOdds, 'over', 'homeOdds', game.total.over)
+            ) : (
+              <div className="bg-[#1a1d1f]/30 h-[60px]"></div>
+            )}
           </div>
 
-          {/* Moneyline Column */}
-          <div className="min-w-[80px]">
-            <div className="text-center py-1.5 bg-[#0d0f10] border-b border-[#1a1d1f]">
-              <span className="text-[10px] text-[#b1bad3] font-semibold uppercase">Moneyline</span>
+          {/* Away Moneyline */}
+          <div className="border-l border-[#1a1d1f]">
+            {game.moneyline ? (
+              renderOddsCell(game.moneyline.away, 'away', 'awayOdds')
+            ) : (
+              <div className="bg-[#1a1d1f]/30 h-[60px]"></div>
+            )}
+          </div>
+        </div>
+
+        {/* Home Team Row */}
+        <div className="grid grid-cols-4">
+          {/* Home Team Info */}
+          <div className="flex items-center gap-3 px-4 bg-[#0d0f10] h-[60px]">
+            <div className="w-6 h-6 bg-[#1a1d1f] rounded flex items-center justify-center">
+              <span className="text-[10px] font-bold text-[#b1bad3]">
+                {getTeamAbbreviation(game.homeTeam)}
+              </span>
             </div>
-            <div className="divide-y divide-[#1a1d1f]">
-              {game.moneyline ? (
-                <>
-                  {renderOddsCell(game.moneyline.away, 'away', 'awayOdds')}
-                  {renderOddsCell(game.moneyline.home, 'home', 'homeOdds')}
-                </>
-              ) : (
-                <>
-                  <div className="px-2 bg-[#1a1d1f]/30 h-[60px]"></div>
-                  <div className="px-2 bg-[#1a1d1f]/30 h-[60px]"></div>
-                </>
-              )}
-            </div>
+            <span className="text-sm text-white font-medium flex-1">{game.homeTeam}</span>
+            {game.isLive && game.homeScore !== undefined && (
+              <span className="text-lg font-bold text-white">{game.homeScore}</span>
+            )}
+          </div>
+
+          {/* Home Spread */}
+          <div className="border-l border-[#1a1d1f]">
+            {game.spread ? (
+              renderOddsCell(game.spread.homeOdds, 'spread-home', 'homeOdds', game.spread.home)
+            ) : (
+              <div className="bg-[#1a1d1f]/30 h-[60px]"></div>
+            )}
+          </div>
+
+          {/* Home Total (Under) */}
+          <div className="border-l border-[#1a1d1f]">
+            {game.total ? (
+              renderOddsCell(game.total.underOdds, 'under', 'awayOdds', game.total.under)
+            ) : (
+              <div className="bg-[#1a1d1f]/30 h-[60px]"></div>
+            )}
+          </div>
+
+          {/* Home Moneyline */}
+          <div className="border-l border-[#1a1d1f]">
+            {game.moneyline ? (
+              renderOddsCell(game.moneyline.home, 'home', 'homeOdds')
+            ) : (
+              <div className="bg-[#1a1d1f]/30 h-[60px]"></div>
+            )}
           </div>
         </div>
       </div>
