@@ -17,12 +17,32 @@ export default function GameCard({ game }: GameCardProps) {
   const { oddsChanges } = useLiveOdds();
   const [isFavorite, setIsFavorite] = useState(false);
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', { 
+  const formatGameDateTime = (date: Date) => {
+    const gameDate = new Date(date);
+    const today = new Date();
+    
+    // Reset time to compare only dates
+    today.setHours(0, 0, 0, 0);
+    const gameDateOnly = new Date(gameDate);
+    gameDateOnly.setHours(0, 0, 0, 0);
+    
+    const isToday = gameDateOnly.getTime() === today.getTime();
+    
+    const timeStr = gameDate.toLocaleTimeString('en-US', { 
       hour: 'numeric', 
       minute: '2-digit',
       hour12: true 
     });
+    
+    if (isToday) {
+      return `Today ${timeStr}`;
+    } else {
+      const dateStr = gameDate.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric' 
+      });
+      return `${dateStr} ${timeStr}`;
+    }
   };
 
   const formatAmericanOdds = (odds: number) => {
@@ -104,7 +124,7 @@ export default function GameCard({ game }: GameCardProps) {
             </Badge>
           ) : (
             <Badge className="bg-[#53d337] text-black text-[10px] font-bold px-2 py-0.5">
-              {formatTime(game.startTime)}
+              {formatGameDateTime(game.startTime)}
             </Badge>
           )}
         </div>
@@ -198,16 +218,6 @@ export default function GameCard({ game }: GameCardProps) {
               )}
             </div>
           </div>
-        </div>
-
-        {/* Footer - More Bets */}
-        <div className="px-4 py-2 border-t border-[#1a1d1f] bg-[#0d0f10]">
-          <Button 
-            variant="ghost" 
-            className="w-full text-[#53d337] hover:text-[#53d337] hover:bg-[#1a1d1f] text-xs font-semibold"
-          >
-            More Bets →
-          </Button>
         </div>
       </div>
     </Card>
