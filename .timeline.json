@@ -1,21 +1,21 @@
 {
-  "timeline_index": 373,
+  "timeline_index": 385,
   "planner": {
     "Team Leader": {
       "1": {
         "task_id": "1",
         "dependent_task_ids": [],
-        "instruction": "Implement automatic bet grading system on My Bets page:\n\n1. **Fetch Game Results**: Modify the sports API to fetch completed game results with final scores\n2. **Auto-Grade Bets**: When a game finishes, automatically grade all pending bets for that game based on the final score\n3. **Display Game Results**: Show final scores for completed games (e.g., \"DAL MAVERICKS 28 30 31 27 116\" vs \"GS WARRIORS 40 31 29 26 126\")\n4. **Display Bet Results**: Show bet outcome (WON/LOST) with visual indicators\n5. **Update UI**: Match the reference design from the uploaded screenshot showing:\n   - Team logos/icons\n   - Quarter-by-quarter scores\n   - Final scores\n   - Game completion timestamp\n   - Bet status badges (WON/LOST)\n   - Wager amount and payout information\n\nReference screenshot: /workspace/uploads/Screenshot 2025-12-26 at 3.53.06 PM.png\n\nFiles to modify:\n- /workspace/shadcn-ui/src/lib/sportsApi.ts - Add function to fetch game results\n- /workspace/shadcn-ui/src/contexts/BettingContext.tsx - Add auto-grading logic\n- /workspace/shadcn-ui/src/pages/MyBets.tsx - Update UI to display game results and bet outcomes\n- /workspace/shadcn-ui/src/types/betting.ts - Add types for game results and scores\n\nThe system should automatically check for completed games and grade pending bets accordingly.",
+        "instruction": "Implement two features:\n1. Create a user profile page accessible from the user icon dropdown \"Profile\" option. The profile page should display and allow editing of user information (name, email, etc.) using the existing AuthContext.\n2. Add login requirement for placing bets - when a non-logged-in user tries to place a bet, display a message prompting them to login first. Update the BetSlip component and related betting components to check authentication status before allowing bet placement.\n\nTechnology stack: Shadcn-ui, TypeScript, Tailwind CSS\nProject path: /workspace/shadcn-ui\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly.",
         "task_type": "general",
         "code": "",
         "result": "",
         "is_success": false,
         "is_finished": true,
         "assignee": "Alex",
-        "start_at": 1766782524.0432215,
-        "end_at": 1766782993.134863
+        "start_at": 1766855349.8990293,
+        "end_at": 1766855468.9462872
       },
-      "current_task_id": "10",
+      "current_task_id": "1",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [],
@@ -136,7 +136,8 @@
         "is_success": false,
         "is_finished": false,
         "assignee": "Alex",
-        "start_at": 1766786139.8146596
+        "start_at": 1766786139.8146596,
+        "end_at": 1766855349.8990223
       },
       "11": {
         "task_id": "11",
@@ -527,7 +528,19 @@
     "370": 1,
     "371": 1,
     "372": 1,
-    "373": 1
+    "373": 1,
+    "374": 1,
+    "375": 1,
+    "376": 1,
+    "377": 1,
+    "378": 1,
+    "379": 1,
+    "380": 1,
+    "381": 1,
+    "382": 1,
+    "383": 1,
+    "384": 1,
+    "385": 1
   },
   "preview_servers": {},
   "preview_server": {
