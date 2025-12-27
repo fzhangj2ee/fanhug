@@ -1,188 +1,96 @@
-import { createContext, useEffect, useState, ReactNode } from 'react';
-import { User, Session, AuthError } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
-import * as authService from '@/lib/auth';
-import type { Provider } from '@supabase/supabase-js';
+import { createContext, useState, useEffect, ReactNode } from 'react';
+
+export interface User {
+  id: string;
+  email: string;
+  balance: number;
+}
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
-  loading: boolean;
-  error: string | null;
-  signUp: (email: string, password: string, metadata?: { fullName?: string; username?: string }) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
-  signInWithOAuth: (provider: Provider) => Promise<void>;
-  signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
-  updatePassword: (newPassword: string) => Promise<void>;
-  clearError: () => void;
+  users: User[];
+  login: (email: string, password: string) => Promise<boolean>;
+  signup: (email: string, password: string) => Promise<boolean>;
+  logout: () => void;
+  isAuthenticated: boolean;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export function AuthProvider({ children }: AuthProviderProps) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
 
+  // Load users from localStorage on mount
   useEffect(() => {
-    // Get initial session
-    const initializeAuth = async () => {
-      try {
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
-        setSession(initialSession);
-        setUser(initialSession?.user ?? null);
-      } catch (err) {
-        console.error('Error initializing auth:', err);
-        setError('Failed to initialize authentication');
-      } finally {
-        setLoading(false);
-      }
-    };
+    const savedUsers = localStorage.getItem('all_users');
+    if (savedUsers) {
+      setUsers(JSON.parse(savedUsers));
+    }
 
-    initializeAuth();
-
-    // Listen for auth state changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    const savedUser = localStorage.getItem('current_user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
   }, []);
 
-  const handleAuthError = (err: unknown) => {
-    const authError = err as AuthError;
-    let errorMessage = 'An error occurred';
-
-    if (authError.message) {
-      // Map common Supabase error messages to user-friendly messages
-      if (authError.message.includes('Invalid login credentials')) {
-        errorMessage = 'Invalid email or password';
-      } else if (authError.message.includes('Email not confirmed')) {
-        errorMessage = 'Please verify your email address';
-      } else if (authError.message.includes('User already registered')) {
-        errorMessage = 'An account with this email already exists';
-      } else if (authError.message.includes('Password should be at least')) {
-        errorMessage = 'Password must be at least 8 characters';
-      } else {
-        errorMessage = authError.message;
-      }
+  // Save users to localStorage whenever they change
+  useEffect(() => {
+    if (users.length > 0) {
+      localStorage.setItem('all_users', JSON.stringify(users));
     }
+  }, [users]);
 
-    setError(errorMessage);
-    throw new Error(errorMessage);
+  // Save current user to localStorage
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('current_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('current_user');
+    }
+  }, [user]);
+
+  const login = async (email: string, password: string): Promise<boolean> => {
+    // Simple authentication - check if user exists
+    const existingUser = users.find((u) => u.email === email);
+    
+    if (existingUser) {
+      setUser(existingUser);
+      return true;
+    }
+    
+    return false;
   };
 
-  const signUp = async (
-    email: string,
-    password: string,
-    metadata?: { fullName?: string; username?: string }
-  ) => {
-    try {
-      setLoading(true);
-      setError(null);
-      await authService.signUp({
-        email,
-        password,
-        fullName: metadata?.fullName,
-        username: metadata?.username,
-      });
-    } catch (err) {
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
+  const signup = async (email: string, password: string): Promise<boolean> => {
+    // Check if user already exists
+    if (users.some((u) => u.email === email)) {
+      return false;
     }
+
+    // Create new user
+    const newUser: User = {
+      id: `user_${Date.now()}_${Math.random()}`,
+      email,
+      balance: 1000, // Starting balance
+    };
+
+    setUsers([...users, newUser]);
+    setUser(newUser);
+    return true;
   };
 
-  const signIn = async (email: string, password: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      await authService.signIn({ email, password });
-    } catch (err) {
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signInWithOAuth = async (provider: Provider) => {
-    try {
-      setLoading(true);
-      setError(null);
-      await authService.signInWithOAuth(provider);
-    } catch (err) {
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      await authService.signOut();
-      setUser(null);
-      setSession(null);
-    } catch (err) {
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resetPassword = async (email: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      await authService.resetPassword(email);
-    } catch (err) {
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updatePassword = async (newPassword: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      await authService.updatePassword(newPassword);
-    } catch (err) {
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const clearError = () => {
-    setError(null);
+  const logout = () => {
+    setUser(null);
   };
 
   const value = {
     user,
-    session,
-    loading,
-    error,
-    signUp,
-    signIn,
-    signInWithOAuth,
-    signOut,
-    resetPassword,
-    updatePassword,
-    clearError,
+    users,
+    login,
+    signup,
+    logout,
+    isAuthenticated: !!user,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

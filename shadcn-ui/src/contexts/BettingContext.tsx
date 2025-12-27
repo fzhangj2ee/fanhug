@@ -14,25 +14,22 @@ interface BetSlipItem {
 
 interface PlacedBet extends BetSlipItem {
   id: string;
+  userId: string;
   placedAt: Date;
   status: 'pending' | 'won' | 'lost';
   result?: 'won' | 'lost';
   payout?: number;
-  potentialWin?: number;
-  line?: number;
-  marketType?: string;
-  timestamp?: Date;
 }
 
 interface BettingContextType {
   betSlip: BetSlipItem[];
   placedBets: PlacedBet[];
-  bets: PlacedBet[]; // Alias for placedBets for compatibility
   addToBetSlip: (game: Game, betType: BetSlipItem['betType'], odds: number, value?: number) => void;
   removeFromBetSlip: (gameId: string) => void;
   updateStake: (gameId: string, stake: number) => void;
   placeBets: () => boolean;
   clearBetSlip: () => void;
+  getAllUserBets: (userId: string) => PlacedBet[];
 }
 
 const BettingContext = createContext<BettingContextType | undefined>(undefined);
@@ -40,31 +37,31 @@ const BettingContext = createContext<BettingContextType | undefined>(undefined);
 export function BettingProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [betSlip, setBetSlip] = useState<BetSlipItem[]>([]);
-  const [placedBets, setPlacedBets] = useState<PlacedBet[]>([]);
+  const [allPlacedBets, setAllPlacedBets] = useState<PlacedBet[]>([]);
 
-  // Load placed bets from localStorage on mount
+  // Load all placed bets from localStorage on mount
   useEffect(() => {
-    if (user) {
-      const savedBets = localStorage.getItem(`placedBets_${user.id}`);
-      if (savedBets) {
-        const parsed = JSON.parse(savedBets);
-        // Convert date strings back to Date objects
-        const betsWithDates = parsed.map((bet: PlacedBet) => ({
-          ...bet,
-          placedAt: new Date(bet.placedAt),
-          timestamp: bet.timestamp ? new Date(bet.timestamp) : new Date(bet.placedAt),
-        }));
-        setPlacedBets(betsWithDates);
-      }
+    const savedBets = localStorage.getItem('all_placed_bets');
+    if (savedBets) {
+      const parsed = JSON.parse(savedBets);
+      // Convert date strings back to Date objects
+      const betsWithDates = parsed.map((bet: PlacedBet) => ({
+        ...bet,
+        placedAt: new Date(bet.placedAt),
+      }));
+      setAllPlacedBets(betsWithDates);
     }
-  }, [user]);
+  }, []);
 
-  // Save placed bets to localStorage whenever they change
+  // Save all placed bets to localStorage whenever they change
   useEffect(() => {
-    if (user && placedBets.length > 0) {
-      localStorage.setItem(`placedBets_${user.id}`, JSON.stringify(placedBets));
+    if (allPlacedBets.length > 0) {
+      localStorage.setItem('all_placed_bets', JSON.stringify(allPlacedBets));
     }
-  }, [placedBets, user]);
+  }, [allPlacedBets]);
+
+  // Get current user's bets
+  const placedBets = user ? allPlacedBets.filter(bet => bet.userId === user.id) : [];
 
   const addToBetSlip = (game: Game, betType: BetSlipItem['betType'], odds: number, value?: number) => {
     if (!user) {
@@ -134,30 +131,15 @@ export function BettingProvider({ children }: { children: ReactNode }) {
     }
 
     // Convert bet slip items to placed bets
-    const newPlacedBets: PlacedBet[] = betSlip.map((item) => {
-      const potentialWin = item.stake * item.odds;
-      
-      // Determine market type
-      let marketType = 'moneyline';
-      if (item.betType.includes('spread')) {
-        marketType = 'spread';
-      } else if (item.betType === 'over' || item.betType === 'under') {
-        marketType = 'total';
-      }
+    const newPlacedBets: PlacedBet[] = betSlip.map((item) => ({
+      ...item,
+      id: `${item.game.id}-${Date.now()}-${Math.random()}`,
+      userId: user.id,
+      placedAt: new Date(),
+      status: 'pending',
+    }));
 
-      return {
-        ...item,
-        id: `${item.game.id}-${Date.now()}-${Math.random()}`,
-        placedAt: new Date(),
-        timestamp: new Date(),
-        status: 'pending',
-        potentialWin,
-        line: item.spreadValue || item.totalValue,
-        marketType,
-      };
-    });
-
-    setPlacedBets([...placedBets, ...newPlacedBets]);
+    setAllPlacedBets([...allPlacedBets, ...newPlacedBets]);
     setBetSlip([]);
 
     return true;
@@ -167,15 +149,19 @@ export function BettingProvider({ children }: { children: ReactNode }) {
     setBetSlip([]);
   };
 
+  const getAllUserBets = (userId: string): PlacedBet[] => {
+    return allPlacedBets.filter(bet => bet.userId === userId);
+  };
+
   const value = {
     betSlip,
     placedBets,
-    bets: placedBets, // Alias for compatibility
     addToBetSlip,
     removeFromBetSlip,
     updateStake,
     placeBets,
     clearBetSlip,
+    getAllUserBets,
   };
 
   return <BettingContext.Provider value={value}>{children}</BettingContext.Provider>;

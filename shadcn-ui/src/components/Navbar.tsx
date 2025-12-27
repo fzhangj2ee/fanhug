@@ -1,157 +1,105 @@
-import { Link, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Trophy, Zap, Receipt, Wallet as WalletIcon, LogIn, User, LogOut } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useWallet } from '@/contexts/WalletContext';
+import { Button } from '@/components/ui/button';
+import { LogOut, Wallet, Shield } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { toast } from 'sonner';
 
-export default function Navbar() {
-  const location = useLocation();
-  const { user, signOut } = useAuth();
+interface NavbarProps {
+  onHomeClick?: () => void;
+  isHomeActive?: boolean;
+}
 
-  const isActive = (path: string) => location.pathname === path;
+export default function Navbar({ onHomeClick, isHomeActive = true }: NavbarProps) {
+  const { user, logout } = useAuth();
+  const { balance } = useWallet();
 
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      toast.success('Logged out successfully');
-    } catch (error) {
-      toast.error('Failed to logout');
-    }
-  };
+  const isAdmin = user?.email === 'fzhangj2ee@gmail.com';
 
   return (
-    <nav className="bg-[#0d0f10] border-b border-[#1a1d1f] sticky top-0 z-50">
+    <nav className="bg-[#1a1d1f] border-b border-[#2a2d2f] sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <Trophy className="h-6 w-6 text-[#53d337]" />
-            <span className="text-xl font-bold text-white">FanHug</span>
-          </Link>
-
-          {/* Navigation Links */}
-          <div className="flex items-center space-x-2">
-            <Button
-              asChild
-              variant="ghost"
-              className={`${
-                isActive('/')
-                  ? 'text-[#53d337] bg-[#53d337]/10'
-                  : 'text-[#8B949E] hover:text-white hover:bg-[#1a1d1f]'
-              }`}
+          <div className="flex items-center gap-8">
+            <button
+              onClick={onHomeClick}
+              className="text-2xl font-bold text-white hover:text-[#53d337] transition-colors"
             >
-              <Link to="/">
-                <Trophy className="h-4 w-4 mr-2" />
+              FanHug
+            </button>
+
+            {/* Navigation Links */}
+            <div className="hidden md:flex items-center gap-6">
+              <Link
+                to="/"
+                className={`text-sm font-medium transition-colors ${
+                  isHomeActive ? 'text-[#53d337]' : 'text-[#b1bad3] hover:text-white'
+                }`}
+              >
                 Home
               </Link>
-            </Button>
-
-            <Button
-              asChild
-              variant="ghost"
-              className={`${
-                isActive('/live')
-                  ? 'text-[#53d337] bg-[#53d337]/10'
-                  : 'text-[#8B949E] hover:text-white hover:bg-[#1a1d1f]'
-              }`}
-            >
-              <Link to="/live">
-                <Zap className="h-4 w-4 mr-2" />
-                Live
-              </Link>
-            </Button>
-
-            <Button
-              asChild
-              variant="ghost"
-              className={`${
-                isActive('/my-bets')
-                  ? 'text-[#53d337] bg-[#53d337]/10'
-                  : 'text-[#8B949E] hover:text-white hover:bg-[#1a1d1f]'
-              }`}
-            >
-              <Link to="/my-bets">
-                <Receipt className="h-4 w-4 mr-2" />
+              <Link
+                to="/my-bets"
+                className="text-sm font-medium text-[#b1bad3] hover:text-white transition-colors"
+              >
                 My Bets
               </Link>
-            </Button>
-
-            <Button
-              asChild
-              variant="ghost"
-              className={`${
-                isActive('/wallet')
-                  ? 'text-[#53d337] bg-[#53d337]/10'
-                  : 'text-[#8B949E] hover:text-white hover:bg-[#1a1d1f]'
-              }`}
-            >
-              <Link to="/wallet">
-                <WalletIcon className="h-4 w-4 mr-2" />
+              <Link
+                to="/wallet"
+                className="text-sm font-medium text-[#b1bad3] hover:text-white transition-colors"
+              >
                 Wallet
               </Link>
-            </Button>
-
-            {/* Authentication Section */}
-            <div className="ml-4 pl-4 border-l border-[#2a2d2f]">
-              {!user ? (
-                <Button
-                  asChild
-                  className="bg-[#53d337] hover:bg-[#45b82d] text-black font-bold"
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className="text-sm font-medium text-[#b1bad3] hover:text-white transition-colors flex items-center gap-1"
                 >
-                  <Link to="/login">
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Login
-                  </Link>
-                </Button>
-              ) : (
+                  <Shield className="h-4 w-4" />
+                  Admin
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* User Menu */}
+          <div className="flex items-center gap-4">
+            {user ? (
+              <>
+                <div className="flex items-center gap-2 bg-[#0d0f10] px-4 py-2 rounded-lg">
+                  <Wallet className="h-4 w-4 text-[#53d337]" />
+                  <span className="text-white font-medium">${balance.toFixed(2)}</span>
+                </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="text-[#8B949E] hover:text-white hover:bg-[#1a1d1f]"
-                    >
-                      <User className="h-4 w-4 mr-2" />
-                      <span className="max-w-[150px] truncate">
-                        {user.user_metadata?.full_name || user.email}
-                      </span>
+                    <Button variant="ghost" className="text-white hover:bg-[#2a2d2f]">
+                      {user.email}
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    className="bg-[#1a1d1f] border-[#2a2d2f] w-56"
-                  >
-                    <DropdownMenuLabel className="text-white">
-                      My Account
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator className="bg-[#2a2d2f]" />
+                  <DropdownMenuContent className="bg-[#1a1d1f] border-[#2a2d2f]">
                     <DropdownMenuItem
-                      asChild
-                      className="text-[#b1bad3] hover:text-white hover:bg-[#2a2d2f] cursor-pointer"
-                    >
-                      <Link to="/profile" className="flex items-center">
-                        <User className="h-4 w-4 mr-2" />
-                        Profile
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={handleLogout}
-                      className="text-[#b1bad3] hover:text-white hover:bg-[#2a2d2f] cursor-pointer"
+                      onClick={logout}
+                      className="text-white hover:bg-[#2a2d2f] cursor-pointer"
                     >
                       <LogOut className="h-4 w-4 mr-2" />
                       Logout
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              )}
-            </div>
+              </>
+            ) : (
+              <Link to="/login">
+                <Button className="bg-[#53d337] hover:bg-[#45b82d] text-white">
+                  Login
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>

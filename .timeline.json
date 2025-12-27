@@ -1,11 +1,11 @@
 {
-  "timeline_index": 444,
+  "timeline_index": 456,
   "planner": {
     "Team Leader": {
       "1": {
         "task_id": "1",
         "dependent_task_ids": [],
-        "instruction": "Implement two features:\n1. Create a user profile page accessible from the user icon dropdown \"Profile\" option. The profile page should display and allow editing of user information (name, email, etc.) using the existing AuthContext.\n2. Add login requirement for placing bets - when a non-logged-in user tries to place a bet, display a message prompting them to login first. Update the BetSlip component and related betting components to check authentication status before allowing bet placement.\n\nTechnology stack: Shadcn-ui, TypeScript, Tailwind CSS\nProject path: /workspace/shadcn-ui\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly.",
+        "instruction": "Implement an admin page with the following requirements:\n1. Add an \"Admin\" tab in the Navbar component (after \"Wallet\") that is only visible when the logged-in user's email is \"fzhangj2ee@gmail.com\"\n2. Create an Admin page (/admin route) that displays:\n   - A list of all users in the application\n   - When clicking on a user, show a detailed view with:\n     * User information (email, balance)\n     * Win/Loss statistics (number of wins, losses, total bets placed)\n     * Current active bets table showing bet details (game, bet type, stake, odds, potential payout)\n3. Update the AuthContext to store all users (not just current user) so the admin can view them\n4. Use the existing design system with dark theme (#0d0f10 background, #1a1d1f cards, #53d337 green accent)\n5. The admin page should have a clean table layout for users and bets\n6. File locations:\n   - Update: /workspace/shadcn-ui/src/components/Navbar.tsx\n   - Create: /workspace/shadcn-ui/src/pages/Admin.tsx\n   - Update: /workspace/shadcn-ui/src/contexts/AuthContext.tsx (add users list)\n   - Update: /workspace/shadcn-ui/src/App.tsx (add /admin route)\n\nUse Shadcn-ui, TypeScript and Tailwind CSS. The plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly.",
         "task_type": "general",
         "code": "",
         "result": "",
@@ -13,7 +13,7 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1766855349.8990293,
-        "end_at": 1766855468.9462872
+        "end_at": 1766870943.4099998
       },
       "current_task_id": "1",
       "2": {
@@ -599,7 +599,19 @@
     "441": 1,
     "442": 1,
     "443": 1,
-    "444": 1
+    "444": 1,
+    "445": 1,
+    "446": 1,
+    "447": 1,
+    "448": 1,
+    "449": 1,
+    "450": 1,
+    "451": 1,
+    "452": 1,
+    "453": 1,
+    "454": 1,
+    "455": 1,
+    "456": 1
   },
   "preview_servers": {},
   "preview_server": {
