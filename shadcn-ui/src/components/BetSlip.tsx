@@ -3,14 +3,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useBetting } from '@/contexts/BettingContext';
 import { useAuth } from '@/hooks/useAuth';
-import { X, LogIn } from 'lucide-react';
+import { X, LogIn, ChevronDown, Info, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useState } from 'react';
 
 export default function BetSlip() {
   const { betSlip, removeFromBetSlip, updateStake, placeBets, clearBetSlip } = useBetting();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [showBetPlaced, setShowBetPlaced] = useState(false);
+  const [lastBetDetails, setLastBetDetails] = useState({ totalStake: 0, totalPayout: 0 });
+  const [showDetails, setShowDetails] = useState(false);
 
   const totalStake = betSlip.reduce((sum, item) => sum + item.stake, 0);
   
@@ -34,10 +38,25 @@ export default function BetSlip() {
 
     const success = placeBets();
     if (success) {
+      // Store bet details before clearing
+      setLastBetDetails({
+        totalStake,
+        totalPayout: totalPotentialWin,
+      });
+      setShowBetPlaced(true);
       toast.success('Bets placed successfully!');
     } else {
       toast.error('Failed to place bets. Check your balance.');
     }
+  };
+
+  const handleKeepPicks = () => {
+    setShowBetPlaced(false);
+  };
+
+  const handleViewMyBets = () => {
+    setShowBetPlaced(false);
+    navigate('/my-bets');
   };
 
   const formatOdds = (odds: number) => {
@@ -67,21 +86,79 @@ export default function BetSlip() {
             </div>
             BET SLIP
           </CardTitle>
-          {betSlip.length > 0 && (
+          <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
-              onClick={clearBetSlip}
-              className="text-gray-400 hover:text-white h-8 px-2"
+              className="text-gray-400 hover:text-white h-8 w-8 p-0"
             >
-              Clear All
+              <Info className="h-5 w-5" />
             </Button>
-          )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-400 hover:text-white h-8 w-8 p-0"
+            >
+              <Settings className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {betSlip.length === 0 ? (
+        {showBetPlaced ? (
+          // Bet Placed Confirmation
+          <div className="space-y-4">
+            <div className="bg-green-500/10 border-2 border-green-500 rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-green-500 font-bold text-lg">BET PLACED</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowBetPlaced(false)}
+                  className="h-8 w-8 p-0 text-gray-400 hover:text-white rounded-full bg-gray-700"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300 text-sm">Total Wagered</span>
+                  <span className="text-white font-medium">${lastBetDetails.totalStake.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300 text-sm">Total Potential Payout</span>
+                  <span className="text-green-500 font-bold">${lastBetDetails.totalPayout.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <Button
+                variant="ghost"
+                onClick={() => setShowDetails(!showDetails)}
+                className="w-full justify-between text-white hover:bg-gray-700/50 h-12"
+              >
+                <span className="font-medium">View Bets Details</span>
+                <ChevronDown className={`h-5 w-5 transition-transform ${showDetails ? 'rotate-180' : ''}`} />
+              </Button>
+
+              <Button
+                onClick={handleViewMyBets}
+                className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-6 text-base"
+              >
+                View My Bets
+              </Button>
+
+              <Button
+                onClick={handleKeepPicks}
+                variant="ghost"
+                className="w-full text-white hover:bg-gray-700/50 font-medium underline"
+              >
+                Keep Picks in Bet Slip
+              </Button>
+            </div>
+          </div>
+        ) : betSlip.length === 0 ? (
           <div className="text-center py-8">
             {!user ? (
               <div className="space-y-4">
@@ -99,9 +176,12 @@ export default function BetSlip() {
                 <p className="text-sm text-gray-400">Minimum Bet: $0.10</p>
               </div>
             ) : (
-              <p className="text-gray-400 text-sm">
-                Select picks to add them to your bet slip
-              </p>
+              <div className="space-y-4">
+                <h3 className="text-white font-bold text-lg">YOUR PICKS WILL SHOW UP HERE.</h3>
+                <p className="text-gray-400 text-sm">
+                  Select picks to then see the different types of bets available, including Singles, Parlays, Teasers, Round Robins and more.
+                </p>
+              </div>
             )}
           </div>
         ) : (
