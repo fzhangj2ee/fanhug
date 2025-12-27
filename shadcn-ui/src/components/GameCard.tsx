@@ -1,10 +1,15 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Game } from '@/types/betting';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { useBetting } from '@/contexts/BettingContext';
 import { useAuth } from '@/hooks/useAuth';
-import { Game } from '@/types/betting';
+import { useLiveOdds } from '@/contexts/LiveOddsContext';
+import { Star, TrendingUp, TrendingDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import TeamLogo from '@/components/TeamLogo';
 
 interface GameCardProps {
   game: Game;
@@ -13,7 +18,47 @@ interface GameCardProps {
 export default function GameCard({ game }: GameCardProps) {
   const { addToBetSlip } = useBetting();
   const { user } = useAuth();
+  const { oddsChanges } = useLiveOdds();
   const navigate = useNavigate();
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  const formatGameDateTime = (date: Date) => {
+    const gameDate = new Date(date);
+    const today = new Date();
+    
+    // Reset time to compare only dates
+    today.setHours(0, 0, 0, 0);
+    const gameDateOnly = new Date(gameDate);
+    gameDateOnly.setHours(0, 0, 0, 0);
+    
+    const isToday = gameDateOnly.getTime() === today.getTime();
+    
+    const timeStr = gameDate.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+    
+    if (isToday) {
+      return `Today ${timeStr}`;
+    } else {
+      const dateStr = gameDate.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric' 
+      });
+      return `${dateStr} ${timeStr}`;
+    }
+  };
+
+  const formatAmericanOdds = (odds: number) => {
+    if (odds > 0) return `+${odds}`;
+    return odds.toString();
+  };
+
+  const getOddsChange = (field: 'homeOdds' | 'awayOdds') => {
+    const key = `${game.id}-${field.replace('Odds', '')}`;
+    return oddsChanges.get(key);
+  };
 
   const handleBetClick = (
     betType: 'home' | 'away' | 'spread-home' | 'spread-away' | 'over' | 'under',
@@ -31,167 +76,182 @@ export default function GameCard({ game }: GameCardProps) {
     }
 
     addToBetSlip(game, betType, odds, value);
-    
-    const betTypeLabels: Record<string, string> = {
-      'home': `${game.homeTeam} ML`,
-      'away': `${game.awayTeam} ML`,
-      'spread-home': `${game.homeTeam} ${value && value > 0 ? '+' : ''}${value}`,
-      'spread-away': `${game.awayTeam} ${value && value > 0 ? '+' : ''}${value}`,
-      'over': `Over ${value}`,
-      'under': `Under ${value}`,
-    };
-    
-    toast.success(`Added ${betTypeLabels[betType]} to bet slip`);
+    toast.success('Added to bet slip');
   };
 
-  const formatOdds = (odds: number) => {
-    return odds > 0 ? `+${odds}` : `${odds}`;
-  };
+  const renderOddsCell = (
+    odds: number,
+    betType: 'home' | 'away' | 'spread-home' | 'spread-away' | 'over' | 'under',
+    field: 'homeOdds' | 'awayOdds',
+    value?: number
+  ) => {
+    const change = getOddsChange(field);
+    const isIncreasing = change?.direction === 'up';
+    const isDecreasing = change?.direction === 'down';
 
-  const formatTime = (date: Date) => {
-    const gameDate = new Date(date);
-    return gameDate.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true 
-    });
+    // Format the value display based on bet type
+    let displayValue = '';
+    if (value !== undefined) {
+      if (betType === 'over') {
+        displayValue = `O ${value}`;
+      } else if (betType === 'under') {
+        displayValue = `U ${value}`;
+      } else {
+        displayValue = value > 0 ? `+${value}` : value.toString();
+      }
+    }
+
+    return (
+      <button
+        onClick={() => handleBetClick(betType, odds, value)}
+        className={cn(
+          'flex flex-col items-center justify-center px-2 bg-[#1a1d1f] hover:bg-[#2a2d2f] transition-all duration-200 w-full relative group h-[60px]',
+          isIncreasing && 'border-green-500/30 bg-green-500/5',
+          isDecreasing && 'border-red-500/30 bg-red-500/5'
+        )}
+      >
+        {displayValue && (
+          <span className="text-[11px] text-[#b1bad3] font-medium mb-0.5">
+            {displayValue}
+          </span>
+        )}
+        <span className={cn(
+          'text-sm font-bold transition-colors',
+          isIncreasing ? 'text-green-400' : isDecreasing ? 'text-red-400' : 'text-[#53d337]'
+        )}>
+          {formatAmericanOdds(odds)}
+        </span>
+        {isIncreasing && (
+          <TrendingUp className="h-3 w-3 text-green-400 absolute top-1 right-1" />
+        )}
+        {isDecreasing && (
+          <TrendingDown className="h-3 w-3 text-red-400 absolute top-1 right-1" />
+        )}
+      </button>
+    );
   };
 
   return (
-    <Card className="border-gray-700 bg-gray-800/50 backdrop-blur hover:bg-gray-800/70 transition-colors">
-      <CardContent className="p-4">
-        {/* Game Header */}
-        <div className="flex justify-between items-center mb-4">
+    <Card className="bg-[#0d0f10] border-[#1a1d1f] hover:border-[#2a2d2f] transition-all duration-200 overflow-hidden">
+      <div className="p-0">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-2 border-b border-gray-700">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400">{game.league || game.sport}</span>
-            {game.isLive && (
-              <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs rounded-full border border-red-500/30 animate-pulse">
-                LIVE
-              </span>
+            <button
+              onClick={() => setIsFavorite(!isFavorite)}
+              className="text-[#b1bad3] hover:text-[#53d337] transition-colors"
+            >
+              <Star className={cn("h-4 w-4", isFavorite && "fill-[#53d337] text-[#53d337]")} />
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-[#b1bad3] font-medium">{game.awayTeam}</span>
+              <span className="text-[#5f6368] text-xs">AT</span>
+              <span className="text-xs text-[#b1bad3] font-medium">{game.homeTeam}</span>
+            </div>
+          </div>
+          {game.isLive ? (
+            <Badge className="bg-[#53d337] text-black text-[10px] font-bold px-2 py-0.5">
+              LIVE
+            </Badge>
+          ) : (
+            <Badge className="bg-[#53d337] text-black text-[10px] font-bold px-2 py-0.5">
+              {formatGameDateTime(game.startTime)}
+            </Badge>
+          )}
+        </div>
+
+        {/* Betting Odds Header Row - Full Width */}
+        <div className="grid grid-cols-4 border-b border-gray-700">
+          <div className="bg-[#0d0f10]"></div>
+          <div className="text-center py-1.5 bg-[#0d0f10] border-l border-gray-700">
+            <span className="text-[10px] text-[#b1bad3] font-semibold uppercase">Spread</span>
+          </div>
+          <div className="text-center py-1.5 bg-[#0d0f10] border-l border-gray-700">
+            <span className="text-[10px] text-[#b1bad3] font-semibold uppercase">Total</span>
+          </div>
+          <div className="text-center py-1.5 bg-[#0d0f10] border-l border-gray-700">
+            <span className="text-[10px] text-[#b1bad3] font-semibold uppercase">Moneyline</span>
+          </div>
+        </div>
+
+        {/* Away Team Row */}
+        <div className="grid grid-cols-4 border-b border-gray-700">
+          {/* Away Team Info */}
+          <div className="flex items-center gap-3 px-4 bg-[#0d0f10] h-[60px]">
+            <TeamLogo teamName={game.awayTeam} sport={game.sport} size="md" />
+            <span className="text-sm text-white font-medium flex-1">{game.awayTeam}</span>
+            {game.isLive && game.awayScore !== undefined && (
+              <span className="text-lg font-bold text-white tabular-nums">{game.awayScore}</span>
             )}
           </div>
-          <span className="text-xs text-gray-400">{formatTime(game.startTime)}</span>
-        </div>
 
-        {/* Teams */}
-        <div className="space-y-3 mb-4">
-          {/* Away Team */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 flex-1">
-              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold text-white">
-                {game.awayTeam.slice(0, 2).toUpperCase()}
-              </div>
-              <span className="text-white font-medium">{game.awayTeam}</span>
-              {game.isLive && game.awayScore !== undefined && (
-                <span className="text-xl font-bold text-white ml-auto">{game.awayScore}</span>
-              )}
-            </div>
+          {/* Away Spread */}
+          <div className="border-l border-gray-700">
+            {game.spread ? (
+              renderOddsCell(game.spread.awayOdds, 'spread-away', 'awayOdds', game.spread.away)
+            ) : (
+              <div className="bg-[#1a1d1f]/30 h-[60px]"></div>
+            )}
           </div>
 
-          {/* Home Team */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 flex-1">
-              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold text-white">
-                {game.homeTeam.slice(0, 2).toUpperCase()}
-              </div>
-              <span className="text-white font-medium">{game.homeTeam}</span>
-              {game.isLive && game.homeScore !== undefined && (
-                <span className="text-xl font-bold text-white ml-auto">{game.homeScore}</span>
-              )}
-            </div>
+          {/* Away Total (Over) */}
+          <div className="border-l border-gray-700">
+            {game.total ? (
+              renderOddsCell(game.total.overOdds, 'over', 'homeOdds', game.total.over)
+            ) : (
+              <div className="bg-[#1a1d1f]/30 h-[60px]"></div>
+            )}
+          </div>
+
+          {/* Away Moneyline */}
+          <div className="border-l border-gray-700">
+            {game.moneyline ? (
+              renderOddsCell(game.moneyline.away, 'away', 'awayOdds')
+            ) : (
+              <div className="bg-[#1a1d1f]/30 h-[60px]"></div>
+            )}
           </div>
         </div>
 
-        {/* Betting Options */}
-        <div className="space-y-2">
-          {/* Moneyline */}
-          {game.moneyline && (
-            <div className="grid grid-cols-3 gap-2">
-              <div className="text-xs text-gray-400 flex items-center">Moneyline</div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleBetClick('away', game.moneyline!.away)}
-                className="border-gray-600 hover:bg-gray-700 hover:border-green-500 text-white h-8"
-              >
-                {formatOdds(game.moneyline.away)}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleBetClick('home', game.moneyline!.home)}
-                className="border-gray-600 hover:bg-gray-700 hover:border-green-500 text-white h-8"
-              >
-                {formatOdds(game.moneyline.home)}
-              </Button>
-            </div>
-          )}
+        {/* Home Team Row */}
+        <div className="grid grid-cols-4">
+          {/* Home Team Info */}
+          <div className="flex items-center gap-3 px-4 bg-[#0d0f10] h-[60px]">
+            <TeamLogo teamName={game.homeTeam} sport={game.sport} size="md" />
+            <span className="text-sm text-white font-medium flex-1">{game.homeTeam}</span>
+            {game.isLive && game.homeScore !== undefined && (
+              <span className="text-lg font-bold text-white tabular-nums">{game.homeScore}</span>
+            )}
+          </div>
 
-          {/* Spread */}
-          {game.spread && (
-            <div className="grid grid-cols-3 gap-2">
-              <div className="text-xs text-gray-400 flex items-center">Spread</div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  handleBetClick('spread-away', game.spread!.awayOdds, game.spread!.away)
-                }
-                className="border-gray-600 hover:bg-gray-700 hover:border-green-500 text-white h-8"
-              >
-                <span className="text-xs">
-                  {game.spread.away > 0 ? '+' : ''}
-                  {game.spread.away}
-                </span>
-                <span className="ml-1">{formatOdds(game.spread.awayOdds)}</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  handleBetClick('spread-home', game.spread!.homeOdds, game.spread!.home)
-                }
-                className="border-gray-600 hover:bg-gray-700 hover:border-green-500 text-white h-8"
-              >
-                <span className="text-xs">
-                  {game.spread.home > 0 ? '+' : ''}
-                  {game.spread.home}
-                </span>
-                <span className="ml-1">{formatOdds(game.spread.homeOdds)}</span>
-              </Button>
-            </div>
-          )}
+          {/* Home Spread */}
+          <div className="border-l border-gray-700">
+            {game.spread ? (
+              renderOddsCell(game.spread.homeOdds, 'spread-home', 'homeOdds', game.spread.home)
+            ) : (
+              <div className="bg-[#1a1d1f]/30 h-[60px]"></div>
+            )}
+          </div>
 
-          {/* Total */}
-          {game.total && (
-            <div className="grid grid-cols-3 gap-2">
-              <div className="text-xs text-gray-400 flex items-center">Total</div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  handleBetClick('over', game.total!.overOdds, game.total!.over)
-                }
-                className="border-gray-600 hover:bg-gray-700 hover:border-green-500 text-white h-8"
-              >
-                <span className="text-xs">O {game.total.over}</span>
-                <span className="ml-1">{formatOdds(game.total.overOdds)}</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  handleBetClick('under', game.total!.underOdds, game.total!.under)
-                }
-                className="border-gray-600 hover:bg-gray-700 hover:border-green-500 text-white h-8"
-              >
-                <span className="text-xs">U {game.total.under}</span>
-                <span className="ml-1">{formatOdds(game.total.underOdds)}</span>
-              </Button>
-            </div>
-          )}
+          {/* Home Total (Under) */}
+          <div className="border-l border-gray-700">
+            {game.total ? (
+              renderOddsCell(game.total.underOdds, 'under', 'awayOdds', game.total.under)
+            ) : (
+              <div className="bg-[#1a1d1f]/30 h-[60px]"></div>
+            )}
+          </div>
+
+          {/* Home Moneyline */}
+          <div className="border-l border-gray-700">
+            {game.moneyline ? (
+              renderOddsCell(game.moneyline.home, 'home', 'homeOdds')
+            ) : (
+              <div className="bg-[#1a1d1f]/30 h-[60px]"></div>
+            )}
+          </div>
         </div>
-      </CardContent>
+      </div>
     </Card>
   );
 }
