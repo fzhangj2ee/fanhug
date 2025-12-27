@@ -15,7 +15,11 @@ export default function GameCard({ game }: GameCardProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handleBetClick = (betType: string, team: string, odds: number) => {
+  const handleBetClick = (
+    betType: 'home' | 'away' | 'spread-home' | 'spread-away' | 'over' | 'under',
+    odds: number,
+    value?: number
+  ) => {
     if (!user) {
       toast.error('Please login to place bets', {
         action: {
@@ -26,12 +30,31 @@ export default function GameCard({ game }: GameCardProps) {
       return;
     }
 
-    addToBetSlip(game.id, betType, team, odds);
-    toast.success(`Added ${team} ${betType} to bet slip`);
+    addToBetSlip(game, betType, odds, value);
+    
+    const betTypeLabels: Record<string, string> = {
+      'home': `${game.homeTeam} ML`,
+      'away': `${game.awayTeam} ML`,
+      'spread-home': `${game.homeTeam} ${value && value > 0 ? '+' : ''}${value}`,
+      'spread-away': `${game.awayTeam} ${value && value > 0 ? '+' : ''}${value}`,
+      'over': `Over ${value}`,
+      'under': `Under ${value}`,
+    };
+    
+    toast.success(`Added ${betTypeLabels[betType]} to bet slip`);
   };
 
   const formatOdds = (odds: number) => {
     return odds > 0 ? `+${odds}` : `${odds}`;
+  };
+
+  const formatTime = (date: Date) => {
+    const gameDate = new Date(date);
+    return gameDate.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
   };
 
   return (
@@ -40,14 +63,14 @@ export default function GameCard({ game }: GameCardProps) {
         {/* Game Header */}
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400">{game.league}</span>
+            <span className="text-xs text-gray-400">{game.league || game.sport}</span>
             {game.isLive && (
               <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs rounded-full border border-red-500/30 animate-pulse">
                 LIVE
               </span>
             )}
           </div>
-          <span className="text-xs text-gray-400">{game.time}</span>
+          <span className="text-xs text-gray-400">{formatTime(game.startTime)}</span>
         </div>
 
         {/* Teams */}
@@ -82,25 +105,27 @@ export default function GameCard({ game }: GameCardProps) {
         {/* Betting Options */}
         <div className="space-y-2">
           {/* Moneyline */}
-          <div className="grid grid-cols-3 gap-2">
-            <div className="text-xs text-gray-400 flex items-center">Moneyline</div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleBetClick('Moneyline', game.awayTeam, game.awayOdds)}
-              className="border-gray-600 hover:bg-gray-700 hover:border-green-500 text-white h-8"
-            >
-              {formatOdds(game.awayOdds)}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleBetClick('Moneyline', game.homeTeam, game.homeOdds)}
-              className="border-gray-600 hover:bg-gray-700 hover:border-green-500 text-white h-8"
-            >
-              {formatOdds(game.homeOdds)}
-            </Button>
-          </div>
+          {game.moneyline && (
+            <div className="grid grid-cols-3 gap-2">
+              <div className="text-xs text-gray-400 flex items-center">Moneyline</div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleBetClick('away', game.moneyline!.away)}
+                className="border-gray-600 hover:bg-gray-700 hover:border-green-500 text-white h-8"
+              >
+                {formatOdds(game.moneyline.away)}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleBetClick('home', game.moneyline!.home)}
+                className="border-gray-600 hover:bg-gray-700 hover:border-green-500 text-white h-8"
+              >
+                {formatOdds(game.moneyline.home)}
+              </Button>
+            </div>
+          )}
 
           {/* Spread */}
           {game.spread && (
@@ -110,37 +135,29 @@ export default function GameCard({ game }: GameCardProps) {
                 variant="outline"
                 size="sm"
                 onClick={() =>
-                  handleBetClick(
-                    `Spread ${game.spread > 0 ? '+' : ''}${game.spread}`,
-                    game.awayTeam,
-                    game.awaySpreadOdds || -110
-                  )
+                  handleBetClick('spread-away', game.spread!.awayOdds, game.spread!.away)
                 }
                 className="border-gray-600 hover:bg-gray-700 hover:border-green-500 text-white h-8"
               >
                 <span className="text-xs">
-                  {game.spread > 0 ? '+' : ''}
-                  {game.spread}
+                  {game.spread.away > 0 ? '+' : ''}
+                  {game.spread.away}
                 </span>
-                <span className="ml-1">{formatOdds(game.awaySpreadOdds || -110)}</span>
+                <span className="ml-1">{formatOdds(game.spread.awayOdds)}</span>
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() =>
-                  handleBetClick(
-                    `Spread ${-game.spread > 0 ? '+' : ''}${-game.spread}`,
-                    game.homeTeam,
-                    game.homeSpreadOdds || -110
-                  )
+                  handleBetClick('spread-home', game.spread!.homeOdds, game.spread!.home)
                 }
                 className="border-gray-600 hover:bg-gray-700 hover:border-green-500 text-white h-8"
               >
                 <span className="text-xs">
-                  {-game.spread > 0 ? '+' : ''}
-                  {-game.spread}
+                  {game.spread.home > 0 ? '+' : ''}
+                  {game.spread.home}
                 </span>
-                <span className="ml-1">{formatOdds(game.homeSpreadOdds || -110)}</span>
+                <span className="ml-1">{formatOdds(game.spread.homeOdds)}</span>
               </Button>
             </div>
           )}
@@ -153,23 +170,23 @@ export default function GameCard({ game }: GameCardProps) {
                 variant="outline"
                 size="sm"
                 onClick={() =>
-                  handleBetClick(`Over ${game.total}`, `O ${game.total}`, game.overOdds || -110)
+                  handleBetClick('over', game.total!.overOdds, game.total!.over)
                 }
                 className="border-gray-600 hover:bg-gray-700 hover:border-green-500 text-white h-8"
               >
-                <span className="text-xs">O {game.total}</span>
-                <span className="ml-1">{formatOdds(game.overOdds || -110)}</span>
+                <span className="text-xs">O {game.total.over}</span>
+                <span className="ml-1">{formatOdds(game.total.overOdds)}</span>
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() =>
-                  handleBetClick(`Under ${game.total}`, `U ${game.total}`, game.underOdds || -110)
+                  handleBetClick('under', game.total!.underOdds, game.total!.under)
                 }
                 className="border-gray-600 hover:bg-gray-700 hover:border-green-500 text-white h-8"
               >
-                <span className="text-xs">U {game.total}</span>
-                <span className="ml-1">{formatOdds(game.underOdds || -110)}</span>
+                <span className="text-xs">U {game.total.under}</span>
+                <span className="ml-1">{formatOdds(game.total.underOdds)}</span>
               </Button>
             </div>
           )}
