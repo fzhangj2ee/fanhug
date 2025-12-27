@@ -13,13 +13,12 @@ export default function BetSlip() {
   const navigate = useNavigate();
 
   const totalStake = betSlip.reduce((sum, item) => sum + item.stake, 0);
+  
+  // Fixed calculation: decimal odds * stake = total payout (includes original stake)
   const totalPotentialWin = betSlip.reduce((sum, item) => {
     const odds = item.odds;
-    if (odds > 0) {
-      return sum + item.stake + (item.stake * odds / 100);
-    } else {
-      return sum + item.stake + (item.stake * 100 / Math.abs(odds));
-    }
+    // For decimal odds, multiply stake by odds to get total return
+    return sum + (item.stake * odds);
   }, 0);
 
   const handlePlaceBets = () => {
@@ -42,7 +41,8 @@ export default function BetSlip() {
   };
 
   const formatOdds = (odds: number) => {
-    return odds > 0 ? `+${odds}` : `${odds}`;
+    // Display decimal odds as is
+    return odds.toFixed(2);
   };
 
   const getBetTypeLabel = (betType: string) => {
@@ -175,12 +175,9 @@ export default function BetSlip() {
                     {/* Potential Win */}
                     {item.stake > 0 && (
                       <div className="flex justify-between text-xs pt-2 border-t border-gray-700">
-                        <span className="text-gray-400">To Win:</span>
+                        <span className="text-gray-400">Total Return:</span>
                         <span className="text-green-400 font-medium">
-                          ${(item.odds > 0
-                            ? item.stake * item.odds / 100
-                            : item.stake * 100 / Math.abs(item.odds)
-                          ).toFixed(2)}
+                          ${(item.stake * item.odds).toFixed(2)}
                         </span>
                       </div>
                     )}
@@ -196,9 +193,15 @@ export default function BetSlip() {
                 <span className="text-white font-medium">${totalStake.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Potential Win:</span>
+                <span className="text-gray-400">Total Return:</span>
                 <span className="text-green-400 font-bold">
                   ${totalPotentialWin.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm pt-2 border-t border-gray-700">
+                <span className="text-gray-400">Profit:</span>
+                <span className="text-green-400 font-bold">
+                  ${(totalPotentialWin - totalStake).toFixed(2)}
                 </span>
               </div>
             </div>
