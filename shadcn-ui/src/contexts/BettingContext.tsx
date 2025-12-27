@@ -17,11 +17,17 @@ interface PlacedBet extends BetSlipItem {
   placedAt: Date;
   status: 'pending' | 'won' | 'lost';
   result?: 'won' | 'lost';
+  payout?: number;
+  potentialWin?: number;
+  line?: number;
+  marketType?: string;
+  timestamp?: Date;
 }
 
 interface BettingContextType {
   betSlip: BetSlipItem[];
   placedBets: PlacedBet[];
+  bets: PlacedBet[]; // Alias for placedBets for compatibility
   addToBetSlip: (game: Game, betType: BetSlipItem['betType'], odds: number, value?: number) => void;
   removeFromBetSlip: (gameId: string) => void;
   updateStake: (gameId: string, stake: number) => void;
@@ -43,9 +49,10 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       if (savedBets) {
         const parsed = JSON.parse(savedBets);
         // Convert date strings back to Date objects
-        const betsWithDates = parsed.map((bet: any) => ({
+        const betsWithDates = parsed.map((bet: PlacedBet) => ({
           ...bet,
           placedAt: new Date(bet.placedAt),
+          timestamp: bet.timestamp ? new Date(bet.timestamp) : new Date(bet.placedAt),
         }));
         setPlacedBets(betsWithDates);
       }
@@ -127,12 +134,28 @@ export function BettingProvider({ children }: { children: ReactNode }) {
     }
 
     // Convert bet slip items to placed bets
-    const newPlacedBets: PlacedBet[] = betSlip.map((item) => ({
-      ...item,
-      id: `${item.game.id}-${Date.now()}-${Math.random()}`,
-      placedAt: new Date(),
-      status: 'pending',
-    }));
+    const newPlacedBets: PlacedBet[] = betSlip.map((item) => {
+      const potentialWin = item.stake * item.odds;
+      
+      // Determine market type
+      let marketType = 'moneyline';
+      if (item.betType.includes('spread')) {
+        marketType = 'spread';
+      } else if (item.betType === 'over' || item.betType === 'under') {
+        marketType = 'total';
+      }
+
+      return {
+        ...item,
+        id: `${item.game.id}-${Date.now()}-${Math.random()}`,
+        placedAt: new Date(),
+        timestamp: new Date(),
+        status: 'pending',
+        potentialWin,
+        line: item.spreadValue || item.totalValue,
+        marketType,
+      };
+    });
 
     setPlacedBets([...placedBets, ...newPlacedBets]);
     setBetSlip([]);
@@ -147,6 +170,7 @@ export function BettingProvider({ children }: { children: ReactNode }) {
   const value = {
     betSlip,
     placedBets,
+    bets: placedBets, // Alias for compatibility
     addToBetSlip,
     removeFromBetSlip,
     updateStake,

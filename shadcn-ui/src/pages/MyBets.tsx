@@ -2,317 +2,214 @@ import { useBetting } from '@/contexts/BettingContext';
 import Navbar from '@/components/Navbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CheckCircle2, XCircle, Clock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 export default function MyBets() {
-  const { bets } = useBetting();
-  const navigate = useNavigate();
-
-  const pendingBets = bets.filter((bet) => bet.status === 'pending');
-  const wonBets = bets.filter((bet) => bet.status === 'won');
-  const lostBets = bets.filter((bet) => bet.status === 'lost');
-
-  const totalWon = wonBets.reduce((sum, bet) => sum + (bet.payout || bet.potentialWin), 0);
-  const totalLost = lostBets.reduce((sum, bet) => sum + bet.stake, 0);
-  const netProfit = totalWon - totalLost;
-
-  const handleHomeClick = () => {
-    navigate('/');
-  };
-
-  const formatDate = (isoString: string) => {
-    const date = new Date(isoString);
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  };
-
-  const getBetDescription = (bet: typeof bets[0]) => {
-    const { betType, line, marketType } = bet;
-    
-    if (marketType === 'moneyline') {
-      return betType === 'home' ? bet.game.homeTeam : bet.game.awayTeam;
-    }
-    
-    if (marketType === 'spread') {
-      const team = betType === 'spread-home' ? bet.game.homeTeam : bet.game.awayTeam;
-      const spreadValue = line || 0;
-      return `${team} ${spreadValue > 0 ? '+' : ''}${spreadValue}`;
-    }
-    
-    if (marketType === 'total') {
-      return `${betType === 'over' ? 'Over' : 'Under'} ${line}`;
-    }
-    
-    return betType;
-  };
-
-  const getMarketLabel = (marketType?: string) => {
-    switch (marketType) {
-      case 'moneyline':
-        return 'Moneyline';
-      case 'spread':
-        return 'Spread';
-      case 'total':
-        return 'Total';
-      default:
-        return 'Bet';
-    }
-  };
+  const { placedBets } = useBetting();
 
   const formatOdds = (odds: number) => {
-    // Convert decimal odds to American odds for display
-    if (odds >= 2.0) {
-      return `+${Math.round((odds - 1) * 100)}`;
-    } else {
-      return `${Math.round(-100 / (odds - 1))}`;
+    return odds > 0 ? `+${odds}` : `${odds}`;
+  };
+
+  const getBetTypeLabel = (betType: string) => {
+    const labels: Record<string, string> = {
+      'home': 'Moneyline',
+      'away': 'Moneyline',
+      'spread-home': 'Spread',
+      'spread-away': 'Spread',
+      'over': 'Total',
+      'under': 'Total',
+    };
+    return labels[betType] || betType;
+  };
+
+  const getBetDescription = (bet: typeof placedBets[0]) => {
+    switch (bet.betType) {
+      case 'spread-away':
+        return `${bet.game.awayTeam} ${bet.spreadValue && bet.spreadValue > 0 ? '+' : ''}${bet.spreadValue}`;
+      case 'spread-home':
+        return `${bet.game.homeTeam} ${bet.spreadValue && bet.spreadValue > 0 ? '+' : ''}${bet.spreadValue}`;
+      case 'over':
+        return `Over ${bet.totalValue}`;
+      case 'under':
+        return `Under ${bet.totalValue}`;
+      case 'away':
+        return bet.game.awayTeam;
+      case 'home':
+        return bet.game.homeTeam;
+      default:
+        return 'Unknown';
     }
   };
 
-  const BetCard = ({ bet }: { bet: typeof bets[0] }) => {
-    const isSettled = bet.status !== 'pending';
-    const hasGameResult = bet.game.status === 'final' && bet.game.homeScore !== undefined && bet.game.awayScore !== undefined;
+  const pendingBets = placedBets.filter(bet => bet.status === 'pending');
+  const settledBets = placedBets.filter(bet => bet.status !== 'pending');
 
-    return (
-      <Card className="bg-[#1C2128] border-[#2A2F36] hover:border-[#3A3F46] transition-colors">
-        <CardContent className="p-5">
-          {/* Header with Sport and Status */}
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="bg-[#0F1419] text-white border-[#2A2F36] text-xs">
-                {bet.game.sport}
-              </Badge>
-              <span className="text-[#8B949E] text-xs">•</span>
-              <span className="text-[#8B949E] text-xs">{getMarketLabel(bet.marketType)}</span>
-            </div>
-            <Badge
-              className={
-                bet.status === 'won'
-                  ? 'bg-[#00C853] text-white hover:bg-[#00C853]'
-                  : bet.status === 'lost'
-                  ? 'bg-[#FF3B30] text-white hover:bg-[#FF3B30]'
-                  : 'bg-[#FFB800] text-white hover:bg-[#FFB800]'
-              }
-            >
-              {bet.status === 'won' && <CheckCircle2 className="h-3 w-3 mr-1" />}
-              {bet.status === 'lost' && <XCircle className="h-3 w-3 mr-1" />}
-              {bet.status === 'pending' && <Clock className="h-3 w-3 mr-1" />}
-              {bet.status.toUpperCase()}
-            </Badge>
-          </div>
-
-          {/* Bet Selection */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-white font-bold text-lg">{getBetDescription(bet)}</span>
-              <span className="text-white font-mono font-bold">{formatOdds(bet.odds)}</span>
-            </div>
-            <p className="text-[#8B949E] text-sm">
-              {bet.game.homeTeam} vs {bet.game.awayTeam}
-            </p>
-          </div>
-
-          {/* Wager Info */}
-          <div className="flex items-center justify-between py-3 border-t border-[#2A2F36]">
-            <span className="text-[#8B949E] text-sm">Wager: ${bet.stake.toFixed(2)}</span>
-            {isSettled && bet.payout && bet.payout > 0 && (
-              <span className="text-[#00C853] font-bold">Paid: ${bet.payout.toFixed(2)}</span>
-            )}
-          </div>
-
-          {/* Game Result */}
-          {hasGameResult && (
-            <div className="mt-4 pt-4 border-t border-[#2A2F36]">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-white font-medium">{bet.game.homeTeam}</span>
-                    <span className="text-white font-bold text-xl">{bet.game.homeScore}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-white font-medium">{bet.game.awayTeam}</span>
-                    <span className="text-white font-bold text-xl">{bet.game.awayScore}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Period Scores */}
-              {bet.game.periodScores && (
-                <div className="mt-3 pt-3 border-t border-[#2A2F36]">
-                  <div className="flex items-center justify-between text-xs mb-2">
-                    <span className="text-[#8B949E]">{bet.game.homeTeam}</span>
-                    <div className="flex gap-2">
-                      {bet.game.periodScores.home.map((score, idx) => (
-                        <span key={idx} className="text-[#8B949E] w-6 text-center">{score}</span>
-                      ))}
-                      <span className="text-white font-bold w-8 text-center border-l border-[#2A2F36] pl-2">
-                        {bet.game.homeScore}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-[#8B949E]">{bet.game.awayTeam}</span>
-                    <div className="flex gap-2">
-                      {bet.game.periodScores.away.map((score, idx) => (
-                        <span key={idx} className="text-[#8B949E] w-6 text-center">{score}</span>
-                      ))}
-                      <span className="text-white font-bold w-8 text-center border-l border-[#2A2F36] pl-2">
-                        {bet.game.awayScore}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Completion Time */}
-              {bet.game.completedAt && (
-                <p className="text-[#8B949E] text-xs mt-3">
-                  Final Score • {formatDate(bet.game.completedAt)}
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Placement Time */}
-          {!hasGameResult && (
-            <p className="text-[#8B949E] text-xs mt-3">
-              Placed: {formatDate(bet.placedAt || bet.timestamp.toISOString())}
-            </p>
-          )}
-        </CardContent>
-      </Card>
-    );
-  };
+  const totalWagered = placedBets.reduce((sum, bet) => sum + bet.stake, 0);
+  const totalWon = placedBets
+    .filter(bet => bet.status === 'won')
+    .reduce((sum, bet) => sum + (bet.payout || 0), 0);
+  const totalLost = placedBets
+    .filter(bet => bet.status === 'lost')
+    .reduce((sum, bet) => sum + bet.stake, 0);
 
   return (
-    <div className="min-h-screen bg-[#0F1419]">
-      <Navbar onHomeClick={handleHomeClick} isHomeActive={false} />
-
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-[#0d0f10]">
+      <Navbar />
+      
+      <div className="container mx-auto px-4 py-6">
         <h1 className="text-3xl font-bold text-white mb-6">My Bets</h1>
 
-        {/* Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="bg-[#1C2128] border-[#2A2F36]">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-[#8B949E] text-sm">Total Bets</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-white text-3xl font-bold">{bets.length}</p>
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <Card className="bg-[#1a1d1f] border-[#2a2d2f]">
+            <CardContent className="p-4">
+              <p className="text-[#b1bad3] text-sm mb-1">Total Bets</p>
+              <p className="text-white text-2xl font-bold">{placedBets.length}</p>
             </CardContent>
           </Card>
-
-          <Card className="bg-[#1C2128] border-[#2A2F36]">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-[#8B949E] text-sm">Won</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-[#00C853] text-3xl font-bold">{wonBets.length}</p>
+          <Card className="bg-[#1a1d1f] border-[#2a2d2f]">
+            <CardContent className="p-4">
+              <p className="text-[#b1bad3] text-sm mb-1">Total Wagered</p>
+              <p className="text-white text-2xl font-bold">${totalWagered.toFixed(2)}</p>
             </CardContent>
           </Card>
-
-          <Card className="bg-[#1C2128] border-[#2A2F36]">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-[#8B949E] text-sm">Lost</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-[#FF3B30] text-3xl font-bold">{lostBets.length}</p>
+          <Card className="bg-green-500/10 border-green-500/30">
+            <CardContent className="p-4">
+              <p className="text-green-400 text-sm mb-1">Total Won</p>
+              <p className="text-green-400 text-2xl font-bold">${totalWon.toFixed(2)}</p>
             </CardContent>
           </Card>
-
-          <Card className="bg-[#1C2128] border-[#2A2F36]">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-[#8B949E] text-sm">Net Profit</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p
-                className={`text-3xl font-bold ${
-                  netProfit >= 0 ? 'text-[#00C853]' : 'text-[#FF3B30]'
-                }`}
-              >
-                ${netProfit.toFixed(2)}
-              </p>
+          <Card className="bg-red-500/10 border-red-500/30">
+            <CardContent className="p-4">
+              <p className="text-red-400 text-sm mb-1">Total Lost</p>
+              <p className="text-red-400 text-2xl font-bold">${totalLost.toFixed(2)}</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Bets List */}
-        <Tabs defaultValue="all" className="space-y-4">
-          <TabsList className="bg-[#1C2128] border border-[#2A2F36]">
-            <TabsTrigger value="all" className="data-[state=active]:bg-[#00C853]">
-              All ({bets.length})
-            </TabsTrigger>
-            <TabsTrigger value="open" className="data-[state=active]:bg-[#00C853]">
-              Open ({pendingBets.length})
-            </TabsTrigger>
-            <TabsTrigger value="settled" className="data-[state=active]:bg-[#00C853]">
-              Settled ({wonBets.length + lostBets.length})
-            </TabsTrigger>
-            <TabsTrigger value="won" className="data-[state=active]:bg-[#00C853]">
-              Won ({wonBets.length})
-            </TabsTrigger>
-            <TabsTrigger value="lost" className="data-[state=active]:bg-[#00C853]">
-              Lost ({lostBets.length})
-            </TabsTrigger>
-          </TabsList>
+        {/* Pending Bets */}
+        {pendingBets.length > 0 && (
+          <Card className="bg-[#1a1d1f] border-[#2a2d2f] mb-6">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Clock className="h-5 w-5 text-yellow-500" />
+                Pending Bets ({pendingBets.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {pendingBets.map((bet) => (
+                <div
+                  key={bet.id}
+                  className="bg-[#0d0f10] rounded-lg p-4 space-y-2"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-white font-medium">
+                          {getBetDescription(bet)}
+                        </span>
+                        <Badge className="bg-yellow-500/20 text-yellow-500 text-xs">
+                          {getBetTypeLabel(bet.betType)}
+                        </Badge>
+                      </div>
+                      <p className="text-[#b1bad3] text-sm">
+                        {bet.game.homeTeam} @ {bet.game.awayTeam}
+                      </p>
+                    </div>
+                    <span className="text-white font-bold">
+                      {formatOdds(bet.odds)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm pt-2 border-t border-[#2a2d2f]">
+                    <span className="text-[#b1bad3]">Stake:</span>
+                    <span className="text-white font-medium">${bet.stake.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[#b1bad3]">Potential Win:</span>
+                    <span className="text-green-400 font-medium">
+                      ${(bet.stake * bet.odds).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
-          <TabsContent value="all" className="space-y-4">
-            {bets.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-[#8B949E] text-lg">No bets yet</p>
-                <p className="text-[#8B949E] text-sm mt-2">Start betting to see your history here!</p>
-              </div>
+        {/* Settled Bets */}
+        <Card className="bg-[#1a1d1f] border-[#2a2d2f]">
+          <CardHeader>
+            <CardTitle className="text-white">
+              Bet History ({settledBets.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {settledBets.length === 0 ? (
+              <p className="text-[#b1bad3] text-center py-8">
+                No settled bets yet
+              </p>
             ) : (
-              bets.map((bet) => <BetCard key={bet.id} bet={bet} />)
+              settledBets.map((bet) => (
+                <div
+                  key={bet.id}
+                  className="bg-[#0d0f10] rounded-lg p-4 space-y-2"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        {bet.status === 'won' ? (
+                          <CheckCircle2 className="h-4 w-4 text-green-400" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-red-400" />
+                        )}
+                        <span className="text-white font-medium">
+                          {getBetDescription(bet)}
+                        </span>
+                        <Badge
+                          className={
+                            bet.status === 'won'
+                              ? 'bg-green-500/20 text-green-500 text-xs'
+                              : 'bg-red-500/20 text-red-500 text-xs'
+                          }
+                        >
+                          {bet.status === 'won' ? 'Won' : 'Lost'}
+                        </Badge>
+                      </div>
+                      <p className="text-[#b1bad3] text-sm">
+                        {bet.game.homeTeam} @ {bet.game.awayTeam}
+                      </p>
+                      <p className="text-[#b1bad3] text-xs mt-1">
+                        {getBetTypeLabel(bet.betType)} • {formatOdds(bet.odds)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-sm pt-2 border-t border-[#2a2d2f]">
+                    <span className="text-[#b1bad3]">Stake:</span>
+                    <span className="text-white font-medium">${bet.stake.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[#b1bad3]">
+                      {bet.status === 'won' ? 'Payout:' : 'Lost:'}
+                    </span>
+                    <span
+                      className={
+                        bet.status === 'won'
+                          ? 'text-green-400 font-medium'
+                          : 'text-red-400 font-medium'
+                      }
+                    >
+                      ${bet.status === 'won' 
+                        ? (bet.payout || 0).toFixed(2)
+                        : bet.stake.toFixed(2)
+                      }
+                    </span>
+                  </div>
+                </div>
+              ))
             )}
-          </TabsContent>
-
-          <TabsContent value="open" className="space-y-4">
-            {pendingBets.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-[#8B949E] text-lg">No open bets</p>
-              </div>
-            ) : (
-              pendingBets.map((bet) => <BetCard key={bet.id} bet={bet} />)
-            )}
-          </TabsContent>
-
-          <TabsContent value="settled" className="space-y-4">
-            {wonBets.length + lostBets.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-[#8B949E] text-lg">No settled bets</p>
-              </div>
-            ) : (
-              [...wonBets, ...lostBets].map((bet) => <BetCard key={bet.id} bet={bet} />)
-            )}
-          </TabsContent>
-
-          <TabsContent value="won" className="space-y-4">
-            {wonBets.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-[#8B949E] text-lg">No winning bets yet</p>
-              </div>
-            ) : (
-              wonBets.map((bet) => <BetCard key={bet.id} bet={bet} />)
-            )}
-          </TabsContent>
-
-          <TabsContent value="lost" className="space-y-4">
-            {lostBets.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-[#8B949E] text-lg">No losing bets</p>
-              </div>
-            ) : (
-              lostBets.map((bet) => <BetCard key={bet.id} bet={bet} />)
-            )}
-          </TabsContent>
-        </Tabs>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
