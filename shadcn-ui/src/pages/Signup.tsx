@@ -292,7 +292,7 @@ export default function Signup() {
                   id="acceptTerms"
                   checked={field.value}
                   onCheckedChange={field.onChange}
-                  className="border-[#2a2d2f] data-[state=checked]:bg-[#53d337] data-[state=checked]:border-[#53d337] mt-0.5"
+                  className="border-white/60 bg-white/10 data-[state=checked]:bg-[#53d337] data-[state=checked]:border-[#53d337] mt-0.5"
                   disabled={isLoading || authLoading}
                 />
               )}
