@@ -186,18 +186,6 @@ export default function Index() {
                   </button>
                 ))}
               </div>
-
-              {/* Additional Sports Categories */}
-              <div className="mt-6 mb-2 px-3">
-                <h3 className="text-xs font-bold text-[#b1bad3] uppercase tracking-wider">
-                  Sport Teams
-                </h3>
-              </div>
-              <div className="space-y-1">
-                <button className="w-full text-left px-3 py-2 rounded text-sm font-medium text-[#b1bad3] hover:bg-[#2a2d2f] hover:text-white transition-colors">
-                  A-Z Sports
-                </button>
-              </div>
             </div>
           </div>
 
