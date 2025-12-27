@@ -1,183 +1,98 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Bet, Game } from '@/types/betting';
-import { useWallet } from './WalletContext';
-import { fetchAllCompletedGames } from '@/lib/sportsApi';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Game } from '@/types/betting';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 interface BetSlipItem {
   game: Game;
   betType: 'home' | 'away' | 'spread-home' | 'spread-away' | 'over' | 'under';
   odds: number;
   stake: number;
-  spreadValue?: number; // For spread bets
-  totalValue?: number; // For over/under bets
+  spreadValue?: number;
+  totalValue?: number;
+}
+
+interface PlacedBet extends BetSlipItem {
+  id: string;
+  placedAt: Date;
+  status: 'pending' | 'won' | 'lost';
+  result?: 'won' | 'lost';
 }
 
 interface BettingContextType {
   betSlip: BetSlipItem[];
-  bets: Bet[];
-  addToBetSlip: (game: Game, betType: 'home' | 'away' | 'spread-home' | 'spread-away' | 'over' | 'under', odds: number, value?: number) => void;
+  placedBets: PlacedBet[];
+  addToBetSlip: (game: Game, betType: BetSlipItem['betType'], odds: number, value?: number) => void;
   removeFromBetSlip: (gameId: string) => void;
   updateStake: (gameId: string, stake: number) => void;
   placeBets: () => boolean;
   clearBetSlip: () => void;
-  settleBet: (betId: string, won: boolean) => void;
-  checkAndGradeBets: () => Promise<void>;
 }
 
 const BettingContext = createContext<BettingContextType | undefined>(undefined);
 
-export function BettingProvider({ children }: { children: React.ReactNode }) {
+export function BettingProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [betSlip, setBetSlip] = useState<BetSlipItem[]>([]);
-  const [bets, setBets] = useState<Bet[]>(() => {
-    const saved = localStorage.getItem('bets');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const { placeBet: deductBalance, settleBet: settleWallet } = useWallet();
+  const [placedBets, setPlacedBets] = useState<PlacedBet[]>([]);
 
+  // Load placed bets from localStorage on mount
   useEffect(() => {
-    localStorage.setItem('bets', JSON.stringify(bets));
-  }, [bets]);
-
-  // Auto-grade bets every 60 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      checkAndGradeBets();
-    }, 60000); // Check every minute
-
-    // Initial check
-    checkAndGradeBets();
-
-    return () => clearInterval(interval);
-  }, [bets]);
-
-  const checkAndGradeBets = async () => {
-    const pendingBets = bets.filter(b => b.status === 'pending');
-    if (pendingBets.length === 0) return;
-
-    try {
-      const completedGames = await fetchAllCompletedGames();
-      const updatedBets = [...bets];
-      let hasChanges = false;
-
-      pendingBets.forEach(bet => {
-        const completedGame = completedGames.get(bet.gameId);
-        
-        if (completedGame && completedGame.status === 'final' && 
-            completedGame.homeScore !== undefined && completedGame.awayScore !== undefined) {
-          
-          const won = evaluateBet(bet, completedGame);
-          const betIndex = updatedBets.findIndex(b => b.id === bet.id);
-          
-          if (betIndex !== -1) {
-            // Update bet with game results
-            updatedBets[betIndex] = {
-              ...updatedBets[betIndex],
-              status: won ? 'won' : 'lost',
-              settledAt: completedGame.completedAt || new Date().toISOString(),
-              payout: won ? bet.potentialWin : 0,
-              game: {
-                ...updatedBets[betIndex].game,
-                homeScore: completedGame.homeScore,
-                awayScore: completedGame.awayScore,
-                status: 'final',
-                completedAt: completedGame.completedAt,
-                periodScores: completedGame.periodScores,
-              }
-            };
-
-            // Update wallet
-            if (won) {
-              settleWallet(
-                bet.potentialWin,
-                true,
-                `Won bet on ${bet.game.homeTeam} vs ${bet.game.awayTeam}`
-              );
-            } else {
-              settleWallet(
-                0,
-                false,
-                `Lost bet on ${bet.game.homeTeam} vs ${bet.game.awayTeam}`
-              );
-            }
-
-            hasChanges = true;
-          }
-        }
-      });
-
-      if (hasChanges) {
-        setBets(updatedBets);
+    if (user) {
+      const savedBets = localStorage.getItem(`placedBets_${user.id}`);
+      if (savedBets) {
+        const parsed = JSON.parse(savedBets);
+        // Convert date strings back to Date objects
+        const betsWithDates = parsed.map((bet: any) => ({
+          ...bet,
+          placedAt: new Date(bet.placedAt),
+        }));
+        setPlacedBets(betsWithDates);
       }
-    } catch (error) {
-      console.error('Error grading bets:', error);
     }
-  };
+  }, [user]);
 
-  const evaluateBet = (bet: Bet, completedGame: Game): boolean => {
-    const homeScore = completedGame.homeScore!;
-    const awayScore = completedGame.awayScore!;
-    const totalScore = homeScore + awayScore;
-
-    switch (bet.betType) {
-      case 'home':
-        return homeScore > awayScore;
-      
-      case 'away':
-        return awayScore > homeScore;
-      
-      case 'spread-home':
-        if (bet.line !== undefined) {
-          return (homeScore + bet.line) > awayScore;
-        }
-        return false;
-      
-      case 'spread-away':
-        if (bet.line !== undefined) {
-          return (awayScore + bet.line) > homeScore;
-        }
-        return false;
-      
-      case 'over':
-        if (bet.line !== undefined) {
-          return totalScore > bet.line;
-        }
-        return false;
-      
-      case 'under':
-        if (bet.line !== undefined) {
-          return totalScore < bet.line;
-        }
-        return false;
-      
-      default:
-        return false;
+  // Save placed bets to localStorage whenever they change
+  useEffect(() => {
+    if (user && placedBets.length > 0) {
+      localStorage.setItem(`placedBets_${user.id}`, JSON.stringify(placedBets));
     }
-  };
+  }, [placedBets, user]);
 
-  const addToBetSlip = (
-    game: Game, 
-    betType: 'home' | 'away' | 'spread-home' | 'spread-away' | 'over' | 'under', 
-    odds: number,
-    value?: number
-  ) => {
-    const existing = betSlip.find((item) => item.game.id === game.id);
-    if (existing) {
-      setBetSlip(
-        betSlip.map((item) =>
-          item.game.id === game.id 
-            ? { ...item, betType, odds, spreadValue: value, totalValue: value } 
-            : item
-        )
-      );
+  const addToBetSlip = (game: Game, betType: BetSlipItem['betType'], odds: number, value?: number) => {
+    if (!user) {
+      toast.error('Please login to place bets');
+      return;
+    }
+
+    // Check if bet already exists
+    const existingBetIndex = betSlip.findIndex((item) => item.game.id === game.id);
+
+    if (existingBetIndex !== -1) {
+      // Update existing bet
+      const updatedBetSlip = [...betSlip];
+      updatedBetSlip[existingBetIndex] = {
+        game,
+        betType,
+        odds,
+        stake: updatedBetSlip[existingBetIndex].stake,
+        spreadValue: betType.includes('spread') ? value : undefined,
+        totalValue: betType === 'over' || betType === 'under' ? value : undefined,
+      };
+      setBetSlip(updatedBetSlip);
     } else {
-      setBetSlip([...betSlip, { 
-        game, 
-        betType, 
-        odds, 
-        stake: 100,
-        spreadValue: value,
-        totalValue: value
-      }]);
+      // Add new bet
+      setBetSlip([
+        ...betSlip,
+        {
+          game,
+          betType,
+          odds,
+          stake: 0,
+          spreadValue: betType.includes('spread') ? value : undefined,
+          totalValue: betType === 'over' || betType === 'under' ? value : undefined,
+        },
+      ]);
     }
   };
 
@@ -194,48 +109,34 @@ export function BettingProvider({ children }: { children: React.ReactNode }) {
   };
 
   const placeBets = (): boolean => {
-    if (betSlip.length === 0) return false;
+    if (!user) {
+      toast.error('Please login to place bets');
+      return false;
+    }
 
-    const totalStake = betSlip.reduce((sum, item) => sum + item.stake, 0);
-    
-    const success = deductBalance(
-      totalStake,
-      `Placed ${betSlip.length} bet(s)`
-    );
+    if (betSlip.length === 0) {
+      toast.error('No bets in slip');
+      return false;
+    }
 
-    if (!success) return false;
+    // Check if all bets have valid stakes
+    const invalidBets = betSlip.filter((item) => item.stake <= 0);
+    if (invalidBets.length > 0) {
+      toast.error('Please enter valid stake amounts for all bets');
+      return false;
+    }
 
-    const newBets: Bet[] = betSlip.map((item) => {
-      // Determine market type and line
-      let marketType: 'moneyline' | 'spread' | 'total' = 'moneyline';
-      let line: number | undefined;
+    // Convert bet slip items to placed bets
+    const newPlacedBets: PlacedBet[] = betSlip.map((item) => ({
+      ...item,
+      id: `${item.game.id}-${Date.now()}-${Math.random()}`,
+      placedAt: new Date(),
+      status: 'pending',
+    }));
 
-      if (item.betType.includes('spread')) {
-        marketType = 'spread';
-        line = item.spreadValue;
-      } else if (item.betType === 'over' || item.betType === 'under') {
-        marketType = 'total';
-        line = item.totalValue;
-      }
-
-      return {
-        id: Date.now().toString() + Math.random(),
-        gameId: item.game.id,
-        game: item.game,
-        betType: item.betType,
-        odds: item.odds,
-        stake: item.stake,
-        potentialWin: item.stake * item.odds,
-        status: 'pending',
-        timestamp: new Date(),
-        placedAt: new Date().toISOString(),
-        marketType,
-        line,
-      };
-    });
-
-    setBets([...newBets, ...bets]);
+    setPlacedBets([...placedBets, ...newPlacedBets]);
     setBetSlip([]);
+
     return true;
   };
 
@@ -243,50 +144,17 @@ export function BettingProvider({ children }: { children: React.ReactNode }) {
     setBetSlip([]);
   };
 
-  const settleBet = (betId: string, won: boolean) => {
-    const bet = bets.find((b) => b.id === betId);
-    if (!bet || bet.status !== 'pending') return;
-
-    const updatedBets = bets.map((b) =>
-      b.id === betId
-        ? { ...b, status: won ? 'won' : 'lost', settledAt: new Date().toISOString(), payout: won ? b.potentialWin : 0 }
-        : b
-    );
-
-    setBets(updatedBets as Bet[]);
-
-    if (won) {
-      settleWallet(
-        bet.potentialWin,
-        true,
-        `Won bet on ${bet.game.homeTeam} vs ${bet.game.awayTeam}`
-      );
-    } else {
-      settleWallet(
-        0,
-        false,
-        `Lost bet on ${bet.game.homeTeam} vs ${bet.game.awayTeam}`
-      );
-    }
+  const value = {
+    betSlip,
+    placedBets,
+    addToBetSlip,
+    removeFromBetSlip,
+    updateStake,
+    placeBets,
+    clearBetSlip,
   };
 
-  return (
-    <BettingContext.Provider
-      value={{
-        betSlip,
-        bets,
-        addToBetSlip,
-        removeFromBetSlip,
-        updateStake,
-        placeBets,
-        clearBetSlip,
-        settleBet,
-        checkAndGradeBets,
-      }}
-    >
-      {children}
-    </BettingContext.Provider>
-  );
+  return <BettingContext.Provider value={value}>{children}</BettingContext.Provider>;
 }
 
 export function useBetting() {

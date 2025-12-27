@@ -1,55 +1,27 @@
 import { useBetting } from '@/contexts/BettingContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useLiveOdds } from '@/contexts/LiveOddsContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { X, TrendingUp, AlertCircle } from 'lucide-react';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
+import { X, TrendingUp, TrendingDown, Info, LogIn } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 export default function BetSlip() {
-  const { betSlip, removeBet, clearBetSlip, placeBet } = useBetting();
+  const { betSlip, removeFromBetSlip, updateStake, placeBets, clearBetSlip } = useBetting();
   const { user } = useAuth();
+  const { oddsChanges } = useLiveOdds();
   const navigate = useNavigate();
-  const [betAmounts, setBetAmounts] = useState<Record<string, string>>({});
 
-  const handleAmountChange = (betId: string, value: string) => {
-    // Only allow numbers and decimal point
-    if (value === '' || /^\d*\.?\d*$/.test(value)) {
-      setBetAmounts((prev) => ({ ...prev, [betId]: value }));
-    }
-  };
+  const totalStake = betSlip.reduce((sum, item) => sum + item.stake, 0);
+  const totalPotentialWin = betSlip.reduce((sum, item) => sum + item.stake * item.odds, 0);
 
-  const calculatePotentialWin = (odds: number, amount: string) => {
-    const numAmount = parseFloat(amount) || 0;
-    if (odds > 0) {
-      return ((odds / 100) * numAmount).toFixed(2);
-    } else {
-      return ((100 / Math.abs(odds)) * numAmount).toFixed(2);
-    }
-  };
-
-  const getTotalStake = () => {
-    return betSlip
-      .reduce((sum, bet) => {
-        const amount = parseFloat(betAmounts[bet.id] || '0');
-        return sum + amount;
-      }, 0)
-      .toFixed(2);
-  };
-
-  const getTotalPotentialWin = () => {
-    return betSlip
-      .reduce((sum, bet) => {
-        const amount = parseFloat(betAmounts[bet.id] || '0');
-        const win = parseFloat(calculatePotentialWin(bet.odds, betAmounts[bet.id] || '0'));
-        return sum + win;
-      }, 0)
-      .toFixed(2);
-  };
+  // Check if all bets have valid stakes (> 0)
+  const hasValidStakes = betSlip.length > 0 && betSlip.every(item => item.stake > 0);
+  const canPlaceBets = hasValidStakes && user !== null;
 
   const handlePlaceBets = () => {
     if (!user) {
@@ -57,197 +29,396 @@ export default function BetSlip() {
       return;
     }
 
-    const betsWithAmounts = betSlip.map((bet) => ({
-      ...bet,
-      amount: parseFloat(betAmounts[bet.id] || '0'),
-    }));
-
-    const invalidBets = betsWithAmounts.filter((bet) => bet.amount <= 0);
-    if (invalidBets.length > 0) {
-      toast.error('Please enter valid amounts for all bets');
+    if (!hasValidStakes) {
+      toast.error('Please enter a valid stake amount for all bets');
       return;
     }
 
-    betsWithAmounts.forEach((bet) => {
-      placeBet(bet.gameId, bet.betType, bet.team, bet.odds, bet.amount);
-    });
+    const success = placeBets();
+    if (success) {
+      toast.success(`${betSlip.length} bet(s) placed successfully!`);
+    } else {
+      toast.error('Failed to place bets');
+    }
+  };
 
-    setBetAmounts({});
-    clearBetSlip();
-    toast.success(`${betsWithAmounts.length} bet(s) placed successfully!`);
+  const getBetDescription = (item: typeof betSlip[0]) => {
+    const getTeamAbbreviation = (teamName: string) => {
+      const parts = teamName.split(' ');
+      return parts[parts.length - 1].substring(0, 3).toUpperCase();
+    };
+
+    switch (item.betType) {
+      case 'spread-away':
+        return `${getTeamAbbreviation(item.game.awayTeam)} ${item.spreadValue && item.spreadValue > 0 ? '+' : ''}${item.spreadValue}`;
+      case 'spread-home':
+        return `${getTeamAbbreviation(item.game.homeTeam)} ${item.spreadValue && item.spreadValue > 0 ? '+' : ''}${item.spreadValue}`;
+      case 'over':
+        return `Over ${item.totalValue}`;
+      case 'under':
+        return `Under ${item.totalValue}`;
+      case 'away':
+        return getTeamAbbreviation(item.game.awayTeam);
+      case 'home':
+        return getTeamAbbreviation(item.game.homeTeam);
+      default:
+        return 'Unknown';
+    }
+  };
+
+  const getBetTypeLabel = (betType: string) => {
+    switch (betType) {
+      case 'spread-away':
+      case 'spread-home':
+        return 'Spread';
+      case 'over':
+      case 'under':
+        return 'Total';
+      case 'away':
+      case 'home':
+        return 'Moneyline';
+      default:
+        return 'Bet';
+    }
+  };
+
+  const formatAmericanOdds = (odds: number) => {
+    if (odds > 0) return `+${odds}`;
+    return odds.toString();
+  };
+
+  const getOddsChange = (gameId: string, betType: string) => {
+    const field = betType.includes('away') || betType === 'away' || betType === 'over' ? 'away' : 'home';
+    const key = `${gameId}-${field}`;
+    return oddsChanges.get(key);
   };
 
   if (betSlip.length === 0) {
     return (
-      <Card className="w-full border-gray-700 bg-gray-800/50 backdrop-blur">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Bet Slip
-          </CardTitle>
+      <Card className="bg-[#0d0f10] border-[#1a1d1f]">
+        <CardHeader className="border-b border-[#1a1d1f]">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Badge className="bg-[#53d337] text-black text-xs font-bold px-2 py-0.5">
+                0
+              </Badge>
+              <CardTitle className="text-white text-lg font-bold">BET SLIP</CardTitle>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-[#b1bad3] hover:text-white p-1"
+            >
+              <Info className="h-5 w-5" />
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <p className="text-gray-400">Your bet slip is empty</p>
-            <p className="text-sm text-gray-500 mt-2">Add bets to get started</p>
+        <CardContent className="py-12">
+          <div className="text-center space-y-3">
+            <h3 className="text-white font-bold text-lg">YOUR PICKS WILL SHOW UP HERE.</h3>
+            <p className="text-[#b1bad3] text-sm leading-relaxed">
+              Select picks to then see the different types of bets available, including Singles, Parlays, Teasers, Round Robins and more.
+            </p>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  // Check if user is not logged in
+  // If user is not logged in, show login prompt
   if (!user) {
     return (
-      <Card className="w-full border-gray-700 bg-gray-800/50 backdrop-blur">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Bet Slip ({betSlip.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Show bet slip items but disabled */}
-          {betSlip.map((bet) => (
-            <div key={bet.id} className="p-3 rounded-lg bg-gray-700/30 border border-gray-600 opacity-60">
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex-1">
-                  <p className="text-white font-medium">{bet.team}</p>
-                  <p className="text-sm text-gray-400">{bet.betType}</p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeBet(bet.id)}
-                  className="h-6 w-6 p-0 hover:bg-gray-600"
-                >
-                  <X className="h-4 w-4 text-gray-400" />
-                </Button>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-400">Odds:</span>
-                <span className="text-white font-semibold">{bet.odds > 0 ? '+' : ''}{bet.odds}</span>
-              </div>
+      <Card className="bg-[#0d0f10] border-[#1a1d1f]">
+        <CardHeader className="border-b border-[#1a1d1f]">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Badge className="bg-[#53d337] text-black text-xs font-bold px-2 py-0.5">
+                {betSlip.length}
+              </Badge>
+              <CardTitle className="text-white text-lg font-bold">BET SLIP</CardTitle>
             </div>
-          ))}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearBetSlip}
+              className="text-[#b1bad3] hover:text-white text-xs"
+            >
+              Clear All
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4 p-4">
+          {/* Show bet items but disabled */}
+          {betSlip.map((item) => {
+            const oddsChange = getOddsChange(item.game.id, item.betType);
+            const isIncreasing = oddsChange?.direction === 'up';
+            const isDecreasing = oddsChange?.direction === 'down';
 
-          <Separator className="bg-gray-700" />
+            return (
+              <div key={item.game.id} className="bg-[#1a1d1f] rounded-lg p-3 space-y-3 opacity-60">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFromBetSlip(item.game.id)}
+                        className="text-[#b1bad3] hover:text-white p-0 h-auto -ml-1"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                      <span className="text-white text-sm font-medium">
+                        {getBetDescription(item)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 ml-6">
+                      <span className="text-[#b1bad3] text-xs">
+                        {getBetTypeLabel(item.betType)}
+                      </span>
+                    </div>
+                    <p className="text-[#b1bad3] text-xs mt-1 ml-6">
+                      {item.game.homeTeam} @ {item.game.awayTeam}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {isIncreasing && (
+                      <TrendingUp className="h-3 w-3 text-green-400" />
+                    )}
+                    {isDecreasing && (
+                      <TrendingDown className="h-3 w-3 text-red-400" />
+                    )}
+                    <span className={cn(
+                      'text-sm font-bold font-mono',
+                      isIncreasing ? 'text-green-400' : isDecreasing ? 'text-red-400' : 'text-white'
+                    )}>
+                      {formatAmericanOdds(item.odds)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
 
           {/* Login Required Message */}
-          <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-yellow-500 font-medium mb-1">Login Required</p>
-                <p className="text-sm text-gray-300 mb-3">
-                  Please login to place bets and track your betting history
-                </p>
-                <Button
-                  onClick={() => navigate('/login')}
-                  className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
-                >
-                  Login to Place Bets
-                </Button>
-              </div>
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <LogIn className="h-5 w-5 text-yellow-500" />
+              <h3 className="text-yellow-500 font-bold text-sm">LOGIN REQUIRED</h3>
             </div>
+            <p className="text-[#b1bad3] text-sm">
+              Please login to place bets and track your betting history.
+            </p>
+            <Button
+              onClick={() => navigate('/login')}
+              className="w-full bg-[#53d337] hover:bg-[#45b82e] text-black font-bold"
+            >
+              <LogIn className="h-4 w-4 mr-2" />
+              Login to Place Bets
+            </Button>
           </div>
-
-          <Button
-            variant="outline"
-            onClick={clearBetSlip}
-            className="w-full border-gray-600 text-gray-300 hover:bg-gray-700"
-          >
-            Clear Bet Slip
-          </Button>
         </CardContent>
       </Card>
     );
   }
 
-  // User is logged in - show full functionality
   return (
-    <Card className="w-full border-gray-700 bg-gray-800/50 backdrop-blur">
-      <CardHeader>
-        <CardTitle className="text-white flex items-center gap-2">
-          <TrendingUp className="h-5 w-5" />
-          Bet Slip ({betSlip.length})
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {betSlip.map((bet) => (
-          <div key={bet.id} className="p-3 rounded-lg bg-gray-700/30 border border-gray-600">
-            <div className="flex justify-between items-start mb-2">
-              <div className="flex-1">
-                <p className="text-white font-medium">{bet.team}</p>
-                <p className="text-sm text-gray-400">{bet.betType}</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => removeBet(bet.id)}
-                className="h-6 w-6 p-0 hover:bg-gray-600"
-              >
-                <X className="h-4 w-4 text-gray-400" />
-              </Button>
-            </div>
-
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-sm text-gray-400">Odds:</span>
-              <span className="text-white font-semibold">
-                {bet.odds > 0 ? '+' : ''}
-                {bet.odds}
-              </span>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor={`amount-${bet.id}`} className="text-gray-300 text-sm">
-                Bet Amount ($)
-              </Label>
-              <Input
-                id={`amount-${bet.id}`}
-                type="text"
-                placeholder="0.00"
-                value={betAmounts[bet.id] || ''}
-                onChange={(e) => handleAmountChange(bet.id, e.target.value)}
-                className="bg-gray-700 border-gray-600 text-white"
-              />
-              {betAmounts[bet.id] && parseFloat(betAmounts[bet.id]) > 0 && (
-                <p className="text-xs text-green-400">
-                  Potential Win: ${calculatePotentialWin(bet.odds, betAmounts[bet.id])}
-                </p>
-              )}
-            </div>
+    <Card className="bg-[#0d0f10] border-[#1a1d1f]">
+      <CardHeader className="border-b border-[#1a1d1f]">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Badge className="bg-[#53d337] text-black text-xs font-bold px-2 py-0.5">
+              {betSlip.length}
+            </Badge>
+            <CardTitle className="text-white text-lg font-bold">BET SLIP</CardTitle>
           </div>
-        ))}
-
-        <Separator className="bg-gray-700" />
-
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Total Stake:</span>
-            <span className="text-white font-semibold">${getTotalStake()}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Potential Win:</span>
-            <span className="text-green-400 font-semibold">${getTotalPotentialWin()}</span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-[#b1bad3] hover:text-white p-1"
+            >
+              <Info className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearBetSlip}
+              className="text-[#b1bad3] hover:text-white text-xs"
+            >
+              Clear All
+            </Button>
           </div>
         </div>
+      </CardHeader>
+      <CardContent className="space-y-4 p-4">
+        {/* SINGLES Section Header */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-white text-sm font-bold uppercase">SINGLES</h3>
+        </div>
 
-        <div className="space-y-2 pt-2">
-          <Button
-            onClick={handlePlaceBets}
-            disabled={parseFloat(getTotalStake()) <= 0}
-            className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Place Bet{betSlip.length > 1 ? 's' : ''} (${getTotalStake()})
-          </Button>
-          <Button
-            variant="outline"
-            onClick={clearBetSlip}
-            className="w-full border-gray-600 text-gray-300 hover:bg-gray-700"
-          >
-            Clear Bet Slip
-          </Button>
+        {/* Bet Items */}
+        {betSlip.map((item) => {
+          const oddsChange = getOddsChange(item.game.id, item.betType);
+          const isIncreasing = oddsChange?.direction === 'up';
+          const isDecreasing = oddsChange?.direction === 'down';
+          const itemPayout = item.stake > 0 ? (item.stake * item.odds) : 0;
+
+          return (
+            <div key={item.game.id} className="bg-[#1a1d1f] rounded-lg p-3 space-y-3">
+              {/* Bet Header with Remove Button */}
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeFromBetSlip(item.game.id)}
+                      className="text-[#b1bad3] hover:text-white p-0 h-auto -ml-1"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <span className="text-white text-sm font-medium">
+                      {getBetDescription(item)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 ml-6">
+                    <span className="text-[#b1bad3] text-xs">
+                      {getBetTypeLabel(item.betType)}
+                    </span>
+                  </div>
+                  <p className="text-[#b1bad3] text-xs mt-1 ml-6">
+                    {item.game.homeTeam} @ {item.game.awayTeam}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1">
+                  {isIncreasing && (
+                    <TrendingUp className="h-3 w-3 text-green-400" />
+                  )}
+                  {isDecreasing && (
+                    <TrendingDown className="h-3 w-3 text-red-400" />
+                  )}
+                  <span className={cn(
+                    'text-sm font-bold font-mono',
+                    isIncreasing ? 'text-green-400' : isDecreasing ? 'text-red-400' : 'text-white'
+                  )}>
+                    {formatAmericanOdds(item.odds)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Stake Input with $ prefix */}
+              <div className="space-y-1">
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white text-sm font-medium">
+                    $
+                  </span>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={item.stake || ''}
+                    onChange={(e) => {
+                      const value = e.target.value === '' ? 0 : Number(e.target.value);
+                      updateStake(item.game.id, Math.max(0, value));
+                    }}
+                    placeholder="0.00"
+                    className="bg-[#0d0f10] border-[#2a2d2f] text-white h-10 pl-7 pr-3 text-sm font-medium"
+                  />
+                </div>
+                {item.stake > 0 && (
+                  <p className="text-[#b1bad3] text-xs">
+                    Payout: ${itemPayout.toFixed(2)}
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Place Bet Button */}
+        <Button
+          onClick={handlePlaceBets}
+          disabled={!canPlaceBets}
+          className={cn(
+            "w-full font-bold text-base py-6 transition-all",
+            canPlaceBets
+              ? "bg-[#53d337] hover:bg-[#45b82e] text-black"
+              : "bg-[#2a2d2f] text-[#6b6e70] cursor-not-allowed hover:bg-[#2a2d2f]"
+          )}
+        >
+          <div className="flex flex-col items-center">
+            <span>Place Bet ${totalStake.toFixed(2)}</span>
+            {canPlaceBets && (
+              <span className="text-xs font-normal mt-0.5">
+                Total Payout: ${totalPotentialWin.toFixed(2)}
+              </span>
+            )}
+          </div>
+        </Button>
+
+        {/* Live Odds Update Section */}
+        <div className="border-t border-[#1a1d1f] pt-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-[#53d337] rounded-full animate-pulse" />
+            <h3 className="text-white text-sm font-bold uppercase">Live Odds Updates</h3>
+          </div>
+          
+          <div className="space-y-2">
+            {betSlip.map((item) => {
+              const oddsChange = getOddsChange(item.game.id, item.betType);
+              const isIncreasing = oddsChange?.direction === 'up';
+              const isDecreasing = oddsChange?.direction === 'down';
+
+              return (
+                <div 
+                  key={`live-${item.game.id}`} 
+                  className={cn(
+                    'bg-[#1a1d1f] rounded p-2 transition-all duration-300',
+                    isIncreasing && 'border border-green-500/30 bg-green-500/5',
+                    isDecreasing && 'border border-red-500/30 bg-red-500/5'
+                  )}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-white text-xs font-medium">
+                        {getBetDescription(item)}
+                      </p>
+                      <p className="text-[#b1bad3] text-[10px]">
+                        {getBetTypeLabel(item.betType)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isIncreasing && (
+                        <div className="flex items-center gap-1">
+                          <TrendingUp className="h-3 w-3 text-green-400" />
+                          <span className="text-green-400 text-xs font-bold">
+                            {formatAmericanOdds(item.odds)}
+                          </span>
+                        </div>
+                      )}
+                      {isDecreasing && (
+                        <div className="flex items-center gap-1">
+                          <TrendingDown className="h-3 w-3 text-red-400" />
+                          <span className="text-red-400 text-xs font-bold">
+                            {formatAmericanOdds(item.odds)}
+                          </span>
+                        </div>
+                      )}
+                      {!isIncreasing && !isDecreasing && (
+                        <span className="text-[#b1bad3] text-xs font-bold">
+                          {formatAmericanOdds(item.odds)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <p className="text-[#b1bad3] text-[10px] text-center">
+            Odds update every 15 seconds • Green = Better odds • Red = Worse odds
+          </p>
         </div>
       </CardContent>
     </Card>
