@@ -13,6 +13,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import AuthCallback from './pages/AuthCallback';
 import MyBets from './pages/MyBets';
+import LiveBetting from './pages/LiveBetting';
 import Wallet from './pages/Wallet';
 import Profile from './pages/Profile';
 
@@ -32,6 +33,7 @@ const App = () => (
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<Signup />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
+                  <Route path="/live" element={<LiveBetting />} />
                   <Route
                     path="/my-bets"
                     element={
