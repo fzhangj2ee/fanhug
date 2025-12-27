@@ -34,7 +34,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <Trophy className="h-6 w-6 text-[#53d337]" />
-            <span className="text-xl font-bold text-white">BetPro</span>
+            <span className="text-xl font-bold text-white">FanHug</span>
           </Link>
 
           {/* Navigation Links */}
