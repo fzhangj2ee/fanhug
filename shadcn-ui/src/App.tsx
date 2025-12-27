@@ -11,6 +11,7 @@ import MyBets from './pages/MyBets';
 import Wallet from './pages/Wallet';
 import Login from './pages/Login';
 import Admin from './pages/Admin';
+import AuthCallback from './pages/AuthCallback';
 import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
                   <Route path="/wallet" element={<Wallet />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/admin" element={<Admin />} />
+                  <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </LiveOddsProvider>

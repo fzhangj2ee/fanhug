@@ -1,68 +1,48 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleAuthCallback = async () => {
+    const handleCallback = async () => {
       try {
-        // Get the hash fragment from the URL
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
-
-        if (accessToken && refreshToken) {
-          // Set the session with the tokens from the URL
-          const { data, error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-
-          if (error) {
-            console.error('Error setting session:', error);
-            toast.error('Failed to complete sign in');
-            navigate('/login');
-            return;
-          }
-
-          if (data.session) {
-            toast.success('Successfully signed in with Google!');
-            // Redirect to home page
-            navigate('/');
-          } else {
-            toast.error('No session created');
-            navigate('/login');
-          }
-        } else {
-          // No tokens in URL, check if there's an existing session
-          const { data: { session } } = await supabase.auth.getSession();
-          
-          if (session) {
-            toast.success('Already signed in!');
-            navigate('/');
-          } else {
-            toast.error('No authentication tokens found');
-            navigate('/login');
-          }
+        // Get the session from the URL hash
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Auth callback error:', error);
+          toast.error('Authentication failed. Please try again.');
+          navigate('/login');
+          return;
         }
-      } catch (error) {
-        console.error('Auth callback error:', error);
-        toast.error('An error occurred during sign in');
+
+        if (data.session) {
+          toast.success('Successfully signed in with Google!');
+          navigate('/', { replace: true });
+        } else {
+          toast.error('No session found. Please try again.');
+          navigate('/login');
+        }
+      } catch (err) {
+        console.error('Unexpected error in auth callback:', err);
+        toast.error('An unexpected error occurred. Please try again.');
         navigate('/login');
       }
     };
 
-    handleAuthCallback();
+    handleCallback();
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
-      <div className="text-center space-y-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
+    <div className="min-h-screen bg-[#0d0f10] flex items-center justify-center">
+      <div className="text-center">
+        <Loader2 className="h-12 w-12 animate-spin text-[#53d337] mx-auto mb-4" />
         <p className="text-white text-lg">Completing sign in...</p>
+        <p className="text-[#b1bad3] text-sm mt-2">Please wait while we authenticate you</p>
       </div>
     </div>
   );
