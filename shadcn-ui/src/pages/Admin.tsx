@@ -33,10 +33,6 @@ export default function Admin() {
     return null;
   }
 
-  const handleHomeClick = () => {
-    navigate('/');
-  };
-
   // Calculate stats for all users
   const userStats: UserStats[] = users.map((u) => {
     const userBets = getAllUserBets(u.id);
@@ -50,8 +46,8 @@ export default function Admin() {
     const netProfit = totalWon - userBets.filter(bet => bet.status === 'lost').reduce((sum, bet) => sum + bet.stake, 0);
 
     return {
-      email: u.email,
-      balance: u.balance || 0,
+      email: u.email || '',
+      balance: 0, // Supabase users don't have balance in user object
       totalBets: userBets.length,
       wins,
       losses,
@@ -89,7 +85,7 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-[#0d0f10]">
-      <Navbar onHomeClick={handleHomeClick} isHomeActive={false} />
+      <Navbar />
       
       <div className="container mx-auto px-4 py-6">
         {!selectedUser ? (
@@ -105,7 +101,6 @@ export default function Admin() {
                   <TableHeader>
                     <TableRow className="border-[#2a2d2f] hover:bg-[#2a2d2f]">
                       <TableHead className="text-[#b1bad3]">Email</TableHead>
-                      <TableHead className="text-[#b1bad3]">Balance</TableHead>
                       <TableHead className="text-[#b1bad3]">Total Bets</TableHead>
                       <TableHead className="text-[#b1bad3]">Wins</TableHead>
                       <TableHead className="text-[#b1bad3]">Losses</TableHead>
@@ -121,7 +116,6 @@ export default function Admin() {
                         onClick={() => setSelectedUser(stats.email)}
                       >
                         <TableCell className="text-white font-medium">{stats.email}</TableCell>
-                        <TableCell className="text-white">${stats.balance.toFixed(2)}</TableCell>
                         <TableCell className="text-white">{stats.totalBets}</TableCell>
                         <TableCell className="text-green-400">{stats.wins}</TableCell>
                         <TableCell className="text-red-400">{stats.losses}</TableCell>
@@ -151,13 +145,7 @@ export default function Admin() {
             </div>
 
             {/* User Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <Card className="bg-[#1a1d1f] border-[#2a2d2f]">
-                <CardContent className="p-4">
-                  <p className="text-[#b1bad3] text-sm mb-1">Balance</p>
-                  <p className="text-white text-2xl font-bold">${selectedUserStats?.balance.toFixed(2)}</p>
-                </CardContent>
-              </Card>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <Card className="bg-[#1a1d1f] border-[#2a2d2f]">
                 <CardContent className="p-4">
                   <p className="text-[#b1bad3] text-sm mb-1">Total Bets</p>
