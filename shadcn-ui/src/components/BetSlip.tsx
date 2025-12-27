@@ -80,7 +80,7 @@ export default function BetSlip() {
     <Card className="border-gray-700 bg-gray-800/50 backdrop-blur sticky top-6">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
+          <CardTitle className="text-sm font-bold text-white flex items-center gap-2 tracking-wider">
             <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-black font-bold">
               {betSlip.length}
             </div>
@@ -163,8 +163,8 @@ export default function BetSlip() {
             {!user ? (
               <div className="space-y-4">
                 <div className="flex justify-center">
-                  <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center">
-                    <LogIn className="w-8 h-8 text-gray-400" />
+                  <div className="w-11 h-11 rounded-full bg-gray-700 flex items-center justify-center">
+                    <LogIn className="w-6 h-6 text-gray-400" />
                   </div>
                 </div>
                 <Button
