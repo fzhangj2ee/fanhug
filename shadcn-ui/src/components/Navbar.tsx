@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
 
 interface NavbarProps {
   onHomeClick?: () => void;
@@ -16,10 +17,20 @@ interface NavbarProps {
 }
 
 export default function Navbar({ onHomeClick, isHomeActive = true }: NavbarProps) {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const { balance } = useWallet();
 
   const isAdmin = user?.email === 'fzhangj2ee@gmail.com';
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success('Logged out successfully');
+    } catch (error) {
+      toast.error('Failed to logout');
+      console.error('Logout error:', error);
+    }
+  };
 
   return (
     <nav className="bg-[#1a1d1f] border-b border-[#2a2d2f] sticky top-0 z-50">
@@ -84,7 +95,7 @@ export default function Navbar({ onHomeClick, isHomeActive = true }: NavbarProps
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="bg-[#1a1d1f] border-[#2a2d2f]">
                     <DropdownMenuItem
-                      onClick={logout}
+                      onClick={handleLogout}
                       className="text-white hover:bg-[#2a2d2f] cursor-pointer"
                     >
                       <LogOut className="h-4 w-4 mr-2" />
