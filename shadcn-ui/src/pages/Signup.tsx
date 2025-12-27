@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -47,9 +47,13 @@ export default function Signup() {
     register,
     handleSubmit,
     watch,
+    control,
     formState: { errors },
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
+    defaultValues: {
+      acceptTerms: false,
+    },
   });
 
   const password = watch('password', '');
@@ -280,11 +284,18 @@ export default function Signup() {
         {/* Terms & Conditions */}
         <div className="space-y-2">
           <div className="flex items-start space-x-2">
-            <Checkbox
-              id="acceptTerms"
-              className="border-[#2a2d2f] data-[state=checked]:bg-[#53d337] data-[state=checked]:border-[#53d337] mt-0.5"
-              {...register('acceptTerms')}
-              disabled={isLoading || authLoading}
+            <Controller
+              name="acceptTerms"
+              control={control}
+              render={({ field }) => (
+                <Checkbox
+                  id="acceptTerms"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  className="border-[#2a2d2f] data-[state=checked]:bg-[#53d337] data-[state=checked]:border-[#53d337] mt-0.5"
+                  disabled={isLoading || authLoading}
+                />
+              )}
             />
             <label
               htmlFor="acceptTerms"
