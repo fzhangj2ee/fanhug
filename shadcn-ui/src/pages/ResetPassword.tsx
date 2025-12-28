@@ -1,131 +1,146 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, ArrowLeft } from 'lucide-react';
-import AuthForm from '@/components/AuthForm';
-import { useAuth } from '@/hooks/useAuth';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const resetPasswordSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-});
-
-type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
-
 export default function ResetPassword() {
-  const { resetPassword } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { resetPassword, error, loading, clearError } = useAuth();
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ResetPasswordFormData>({
-    resolver: zodResolver(resetPasswordSchema),
-  });
-
-  const onSubmit = async (data: ResetPasswordFormData) => {
-    setIsLoading(true);
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email) {
+      toast.error('Please enter your email address');
+      return;
+    }
 
     try {
-      await resetPassword(data.email);
+      setIsSubmitting(true);
+      clearError();
+      
+      console.log('Sending password reset email to:', email);
+      await resetPassword(email);
+      
       setEmailSent(true);
       toast.success('Password reset email sent! Check your inbox.');
     } catch (err) {
+      console.error('Reset password error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to send reset email';
       toast.error(errorMessage);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  if (emailSent) {
-    return (
-      <AuthForm
-        title="Check Your Email"
-        description="We've sent you a password reset link"
-      >
-        <div className="text-center space-y-4">
-          <div className="bg-[#0d0f10] border border-[#2a2d2f] rounded-lg p-6">
-            <p className="text-[#b1bad3] mb-4">
-              We've sent a password reset link to your email address. Please check your inbox and follow the instructions to reset your password.
-            </p>
-            <p className="text-sm text-[#5f6368]">
-              Didn't receive the email? Check your spam folder or try again.
-            </p>
-          </div>
-
-          <Link to="/login">
-            <Button
-              variant="outline"
-              className="w-full border-[#2a2d2f] text-white hover:bg-[#2a2d2f]"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Login
-            </Button>
-          </Link>
-        </div>
-      </AuthForm>
-    );
-  }
-
   return (
-    <AuthForm
-      title="Reset Password"
-      description="Enter your email to receive a password reset link"
-    >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Email Field */}
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-white">
-            Email
-          </Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="name@example.com"
-            className="bg-[#0d0f10] border-[#2a2d2f] text-white placeholder:text-[#5f6368] focus:border-[#53d337]"
-            {...register('email')}
-            disabled={isLoading}
-          />
-          {errors.email && (
-            <p className="text-sm text-red-400">{errors.email.message}</p>
+    <div className="min-h-screen bg-[#0d0f10] flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-[#1a1d1f] border-[#2a2d2f]">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-white text-center">
+            Reset Password
+          </CardTitle>
+          <CardDescription className="text-[#b1bad3] text-center">
+            {emailSent
+              ? 'Check your email for reset instructions'
+              : 'Enter your email to receive a password reset link'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {error && (
+            <Alert className="bg-red-500/10 border-red-500/50">
+              <AlertCircle className="h-4 w-4 text-red-500" />
+              <AlertDescription className="text-red-500">{error}</AlertDescription>
+            </Alert>
           )}
-        </div>
 
-        {/* Submit Button */}
-        <Button
-          type="submit"
-          className="w-full bg-[#53d337] hover:bg-[#45b82d] text-black font-bold h-11"
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Sending...
-            </>
+          {emailSent ? (
+            <div className="space-y-4">
+              <Alert className="bg-green-500/10 border-green-500/50">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <AlertDescription className="text-green-500">
+                  Password reset email sent to {email}
+                </AlertDescription>
+              </Alert>
+              
+              <p className="text-[#b1bad3] text-sm text-center">
+                Click the link in the email to reset your password. The link will expire in 1 hour.
+              </p>
+
+              <div className="flex flex-col gap-2">
+                <Button
+                  onClick={() => navigate('/login')}
+                  className="w-full bg-[#53d337] hover:bg-[#45b82d] text-black font-bold"
+                >
+                  Back to Login
+                </Button>
+                <Button
+                  onClick={() => {
+                    setEmailSent(false);
+                    setEmail('');
+                  }}
+                  variant="outline"
+                  className="w-full border-[#2a2d2f] bg-[#0d0f10] text-white hover:bg-[#2a2d2f]"
+                >
+                  Send Another Email
+                </Button>
+              </div>
+            </div>
           ) : (
-            'Send Reset Link'
-          )}
-        </Button>
-      </form>
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-white">
+                  Email Address
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-[#b1bad3]" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10 bg-[#0d0f10] border-[#2a2d2f] text-white placeholder:text-[#b1bad3]"
+                    disabled={isSubmitting || loading}
+                    required
+                  />
+                </div>
+              </div>
 
-      {/* Back to Login Link */}
-      <div className="text-center">
-        <Link
-          to="/login"
-          className="text-sm text-[#b1bad3] hover:text-white transition-colors inline-flex items-center"
-        >
-          <ArrowLeft className="mr-1 h-3 w-3" />
-          Back to Login
-        </Link>
-      </div>
-    </AuthForm>
+              <Button
+                type="submit"
+                className="w-full bg-[#53d337] hover:bg-[#45b82d] text-black font-bold"
+                disabled={isSubmitting || loading}
+              >
+                {isSubmitting || loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  'Send Reset Link'
+                )}
+              </Button>
+
+              <div className="text-center text-sm text-[#b1bad3]">
+                Remember your password?{' '}
+                <Link to="/login" className="text-[#53d337] hover:underline font-medium">
+                  Sign in
+                </Link>
+              </div>
+            </form>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
