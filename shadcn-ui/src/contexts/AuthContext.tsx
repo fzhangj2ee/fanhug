@@ -48,12 +48,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         
         // Add current user to users list if not already there
         if (initialSession?.user) {
-          const userExists = users.some(u => u.id === initialSession.user.id);
-          if (!userExists) {
-            const updatedUsers = [...users, initialSession.user];
-            setUsers(updatedUsers);
-            localStorage.setItem('all_registered_users', JSON.stringify(updatedUsers));
-          }
+          setUsers(prevUsers => {
+            const userExists = prevUsers.some(u => u.id === initialSession.user.id);
+            if (!userExists) {
+              const updatedUsers = [...prevUsers, initialSession.user];
+              localStorage.setItem('all_registered_users', JSON.stringify(updatedUsers));
+              return updatedUsers;
+            }
+            return prevUsers;
+          });
         }
       } catch (err) {
         console.error('Error initializing auth:', err);
@@ -92,25 +95,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
   }, []);
 
-  const getErrorMessage = (err: unknown): string => {
+  const handleAuthError = (err: unknown) => {
     const authError = err as AuthError;
-    
+    let errorMessage = 'An error occurred';
+
     if (authError.message) {
       // Map common Supabase error messages to user-friendly messages
       if (authError.message.includes('Invalid login credentials')) {
-        return 'Invalid email or password';
+        errorMessage = 'Invalid email or password';
       } else if (authError.message.includes('Email not confirmed')) {
-        return 'Please verify your email address';
+        errorMessage = 'Please verify your email address';
       } else if (authError.message.includes('User already registered')) {
-        return 'An account with this email already exists';
+        errorMessage = 'An account with this email already exists';
       } else if (authError.message.includes('Password should be at least')) {
-        return 'Password must be at least 8 characters';
+        errorMessage = 'Password must be at least 8 characters';
       } else {
-        return authError.message;
+        errorMessage = authError.message;
       }
     }
-    
-    return 'An error occurred';
+
+    setError(errorMessage);
+    throw new Error(errorMessage);
   };
 
   const signUp = async (
@@ -128,26 +133,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
         username: metadata?.username,
       });
     } catch (err) {
-      const errorMessage = getErrorMessage(err);
-      setError(errorMessage);
-      throw new Error(errorMessage);
+      handleAuthError(err);
     } finally {
       setLoading(false);
     }
   };
 
   const signIn = async (email: string, password: string) => {
-    setLoading(true);
-    setError(null);
-    
     try {
-      const result = await authService.signIn({ email, password });
-      console.log('Sign in successful:', result);
+      setLoading(true);
+      setError(null);
+      await authService.signIn({ email, password });
     } catch (err) {
-      const errorMessage = getErrorMessage(err);
-      console.error('Sign in error:', errorMessage);
-      setError(errorMessage);
-      throw new Error(errorMessage);
+      handleAuthError(err);
     } finally {
       setLoading(false);
     }
@@ -159,9 +157,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setError(null);
       await authService.signInWithOAuth(provider);
     } catch (err) {
-      const errorMessage = getErrorMessage(err);
-      setError(errorMessage);
-      throw new Error(errorMessage);
+      handleAuthError(err);
     } finally {
       setLoading(false);
     }
@@ -175,9 +171,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(null);
       setSession(null);
     } catch (err) {
-      const errorMessage = getErrorMessage(err);
-      setError(errorMessage);
-      throw new Error(errorMessage);
+      handleAuthError(err);
     } finally {
       setLoading(false);
     }
@@ -189,9 +183,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setError(null);
       await authService.resetPassword(email);
     } catch (err) {
-      const errorMessage = getErrorMessage(err);
-      setError(errorMessage);
-      throw new Error(errorMessage);
+      handleAuthError(err);
     } finally {
       setLoading(false);
     }
@@ -203,9 +195,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setError(null);
       await authService.updatePassword(newPassword);
     } catch (err) {
-      const errorMessage = getErrorMessage(err);
-      setError(errorMessage);
-      throw new Error(errorMessage);
+      handleAuthError(err);
     } finally {
       setLoading(false);
     }
