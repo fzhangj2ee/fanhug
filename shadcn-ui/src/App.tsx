@@ -13,6 +13,7 @@ import Login from './pages/Login';
 import Admin from './pages/Admin';
 import AuthCallback from './pages/AuthCallback';
 import ResetPassword from './pages/ResetPassword';
+import UpdatePassword from './pages/UpdatePassword';
 import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
                   <Route path="/admin" element={<Admin />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/update-password" element={<UpdatePassword />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </LiveOddsProvider>

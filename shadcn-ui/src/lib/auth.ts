@@ -1,22 +1,19 @@
 import { supabase } from './supabase';
 import type { Provider } from '@supabase/supabase-js';
 
-export interface SignUpData {
+interface SignUpParams {
   email: string;
   password: string;
   fullName?: string;
   username?: string;
 }
 
-export interface SignInData {
+interface SignInParams {
   email: string;
   password: string;
 }
 
-/**
- * Sign up a new user with email and password
- */
-export const signUp = async ({ email, password, fullName, username }: SignUpData) => {
+export async function signUp({ email, password, fullName, username }: SignUpParams) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -30,12 +27,9 @@ export const signUp = async ({ email, password, fullName, username }: SignUpData
 
   if (error) throw error;
   return data;
-};
+}
 
-/**
- * Sign in with email and password
- */
-export const signIn = async ({ email, password }: SignInData) => {
+export async function signIn({ email, password }: SignInParams) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -43,12 +37,9 @@ export const signIn = async ({ email, password }: SignInData) => {
 
   if (error) throw error;
   return data;
-};
+}
 
-/**
- * Sign in with OAuth provider (Google, Facebook, Twitter, GitHub)
- */
-export const signInWithOAuth = async (provider: Provider) => {
+export async function signInWithOAuth(provider: Provider) {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
@@ -58,62 +49,39 @@ export const signInWithOAuth = async (provider: Provider) => {
 
   if (error) throw error;
   return data;
-};
+}
 
-/**
- * Sign out the current user
- */
-export const signOut = async () => {
+export async function signOut() {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
-};
+}
 
-/**
- * Send password reset email
- */
-export const resetPassword = async (email: string) => {
+export async function resetPassword(email: string) {
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset-password`,
+    redirectTo: `${window.location.origin}/update-password`,
   });
 
   if (error) throw error;
   return data;
-};
+}
 
-/**
- * Update user password
- */
-export const updatePassword = async (newPassword: string) => {
+export async function updatePassword(newPassword: string) {
   const { data, error } = await supabase.auth.updateUser({
     password: newPassword,
   });
 
   if (error) throw error;
   return data;
-};
+}
 
-/**
- * Get current user
- */
-export const getCurrentUser = async () => {
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
+export async function getCurrentUser() {
+  const { data: { user }, error } = await supabase.auth.getUser();
   if (error) throw error;
   return user;
-};
+}
 
-/**
- * Get current session
- */
-export const getCurrentSession = async () => {
-  const {
-    data: { session },
-    error,
-  } = await supabase.auth.getSession();
-
+export async function getCurrentSession() {
+  const { data: { session }, error } = await supabase.auth.getSession();
   if (error) throw error;
   return session;
-};
+}
