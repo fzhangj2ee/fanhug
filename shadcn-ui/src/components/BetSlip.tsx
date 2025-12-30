@@ -130,11 +130,11 @@ export default function BetSlip() {
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300 text-sm">Total Wagered</span>
-                  <span className="text-white font-medium">‖{lastBetDetails.totalStake.toFixed(2)}</span>
+                  <span className="text-white font-medium">$‖{lastBetDetails.totalStake.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300 text-sm">Total Potential Payout</span>
-                  <span className="text-green-500 font-bold">‖{lastBetDetails.totalPayout.toFixed(2)}</span>
+                  <span className="text-green-500 font-bold">$‖{lastBetDetails.totalPayout.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -170,7 +170,7 @@ export default function BetSlip() {
                 >
                   Log In to Place Bet
                 </Button>
-                <p className="text-sm text-gray-400">Minimum Bet: ‖0.10</p>
+                <p className="text-sm text-gray-400">Minimum Bet: $‖0.10</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -233,7 +233,7 @@ export default function BetSlip() {
                       </span>
                       <div className="relative flex-1">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
-                          ‖
+                          $‖
                         </span>
                         <Input
                           type="number"
@@ -243,7 +243,7 @@ export default function BetSlip() {
                           onChange={(e) =>
                             updateStake(item.game.id, parseFloat(e.target.value) || 0)
                           }
-                          className="pl-6 bg-gray-800 border-gray-600 text-white h-8 text-sm"
+                          className="pl-8 bg-gray-800 border-gray-600 text-white h-8 text-sm"
                           placeholder="0.00"
                         />
                       </div>
@@ -254,7 +254,7 @@ export default function BetSlip() {
                       <div className="flex justify-between text-xs pt-2 border-t border-gray-700">
                         <span className="text-gray-400">Total Return:</span>
                         <span className="text-green-400 font-medium">
-                          ‖{(item.stake * item.odds).toFixed(2)}
+                          $‖{(item.stake * item.odds).toFixed(2)}
                         </span>
                       </div>
                     )}
@@ -267,18 +267,18 @@ export default function BetSlip() {
             <div className="bg-gray-900/50 rounded-lg p-4 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Total Stake:</span>
-                <span className="text-white font-medium">‖{totalStake.toFixed(2)}</span>
+                <span className="text-white font-medium">$‖{totalStake.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Total Return:</span>
                 <span className="text-green-400 font-bold">
-                  ‖{totalPotentialWin.toFixed(2)}
+                  $‖{totalPotentialWin.toFixed(2)}
                 </span>
               </div>
               <div className="flex justify-between text-sm pt-2 border-t border-gray-700">
                 <span className="text-gray-400">Profit:</span>
                 <span className="text-green-400 font-bold">
-                  ‖{(totalPotentialWin - totalStake).toFixed(2)}
+                  $‖{(totalPotentialWin - totalStake).toFixed(2)}
                 </span>
               </div>
             </div>

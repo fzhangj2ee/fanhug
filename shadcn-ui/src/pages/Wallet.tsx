@@ -16,7 +16,7 @@ export default function Wallet() {
 
   const handleAddFunds = () => {
     addFunds(1000);
-    toast.success('Added ‖1,000 to your balance!');
+    toast.success('Added $‖1,000 to your balance!');
   };
 
   const formatDate = (isoString: string) => {
@@ -69,7 +69,7 @@ export default function Wallet() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-white/80 text-sm mb-2">Available Balance</p>
-                <p className="text-white text-5xl font-bold">‖{balance.toFixed(2)}</p>
+                <p className="text-white text-5xl font-bold">$‖{balance.toFixed(2)}</p>
               </div>
               <Button
                 onClick={handleAddFunds}
@@ -111,9 +111,9 @@ export default function Wallet() {
                     </div>
                     <div className="text-right">
                       <p className={`font-bold text-lg ${getTransactionColor(transaction.type)}`}>
-                        {transaction.amount >= 0 ? '+' : ''}‖{transaction.amount.toFixed(2)}
+                        {transaction.amount >= 0 ? '+' : ''}$‖{transaction.amount.toFixed(2)}
                       </p>
-                      <p className="text-[#8B949E] text-sm">Balance: ‖{transaction.balance.toFixed(2)}</p>
+                      <p className="text-[#8B949E] text-sm">Balance: $‖{transaction.balance.toFixed(2)}</p>
                     </div>
                   </div>
                 ))}

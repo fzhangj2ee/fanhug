@@ -121,7 +121,7 @@ export default function Admin() {
                         <TableCell className="text-red-400">{stats.losses}</TableCell>
                         <TableCell className="text-yellow-400">{stats.pending}</TableCell>
                         <TableCell className={stats.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}>
-                          ‖{stats.netProfit.toFixed(2)}
+                          $‖{stats.netProfit.toFixed(2)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -164,7 +164,7 @@ export default function Admin() {
                 <CardContent className="p-4">
                   <p className="text-[#b1bad3] text-sm mb-1">Net Profit</p>
                   <p className={`text-2xl font-bold ${selectedUserStats && selectedUserStats.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    ‖{selectedUserStats?.netProfit.toFixed(2)}
+                    $‖{selectedUserStats?.netProfit.toFixed(2)}
                   </p>
                 </CardContent>
               </Card>
@@ -201,9 +201,9 @@ export default function Admin() {
                           </TableCell>
                           <TableCell className="text-white">{getBetDescription(bet)}</TableCell>
                           <TableCell className="text-white font-mono">{formatOdds(bet.odds)}</TableCell>
-                          <TableCell className="text-white">‖{bet.stake.toFixed(2)}</TableCell>
+                          <TableCell className="text-white">$‖{bet.stake.toFixed(2)}</TableCell>
                           <TableCell className="text-green-400">
-                            ‖{(bet.stake * bet.odds).toFixed(2)}
+                            $‖{(bet.stake * bet.odds).toFixed(2)}
                           </TableCell>
                           <TableCell>
                             <Badge

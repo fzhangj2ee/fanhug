@@ -1,11 +1,11 @@
 {
-  "timeline_index": 904,
+  "timeline_index": 914,
   "planner": {
     "Team Leader": {
       "1": {
         "task_id": "1",
         "dependent_task_ids": [],
-        "instruction": "Fix two issues in the betting application:\n1. Align navbar items (\"Home\", \"My Bets\", \"Wallet\", etc.) to center instead of left\n2. Fix bet slip to display the new bet immediately after a bet is placed, instead of showing the old bet\n\nFiles to modify:\n- /workspace/shadcn-ui/src/components/Navbar.tsx (for navbar alignment)\n- /workspace/shadcn-ui/src/components/BetSlip.tsx (for bet slip display issue)\n\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly.",
+        "instruction": "Update currency display throughout the application:\n- Change currency symbol from \"‖\" to \"$‖\" (dollar sign plus vertical bar) on all pages EXCEPT the donation page\n- Keep regular \"$\" symbol on the donation page only\n- Files to modify:\n  - /workspace/shadcn-ui/src/components/Navbar.tsx\n  - /workspace/shadcn-ui/src/components/BetSlip.tsx\n  - /workspace/shadcn-ui/src/pages/MyBets.tsx\n  - /workspace/shadcn-ui/src/pages/Wallet.tsx\n  - /workspace/shadcn-ui/src/pages/Admin.tsx\n  - /workspace/shadcn-ui/src/pages/Donation.tsx (keep $ only)",
         "task_type": "general",
         "code": "",
         "result": "",
@@ -13,7 +13,7 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767117517.3770065,
-        "end_at": 1767117616.6255138
+        "end_at": 1767120797.4576082
       },
       "current_task_id": "1",
       "2": {
@@ -1061,7 +1061,17 @@
     "901": 1,
     "902": 1,
     "903": 1,
-    "904": 1
+    "904": 1,
+    "905": 1,
+    "906": 1,
+    "907": 1,
+    "908": 1,
+    "909": 1,
+    "910": 1,
+    "911": 1,
+    "912": 1,
+    "913": 1,
+    "914": 1
   },
   "preview_servers": {},
   "preview_server": {

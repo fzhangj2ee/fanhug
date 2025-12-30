@@ -21,7 +21,7 @@ export default function Donation() {
       return;
     }
     
-    toast.success(`Thank you for your ‖${amount.toFixed(2)} donation! Payment integration coming soon.`);
+    toast.success(`Thank you for your $${amount.toFixed(2)} donation! Payment integration coming soon.`);
   };
 
   const handleHomeClick = () => {
@@ -89,7 +89,7 @@ export default function Donation() {
                           : 'bg-[#2a2d2f] text-white hover:bg-[#3a3d3f]'
                       }`}
                     >
-                      ‖{amount}
+                      ${amount}
                     </Button>
                   ))}
                 </div>
@@ -99,7 +99,7 @@ export default function Donation() {
                   <label className="text-white text-sm font-medium">Or enter a custom amount:</label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#b1bad3] text-lg">
-                      ‖
+                      $
                     </span>
                     <Input
                       type="number"
