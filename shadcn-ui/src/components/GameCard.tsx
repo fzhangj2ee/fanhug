@@ -76,7 +76,6 @@ export default function GameCard({ game }: GameCardProps) {
     }
 
     addToBetSlip(game, betType, odds, value);
-    toast.success('Added to bet slip');
   };
 
   const renderOddsCell = (

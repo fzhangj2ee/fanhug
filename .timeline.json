@@ -1,5 +1,5 @@
 {
-  "timeline_index": 956,
+  "timeline_index": 968,
   "planner": {
     "Team Leader": {
       "1": {
@@ -15,7 +15,7 @@
         "start_at": 1767117517.3770065,
         "end_at": 1767121366.042052
       },
-      "current_task_id": "4",
+      "current_task_id": "5",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [],
@@ -53,20 +53,20 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767122043.403524,
-        "end_at": 1767122131.2417336
+        "end_at": 1767122422.27037
       },
       "5": {
         "task_id": "5",
         "dependent_task_ids": [],
-        "instruction": "Implement real-time score fetching and display for live games:\n\n**Issue:**\n- Live games are not displaying real-time scores\n- Scores are set to undefined after removing random generation\n- Need to fetch actual live scores from The Odds API\n\n**Requirements:**\n\n1. **Fetch Live Scores:**\n   - Use The Odds API scores endpoint to fetch live game scores\n   - API endpoint: `https://api.the-odds-api.com/v4/sports/{sport}/scores/?apiKey={key}&daysFrom=1`\n   - Fetch scores for games that are currently in progress\n   - Update scores periodically (every 30-60 seconds)\n\n2. **Integrate Score Fetching:**\n   - Modify `/workspace/shadcn-ui/src/lib/sportsApi.ts` to fetch live scores\n   - Create a function to fetch scores for in-progress games\n   - Merge live score data with game odds data\n   - Handle cases where score data is not yet available\n\n3. **Update Score Display:**\n   - Display live scores in `/workspace/shadcn-ui/src/components/GameCard.tsx`\n   - Show scores only when data is available from API\n   - Format scores appropriately for each sport\n   - Add visual indicators for live games with scores\n\n4. **Implement Score Updates:**\n   - Set up periodic score fetching in `/workspace/shadcn-ui/src/contexts/LiveOddsContext.tsx` or create new context\n   - Update scores every 30-60 seconds for live games\n   - Ensure efficient API usage (don't fetch unnecessarily)\n   - Handle API rate limits properly\n\n5. **Handle Edge Cases:**\n   - Games without score data yet (just show LIVE badge)\n   - Completed games (show final scores)\n   - Scheduled games (no scores)\n   - API errors or timeouts\n\n**Implementation Steps:**\n\n1. Create `fetchLiveScores()` function in sportsApi.ts\n2. Modify `fetchAllGames()` or `fetchLiveGames()` to include live scores\n3. Set up periodic score updates in a context or the main page\n4. Update GameCard to display live scores when available\n5. Test with actual live games\n\n**Files to Modify:**\n- `/workspace/shadcn-ui/src/lib/sportsApi.ts` - Add live score fetching\n- `/workspace/shadcn-ui/src/components/GameCard.tsx` - Display live scores\n- `/workspace/shadcn-ui/src/contexts/LiveOddsContext.tsx` - Add score update logic\n- `/workspace/shadcn-ui/src/pages/Index.tsx` - Integrate score updates\n\n**Testing:**\n- Verify live scores display for in-progress games\n- Check that scores update periodically\n- Ensure no scores show for scheduled games\n- Confirm final scores show for completed games\n- Test API error handling\n\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly with implementation.",
+        "instruction": "Fix the bet slip update issue in GameCard.tsx. The problem is that when a betting button is clicked, the toast message shows \"Added to bet slip\" but the bet doesn't appear in the bet slip immediately.\n\nThe issue is likely a timing problem where the toast appears before the state update completes. Modify the handleBetClick function in GameCard.tsx to:\n1. Call addToBetSlip first\n2. Add a small delay or use a callback to ensure the state update completes\n3. Then show the toast message\n\nAlternatively, move the toast.success call into the BettingContext's addToBetSlip function after the setBetSlip call to ensure proper timing.\n\nFile to update: /workspace/shadcn-ui/src/components/GameCard.tsx or /workspace/shadcn-ui/src/contexts/BettingContext.tsx\nWorking directory: /workspace",
         "task_type": "general",
         "code": "",
         "result": "",
         "is_success": false,
         "is_finished": true,
         "assignee": "Alex",
-        "start_at": 1766784656.7465487,
-        "end_at": 1766785123.6725407
+        "start_at": 1767122422.2703738,
+        "end_at": 1767122527.4490206
       },
       "6": {
         "task_id": "6",
@@ -1111,7 +1111,19 @@
     "953": 1,
     "954": 1,
     "955": 1,
-    "956": 1
+    "956": 1,
+    "957": 1,
+    "958": 1,
+    "959": 1,
+    "960": 1,
+    "961": 1,
+    "962": 1,
+    "963": 1,
+    "964": 1,
+    "965": 1,
+    "966": 1,
+    "967": 1,
+    "968": 0
   },
   "preview_servers": {},
   "preview_server": {

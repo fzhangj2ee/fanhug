@@ -80,6 +80,9 @@ export function BettingProvider({ children }: { children: ReactNode }) {
         totalValue: betType === 'over' || betType === 'under' ? value : undefined,
       },
     ]);
+    
+    // Show toast after state update
+    toast.success('Added to bet slip');
   };
 
   const removeFromBetSlip = (gameId: string) => {
