@@ -1,5 +1,5 @@
 {
-  "timeline_index": 1018,
+  "timeline_index": 1020,
   "planner": {
     "Team Leader": {
       "1": {
@@ -1167,7 +1167,9 @@
     "1015": 1,
     "1016": 1,
     "1017": 1,
-    "1018": 0
+    "1018": 1,
+    "1019": 1,
+    "1020": 1
   },
   "preview_servers": {},
   "preview_server": {
