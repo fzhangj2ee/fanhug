@@ -129,7 +129,11 @@ export function BettingProvider({ children }: { children: ReactNode }) {
     }));
 
     setAllPlacedBets([...allPlacedBets, ...newPlacedBets]);
-    setBetSlip([]);
+    
+    // Auto-clear bet slip after 3 seconds instead of immediately
+    setTimeout(() => {
+      setBetSlip([]);
+    }, 3000);
 
     return true;
   };

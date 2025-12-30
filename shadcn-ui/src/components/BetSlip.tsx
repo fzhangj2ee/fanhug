@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react';
 import PlayMoney from '@/components/PlayMoney';
 
 export default function BetSlip() {
-  const { betSlip, removeFromBetSlip, updateStake, placeBets, clearBetSlip } = useBetting();
+  const { betSlip, removeFromBetSlip, updateStake, placeBets } = useBetting();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showBetPlaced, setShowBetPlaced] = useState(false);
@@ -56,12 +56,10 @@ export default function BetSlip() {
 
   const handleClose = () => {
     setShowBetPlaced(false);
-    clearBetSlip();
   };
 
   const handleViewMyBets = () => {
     setShowBetPlaced(false);
-    clearBetSlip();
     navigate('/my-bets');
   };
 
