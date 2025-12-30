@@ -203,7 +203,7 @@ export default function BetSlip() {
           <>
             <div>
               <h3 className="text-sm font-bold text-white mb-3">SINGLES</h3>
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
                 {betSlip.map((item) => (
                   <div
                     key={item.game.id}
