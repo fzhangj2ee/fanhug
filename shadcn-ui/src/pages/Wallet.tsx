@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, TrendingUp, TrendingDown, Wallet as WalletIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import PlayMoney from '@/components/PlayMoney';
 
 export default function Wallet() {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ export default function Wallet() {
 
   const handleAddFunds = () => {
     addFunds(1000);
-    toast.success('Added $‖1,000 to your balance!');
+    toast.success('Added play money to your balance!');
   };
 
   const formatDate = (isoString: string) => {
@@ -63,13 +64,12 @@ export default function Wallet() {
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-white mb-6">Wallet</h1>
 
-        {/* Balance Card */}
         <Card className="bg-gradient-to-br from-[#00C853] to-[#00E676] border-0 mb-8">
           <CardContent className="p-8">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-white/80 text-sm mb-2">Available Balance</p>
-                <p className="text-white text-5xl font-bold">$‖{balance.toFixed(2)}</p>
+                <PlayMoney amount={balance} className="text-white text-5xl font-bold" />
               </div>
               <Button
                 onClick={handleAddFunds}
@@ -83,7 +83,6 @@ export default function Wallet() {
           </CardContent>
         </Card>
 
-        {/* Transaction History */}
         <Card className="bg-[#1C2128] border-[#2A2F36]">
           <CardHeader>
             <CardTitle className="text-white">Transaction History</CardTitle>
@@ -111,9 +110,12 @@ export default function Wallet() {
                     </div>
                     <div className="text-right">
                       <p className={`font-bold text-lg ${getTransactionColor(transaction.type)}`}>
-                        {transaction.amount >= 0 ? '+' : ''}$‖{transaction.amount.toFixed(2)}
+                        {transaction.amount >= 0 ? '+' : ''}
+                        <PlayMoney amount={Math.abs(transaction.amount)} className="inline-flex" />
                       </p>
-                      <p className="text-[#8B949E] text-sm">Balance: $‖{transaction.balance.toFixed(2)}</p>
+                      <p className="text-[#8B949E] text-sm flex items-center justify-end">
+                        Balance: <PlayMoney amount={transaction.balance} className="ml-1" />
+                      </p>
                     </div>
                   </div>
                 ))}

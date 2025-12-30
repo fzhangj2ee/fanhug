@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import PlayMoney from '@/components/PlayMoney';
 
 interface UserStats {
   email: string;
@@ -27,13 +28,11 @@ export default function Admin() {
   const navigate = useNavigate();
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
-  // Check if user is admin
   if (!user || user.email !== 'fzhangj2ee@gmail.com') {
     navigate('/');
     return null;
   }
 
-  // Calculate stats for all users
   const userStats: UserStats[] = users.map((u) => {
     const userBets = getAllUserBets(u.id);
     const wins = userBets.filter(bet => bet.status === 'won').length;
@@ -121,7 +120,7 @@ export default function Admin() {
                         <TableCell className="text-red-400">{stats.losses}</TableCell>
                         <TableCell className="text-yellow-400">{stats.pending}</TableCell>
                         <TableCell className={stats.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}>
-                          $‖{stats.netProfit.toFixed(2)}
+                          <PlayMoney amount={stats.netProfit} />
                         </TableCell>
                       </TableRow>
                     ))}
@@ -144,7 +143,6 @@ export default function Admin() {
               <h1 className="text-3xl font-bold text-white">User Details: {selectedUser}</h1>
             </div>
 
-            {/* User Statistics */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <Card className="bg-[#1a1d1f] border-[#2a2d2f]">
                 <CardContent className="p-4">
@@ -163,14 +161,14 @@ export default function Admin() {
               <Card className="bg-[#1a1d1f] border-[#2a2d2f]">
                 <CardContent className="p-4">
                   <p className="text-[#b1bad3] text-sm mb-1">Net Profit</p>
-                  <p className={`text-2xl font-bold ${selectedUserStats && selectedUserStats.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    $‖{selectedUserStats?.netProfit.toFixed(2)}
-                  </p>
+                  <PlayMoney 
+                    amount={selectedUserStats?.netProfit || 0}
+                    className={`text-2xl font-bold ${selectedUserStats && selectedUserStats.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}
+                  />
                 </CardContent>
               </Card>
             </div>
 
-            {/* Current Bets */}
             <Card className="bg-[#1a1d1f] border-[#2a2d2f]">
               <CardHeader>
                 <CardTitle className="text-white">All Bets</CardTitle>
@@ -201,9 +199,9 @@ export default function Admin() {
                           </TableCell>
                           <TableCell className="text-white">{getBetDescription(bet)}</TableCell>
                           <TableCell className="text-white font-mono">{formatOdds(bet.odds)}</TableCell>
-                          <TableCell className="text-white">$‖{bet.stake.toFixed(2)}</TableCell>
+                          <TableCell className="text-white"><PlayMoney amount={bet.stake} /></TableCell>
                           <TableCell className="text-green-400">
-                            $‖{(bet.stake * bet.odds).toFixed(2)}
+                            <PlayMoney amount={bet.stake * bet.odds} />
                           </TableCell>
                           <TableCell>
                             <Badge

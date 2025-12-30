@@ -3,6 +3,7 @@ import Navbar from '@/components/Navbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, XCircle, Clock } from 'lucide-react';
+import PlayMoney from '@/components/PlayMoney';
 
 export default function MyBets() {
   const { placedBets } = useBetting();
@@ -60,7 +61,6 @@ export default function MyBets() {
       <div className="container mx-auto px-4 py-6">
         <h1 className="text-3xl font-bold text-white mb-6">My Bets</h1>
 
-        {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <Card className="bg-[#1a1d1f] border-[#2a2d2f]">
             <CardContent className="p-4">
@@ -71,24 +71,23 @@ export default function MyBets() {
           <Card className="bg-[#1a1d1f] border-[#2a2d2f]">
             <CardContent className="p-4">
               <p className="text-[#b1bad3] text-sm mb-1">Total Wagered</p>
-              <p className="text-white text-2xl font-bold">$‖{totalWagered.toFixed(2)}</p>
+              <PlayMoney amount={totalWagered} className="text-white text-2xl font-bold" />
             </CardContent>
           </Card>
           <Card className="bg-green-500/10 border-green-500/30">
             <CardContent className="p-4">
               <p className="text-green-400 text-sm mb-1">Total Won</p>
-              <p className="text-green-400 text-2xl font-bold">$‖{totalWon.toFixed(2)}</p>
+              <PlayMoney amount={totalWon} className="text-green-400 text-2xl font-bold" />
             </CardContent>
           </Card>
           <Card className="bg-red-500/10 border-red-500/30">
             <CardContent className="p-4">
               <p className="text-red-400 text-sm mb-1">Total Lost</p>
-              <p className="text-red-400 text-2xl font-bold">$‖{totalLost.toFixed(2)}</p>
+              <PlayMoney amount={totalLost} className="text-red-400 text-2xl font-bold" />
             </CardContent>
           </Card>
         </div>
 
-        {/* Pending Bets */}
         {pendingBets.length > 0 && (
           <Card className="bg-[#1a1d1f] border-[#2a2d2f] mb-6">
             <CardHeader>
@@ -123,13 +122,11 @@ export default function MyBets() {
                   </div>
                   <div className="flex justify-between text-sm pt-2 border-t border-[#2a2d2f]">
                     <span className="text-[#b1bad3]">Stake:</span>
-                    <span className="text-white font-medium">$‖{bet.stake.toFixed(2)}</span>
+                    <PlayMoney amount={bet.stake} className="text-white font-medium" />
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-[#b1bad3]">Potential Win:</span>
-                    <span className="text-green-400 font-medium">
-                      $‖{(bet.stake * bet.odds).toFixed(2)}
-                    </span>
+                    <PlayMoney amount={bet.stake * bet.odds} className="text-green-400 font-medium" />
                   </div>
                 </div>
               ))}
@@ -137,7 +134,6 @@ export default function MyBets() {
           </Card>
         )}
 
-        {/* Settled Bets */}
         <Card className="bg-[#1a1d1f] border-[#2a2d2f]">
           <CardHeader>
             <CardTitle className="text-white">
@@ -186,24 +182,16 @@ export default function MyBets() {
                   </div>
                   <div className="flex justify-between text-sm pt-2 border-t border-[#2a2d2f]">
                     <span className="text-[#b1bad3]">Stake:</span>
-                    <span className="text-white font-medium">$‖{bet.stake.toFixed(2)}</span>
+                    <PlayMoney amount={bet.stake} className="text-white font-medium" />
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-[#b1bad3]">
                       {bet.status === 'won' ? 'Payout:' : 'Lost:'}
                     </span>
-                    <span
-                      className={
-                        bet.status === 'won'
-                          ? 'text-green-400 font-medium'
-                          : 'text-red-400 font-medium'
-                      }
-                    >
-                      $‖{bet.status === 'won' 
-                        ? (bet.payout || 0).toFixed(2)
-                        : bet.stake.toFixed(2)
-                      }
-                    </span>
+                    <PlayMoney 
+                      amount={bet.status === 'won' ? (bet.payout || 0) : bet.stake}
+                      className={bet.status === 'won' ? 'text-green-400 font-medium' : 'text-red-400 font-medium'}
+                    />
                   </div>
                 </div>
               ))

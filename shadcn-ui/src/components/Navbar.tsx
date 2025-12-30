@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
+import PlayMoney from '@/components/PlayMoney';
 
 interface NavbarProps {
   onHomeClick?: () => void;
@@ -94,7 +95,7 @@ export default function Navbar({ onHomeClick, isHomeActive = true }: NavbarProps
                 </Link>
                 <div className="flex items-center gap-2 bg-[#0d0f10] px-4 py-2 rounded-lg">
                   <Wallet className="h-4 w-4 text-[#53d337]" />
-                  <span className="text-white font-medium">$‖{balance.toFixed(2)}</span>
+                  <PlayMoney amount={balance} className="text-white font-medium" />
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

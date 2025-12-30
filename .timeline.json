@@ -1,5 +1,5 @@
 {
-  "timeline_index": 917,
+  "timeline_index": 927,
   "planner": {
     "Team Leader": {
       "1": {
@@ -13,23 +13,21 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767117517.3770065,
-        "end_at": 1767120797.4576082
+        "end_at": 1767121366.042052
       },
-      "current_task_id": "1",
+      "current_task_id": "2",
       "2": {
         "task_id": "2",
-        "dependent_task_ids": [
-          "1"
-        ],
-        "instruction": "Add comprehensive automated testing for authentication including:\n1. Unit tests for AuthContext (sign in, sign up, sign out, OAuth flow)\n2. Integration tests for login/signup forms\n3. E2E tests for Google OAuth authentication flow\n4. Mock OAuth providers for testing\nSave test files in appropriate locations under src/contexts/__tests__ and e2e/ directories.",
+        "dependent_task_ids": [],
+        "instruction": "Update the currency symbol to match the uploaded image style - a dollar sign with two vertical bars through it (like ₵ or double-strikethrough $). This should be used on all pages except the donation page.\nFiles to modify:\n- /workspace/shadcn-ui/src/components/Navbar.tsx\n- /workspace/shadcn-ui/src/components/BetSlip.tsx\n- /workspace/shadcn-ui/src/pages/MyBets.tsx\n- /workspace/shadcn-ui/src/pages/Wallet.tsx\n- /workspace/shadcn-ui/src/pages/Admin.tsx\nKeep regular \"$\" on /workspace/shadcn-ui/src/pages/Donation.tsx",
         "task_type": "general",
         "code": "",
         "result": "",
         "is_success": false,
         "is_finished": true,
         "assignee": "Alex",
-        "start_at": 1767104201.6471627,
-        "end_at": 1767117517.3770015
+        "start_at": 1767121366.0420554,
+        "end_at": 1767121494.5907907
       },
       "3": {
         "task_id": "3",
@@ -1074,7 +1072,17 @@
     "914": 1,
     "915": 1,
     "916": 1,
-    "917": 1
+    "917": 1,
+    "918": 1,
+    "919": 1,
+    "920": 1,
+    "921": 1,
+    "922": 1,
+    "923": 1,
+    "924": 1,
+    "925": 1,
+    "926": 1,
+    "927": 0
   },
   "preview_servers": {},
   "preview_server": {

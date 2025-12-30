@@ -7,6 +7,7 @@ import { X, LogIn, ChevronDown, Info, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import PlayMoney from '@/components/PlayMoney';
 
 export default function BetSlip() {
   const { betSlip, removeFromBetSlip, updateStake, placeBets, clearBetSlip } = useBetting();
@@ -18,10 +19,8 @@ export default function BetSlip() {
 
   const totalStake = betSlip.reduce((sum, item) => sum + item.stake, 0);
   
-  // Fixed calculation: decimal odds * stake = total payout (includes original stake)
   const totalPotentialWin = betSlip.reduce((sum, item) => {
     const odds = item.odds;
-    // For decimal odds, multiply stake by odds to get total return
     return sum + (item.stake * odds);
   }, 0);
 
@@ -36,7 +35,6 @@ export default function BetSlip() {
       return;
     }
 
-    // Store bet details before placing
     const betDetails = {
       totalStake,
       totalPayout: totalPotentialWin,
@@ -44,7 +42,6 @@ export default function BetSlip() {
 
     const success = placeBets();
     if (success) {
-      // Store bet details and show confirmation
       setLastBetDetails(betDetails);
       setShowBetPlaced(true);
       toast.success('Bets placed successfully!');
@@ -65,7 +62,6 @@ export default function BetSlip() {
   };
 
   const formatOdds = (odds: number) => {
-    // Display decimal odds as is
     return odds.toFixed(2);
   };
 
@@ -80,6 +76,18 @@ export default function BetSlip() {
     };
     return labels[betType] || betType;
   };
+
+  const PlayMoneySymbol = () => (
+    <span className="relative inline-block mr-0.5">
+      <span className="relative">
+        $
+        <span className="absolute inset-0 flex items-center justify-center">
+          <span className="w-[2px] h-full bg-current absolute left-[40%]"></span>
+          <span className="w-[2px] h-full bg-current absolute left-[60%]"></span>
+        </span>
+      </span>
+    </span>
+  );
 
   return (
     <Card className="border-gray-700 bg-gray-800/50 backdrop-blur sticky top-6">
@@ -112,7 +120,6 @@ export default function BetSlip() {
 
       <CardContent className="space-y-4">
         {showBetPlaced ? (
-          // Bet Placed Confirmation
           <div className="space-y-4">
             <div className="bg-green-500/10 border-2 border-green-500 rounded-lg p-4 space-y-4">
               <div className="flex items-center justify-between">
@@ -130,11 +137,11 @@ export default function BetSlip() {
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300 text-sm">Total Wagered</span>
-                  <span className="text-white font-medium">$‖{lastBetDetails.totalStake.toFixed(2)}</span>
+                  <PlayMoney amount={lastBetDetails.totalStake} className="text-white font-medium" />
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300 text-sm">Total Potential Payout</span>
-                  <span className="text-green-500 font-bold">$‖{lastBetDetails.totalPayout.toFixed(2)}</span>
+                  <PlayMoney amount={lastBetDetails.totalPayout} className="text-green-500 font-bold" />
                 </div>
               </div>
 
@@ -170,7 +177,9 @@ export default function BetSlip() {
                 >
                   Log In to Place Bet
                 </Button>
-                <p className="text-sm text-gray-400">Minimum Bet: $‖0.10</p>
+                <p className="text-sm text-gray-400 flex items-center justify-center">
+                  Minimum Bet: <PlayMoneySymbol />0.10
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -183,7 +192,6 @@ export default function BetSlip() {
           </div>
         ) : (
           <>
-            {/* Singles Section */}
             <div>
               <h3 className="text-sm font-bold text-white mb-3">SINGLES</h3>
               <div className="space-y-3">
@@ -192,7 +200,6 @@ export default function BetSlip() {
                     key={item.game.id}
                     className="bg-gray-900/50 rounded-lg p-3 space-y-2"
                   >
-                    {/* Bet Header */}
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
@@ -226,14 +233,13 @@ export default function BetSlip() {
                       </Button>
                     </div>
 
-                    {/* Stake Input */}
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-gray-400 whitespace-nowrap">
                         Stake:
                       </span>
                       <div className="relative flex-1">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
-                          $‖
+                          <PlayMoneySymbol />
                         </span>
                         <Input
                           type="number"
@@ -249,13 +255,10 @@ export default function BetSlip() {
                       </div>
                     </div>
 
-                    {/* Potential Win */}
                     {item.stake > 0 && (
                       <div className="flex justify-between text-xs pt-2 border-t border-gray-700">
                         <span className="text-gray-400">Total Return:</span>
-                        <span className="text-green-400 font-medium">
-                          $‖{(item.stake * item.odds).toFixed(2)}
-                        </span>
+                        <PlayMoney amount={item.stake * item.odds} className="text-green-400 font-medium" />
                       </div>
                     )}
                   </div>
@@ -263,27 +266,21 @@ export default function BetSlip() {
               </div>
             </div>
 
-            {/* Summary */}
             <div className="bg-gray-900/50 rounded-lg p-4 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Total Stake:</span>
-                <span className="text-white font-medium">$‖{totalStake.toFixed(2)}</span>
+                <PlayMoney amount={totalStake} className="text-white font-medium" />
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Total Return:</span>
-                <span className="text-green-400 font-bold">
-                  $‖{totalPotentialWin.toFixed(2)}
-                </span>
+                <PlayMoney amount={totalPotentialWin} className="text-green-400 font-bold" />
               </div>
               <div className="flex justify-between text-sm pt-2 border-t border-gray-700">
                 <span className="text-gray-400">Profit:</span>
-                <span className="text-green-400 font-bold">
-                  $‖{(totalPotentialWin - totalStake).toFixed(2)}
-                </span>
+                <PlayMoney amount={totalPotentialWin - totalStake} className="text-green-400 font-bold" />
               </div>
             </div>
 
-            {/* Place Bet Button */}
             {user ? (
               <Button
                 onClick={handlePlaceBets}
