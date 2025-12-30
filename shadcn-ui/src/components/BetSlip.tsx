@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { X, LogIn, ChevronDown, Info, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import PlayMoney from '@/components/PlayMoney';
 
 export default function BetSlip() {
@@ -16,13 +16,6 @@ export default function BetSlip() {
   const [showBetPlaced, setShowBetPlaced] = useState(false);
   const [lastBetDetails, setLastBetDetails] = useState({ totalStake: 0, totalPayout: 0 });
   const [showDetails, setShowDetails] = useState(false);
-
-  // Auto-hide "BET PLACED" dialog when new bets are added
-  useEffect(() => {
-    if (showBetPlaced && betSlip.length > 0) {
-      setShowBetPlaced(false);
-    }
-  }, [betSlip.length, showBetPlaced]);
 
   const totalStake = betSlip.reduce((sum, item) => sum + item.stake, 0);
   
@@ -127,50 +120,58 @@ export default function BetSlip() {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {showBetPlaced ? (
-          <div className="space-y-4">
-            <div className="bg-green-500/10 border-2 border-green-500 rounded-lg p-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-green-500 font-bold text-lg">BET PLACED</h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleClose}
-                  className="h-8 w-8 p-0 text-gray-400 hover:text-white rounded-full bg-gray-700"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300 text-sm">Total Wagered</span>
-                  <PlayMoney amount={lastBetDetails.totalStake} className="text-white font-medium" />
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300 text-sm">Total Potential Payout</span>
-                  <PlayMoney amount={lastBetDetails.totalPayout} className="text-green-500 font-bold" />
-                </div>
-              </div>
-
+        {showBetPlaced && (
+          <div className="bg-green-500/10 border-2 border-green-500 rounded-lg p-4 space-y-4 mb-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-green-500 font-bold text-lg">BET PLACED</h3>
               <Button
                 variant="ghost"
-                onClick={() => setShowDetails(!showDetails)}
-                className="w-full justify-between text-white hover:bg-gray-700/50 h-12"
+                size="sm"
+                onClick={handleClose}
+                className="h-8 w-8 p-0 text-gray-400 hover:text-white rounded-full bg-gray-700"
               >
-                <span className="font-medium">View Bets Details</span>
-                <ChevronDown className={`h-5 w-5 transition-transform ${showDetails ? 'rotate-180' : ''}`} />
-              </Button>
-
-              <Button
-                onClick={handleViewMyBets}
-                className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-6 text-base"
-              >
-                View My Bets
+                <X className="h-4 w-4" />
               </Button>
             </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-300 text-sm">Total Wagered</span>
+                <PlayMoney amount={lastBetDetails.totalStake} className="text-white font-medium" />
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-300 text-sm">Total Potential Payout</span>
+                <PlayMoney amount={lastBetDetails.totalPayout} className="text-green-500 font-bold" />
+              </div>
+            </div>
+
+            <Button
+              variant="ghost"
+              onClick={() => setShowDetails(!showDetails)}
+              className="w-full justify-between text-white hover:bg-gray-700/50 h-12"
+            >
+              <span className="font-medium">View Bets Details</span>
+              <ChevronDown className={`h-5 w-5 transition-transform ${showDetails ? 'rotate-180' : ''}`} />
+            </Button>
+
+            <Button
+              onClick={handleViewMyBets}
+              className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-6 text-base"
+            >
+              View My Bets
+            </Button>
+
+            <Button
+              variant="ghost"
+              onClick={handleClose}
+              className="w-full text-white font-medium underline hover:bg-transparent"
+            >
+              Keep Picks in Bet Slip
+            </Button>
           </div>
-        ) : betSlip.length === 0 ? (
+        )}
+
+        {betSlip.length === 0 ? (
           <div className="text-center py-8">
             {!user ? (
               <div className="space-y-4">
