@@ -6,20 +6,16 @@ import { useAuth } from '@/hooks/useAuth';
 import { X, LogIn, ChevronDown, Info, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import PlayMoney from '@/components/PlayMoney';
 
 export default function BetSlip() {
-  const { betSlip, removeFromBetSlip, updateStake, placeBets } = useBetting();
+  const { betSlip, removeFromBetSlip, updateStake, placeBets, clearBetSlip } = useBetting();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showBetPlaced, setShowBetPlaced] = useState(false);
   const [lastBetDetails, setLastBetDetails] = useState({ totalStake: 0, totalPayout: 0 });
   const [showDetails, setShowDetails] = useState(false);
-
-  useEffect(() => {
-    console.log('BetSlip: betSlip updated', { length: betSlip.length, betSlip });
-  }, [betSlip]);
 
   const totalStake = betSlip.reduce((sum, item) => sum + item.stake, 0);
   
@@ -63,6 +59,11 @@ export default function BetSlip() {
     navigate('/my-bets');
   };
 
+  const handleClearAll = () => {
+    clearBetSlip();
+    toast.success('Bet slip cleared');
+  };
+
   const formatOdds = (odds: number) => {
     return odds.toFixed(2);
   };
@@ -90,6 +91,16 @@ export default function BetSlip() {
             BET SLIP
           </CardTitle>
           <div className="flex items-center gap-2">
+            {betSlip.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearAll}
+                className="text-gray-400 hover:text-white text-xs"
+              >
+                Clear All
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"

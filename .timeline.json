@@ -1,5 +1,5 @@
 {
-  "timeline_index": 992,
+  "timeline_index": 998,
   "planner": {
     "Team Leader": {
       "1": {
@@ -15,7 +15,7 @@
         "start_at": 1767117517.3770065,
         "end_at": 1767121366.042052
       },
-      "current_task_id": "7",
+      "current_task_id": "8",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [],
@@ -92,22 +92,20 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767123521.1044912,
-        "end_at": 1767123630.8137925
+        "end_at": 1767123785.4597096
       },
       "8": {
         "task_id": "8",
-        "dependent_task_ids": [
-          "7"
-        ],
-        "instruction": "Create login/signup UI components with social login buttons:\n\n**Requirements:**\n1. Create a login page with email/password form\n2. Create a signup page with registration form\n3. Add social login buttons for: Google, Facebook, Twitter/X, GitHub\n4. Match the current dark theme design (#0d0f10 background, #53d337 accent)\n5. Implement responsive design for mobile and desktop\n6. Add form validation and error handling UI\n7. Create loading states and success/error messages\n8. Follow the existing UI component patterns using shadcn-ui\n\n**UI Components to Create:**\n- `/workspace/shadcn-ui/src/pages/Login.tsx` - Login page\n- `/workspace/shadcn-ui/src/pages/Signup.tsx` - Signup page\n- `/workspace/shadcn-ui/src/components/SocialLoginButtons.tsx` - Social login buttons component\n- `/workspace/shadcn-ui/src/components/AuthForm.tsx` - Reusable auth form component\n\n**Design Requirements:**\n- Dark theme matching existing design\n- Green accent color (#53d337)\n- Clean, modern UI\n- Clear call-to-action buttons\n- Social login buttons with brand colors and icons\n- Form validation feedback\n\n**Dependencies:**\n- Use architecture design from task 7 at `/workspace/shadcn-ui/docs/design/auth_architecture.md`\n\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly with implementation.",
+        "dependent_task_ids": [],
+        "instruction": "Change the bet slip behavior to append new bets instead of replacing existing ones.\n\nCurrent behavior (in BettingContext.tsx addToBetSlip function around line 72-86):\n- When a new bet is clicked, it clears the entire bet slip and adds only the new bet: `setBetSlip([{ new bet }])`\n\nRequired behavior:\n- When a new bet is clicked, append it to the existing bet slip: `setBetSlip([...betSlip, { new bet }])`\n- If the same game already exists in the bet slip, replace that specific bet instead of adding a duplicate\n- Keep the \"Clear All\" functionality to allow users to manually clear all bets\n\nImplementation:\n1. In `/workspace/shadcn-ui/src/contexts/BettingContext.tsx`, modify the addToBetSlip function (around lines 66-86)\n2. Check if a bet for the same game already exists in betSlip\n3. If it exists, replace that bet with the new one (update the bet type, odds, and values)\n4. If it doesn't exist, append the new bet to the end of the betSlip array\n5. Remove or update the debug console.log statements added earlier since they're no longer needed\n\nExample logic:\n```tsx\nconst addToBetSlip = (game: Game, betType: BetSlipItem['betType'], odds: number, value?: number) => {\n  if (!user) {\n    toast.error('Please login to place bets');\n    return;\n  }\n\n  const newBet: BetSlipItem = {\n    game,\n    betType,\n    odds,\n    stake: 0,\n    spreadValue: betType.includes('spread') ? value : undefined,\n    totalValue: betType === 'over' || betType === 'under' ? value : undefined,\n  };\n\n  // Check if bet for this game already exists\n  const existingBetIndex = betSlip.findIndex(item => item.game.id === game.id);\n  \n  if (existingBetIndex !== -1) {\n    // Replace existing bet for this game\n    const updatedBetSlip = [...betSlip];\n    updatedBetSlip[existingBetIndex] = newBet;\n    setBetSlip(updatedBetSlip);\n  } else {\n    // Append new bet to the end\n    setBetSlip([...betSlip, newBet]);\n  }\n};\n```\n\nFiles to update:\n- /workspace/shadcn-ui/src/contexts/BettingContext.tsx\n\nWorking directory: /workspace",
         "task_type": "general",
         "code": "",
         "result": "",
         "is_success": false,
         "is_finished": true,
         "assignee": "Alex",
-        "start_at": 1766785738.486379,
-        "end_at": 1766785918.2878306
+        "start_at": 1767123785.4597154,
+        "end_at": 1767123898.2157717
       },
       "9": {
         "task_id": "9",
@@ -1147,7 +1145,13 @@
     "989": 1,
     "990": 1,
     "991": 1,
-    "992": 1
+    "992": 1,
+    "993": 1,
+    "994": 1,
+    "995": 1,
+    "996": 1,
+    "997": 1,
+    "998": 1
   },
   "preview_servers": {},
   "preview_server": {

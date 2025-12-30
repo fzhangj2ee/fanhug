@@ -69,9 +69,6 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    console.log('BettingContext: addToBetSlip called', { gameId: game.id, betType, odds, value });
-
-    // Clear existing bet slip and add only the new bet
     const newBet: BetSlipItem = {
       game,
       betType,
@@ -81,11 +78,19 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       totalValue: betType === 'over' || betType === 'under' ? value : undefined,
     };
 
-    setBetSlip([newBet]);
+    // Check if a bet for this game already exists
+    const existingBetIndex = betSlip.findIndex(item => item.game.id === game.id);
     
-    console.log('BettingContext: setBetSlip called with new bet', newBet);
-    
-    // Show toast after state update
+    if (existingBetIndex !== -1) {
+      // Replace the existing bet for this game
+      const updatedBetSlip = [...betSlip];
+      updatedBetSlip[existingBetIndex] = newBet;
+      setBetSlip(updatedBetSlip);
+    } else {
+      // Append the new bet to the end of the bet slip
+      setBetSlip([...betSlip, newBet]);
+    }
+
     toast.success('Added to bet slip');
   };
 

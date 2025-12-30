@@ -75,9 +75,7 @@ export default function GameCard({ game }: GameCardProps) {
       return;
     }
 
-    console.log('GameCard: handleBetClick called', { betType, odds, value, gameId: game.id });
     addToBetSlip(game, betType, odds, value);
-    console.log('GameCard: addToBetSlip completed');
   };
 
   const renderOddsCell = (
