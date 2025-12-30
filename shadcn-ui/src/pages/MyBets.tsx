@@ -71,19 +71,19 @@ export default function MyBets() {
           <Card className="bg-[#1a1d1f] border-[#2a2d2f]">
             <CardContent className="p-4">
               <p className="text-[#b1bad3] text-sm mb-1">Total Wagered</p>
-              <p className="text-white text-2xl font-bold">${totalWagered.toFixed(2)}</p>
+              <p className="text-white text-2xl font-bold">‖{totalWagered.toFixed(2)}</p>
             </CardContent>
           </Card>
           <Card className="bg-green-500/10 border-green-500/30">
             <CardContent className="p-4">
               <p className="text-green-400 text-sm mb-1">Total Won</p>
-              <p className="text-green-400 text-2xl font-bold">${totalWon.toFixed(2)}</p>
+              <p className="text-green-400 text-2xl font-bold">‖{totalWon.toFixed(2)}</p>
             </CardContent>
           </Card>
           <Card className="bg-red-500/10 border-red-500/30">
             <CardContent className="p-4">
               <p className="text-red-400 text-sm mb-1">Total Lost</p>
-              <p className="text-red-400 text-2xl font-bold">${totalLost.toFixed(2)}</p>
+              <p className="text-red-400 text-2xl font-bold">‖{totalLost.toFixed(2)}</p>
             </CardContent>
           </Card>
         </div>
@@ -123,12 +123,12 @@ export default function MyBets() {
                   </div>
                   <div className="flex justify-between text-sm pt-2 border-t border-[#2a2d2f]">
                     <span className="text-[#b1bad3]">Stake:</span>
-                    <span className="text-white font-medium">${bet.stake.toFixed(2)}</span>
+                    <span className="text-white font-medium">‖{bet.stake.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-[#b1bad3]">Potential Win:</span>
                     <span className="text-green-400 font-medium">
-                      ${(bet.stake * bet.odds).toFixed(2)}
+                      ‖{(bet.stake * bet.odds).toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -186,7 +186,7 @@ export default function MyBets() {
                   </div>
                   <div className="flex justify-between text-sm pt-2 border-t border-[#2a2d2f]">
                     <span className="text-[#b1bad3]">Stake:</span>
-                    <span className="text-white font-medium">${bet.stake.toFixed(2)}</span>
+                    <span className="text-white font-medium">‖{bet.stake.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-[#b1bad3]">
@@ -199,7 +199,7 @@ export default function MyBets() {
                           : 'text-red-400 font-medium'
                       }
                     >
-                      ${bet.status === 'won' 
+                      ‖{bet.status === 'won' 
                         ? (bet.payout || 0).toFixed(2)
                         : bet.stake.toFixed(2)
                       }

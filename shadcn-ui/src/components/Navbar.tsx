@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/contexts/WalletContext';
 import { Button } from '@/components/ui/button';
-import { LogOut, Wallet, Shield } from 'lucide-react';
+import { LogOut, Wallet, Shield, Heart } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -81,11 +81,20 @@ export default function Navbar({ onHomeClick, isHomeActive = true }: NavbarProps
 
           {/* User Menu */}
           <div className="flex items-center gap-4">
-            {user ? (
+            {user && (
               <>
+                <Link to="/donation">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-400 hover:text-red-300 hover:bg-[#2a2d2f]"
+                  >
+                    <Heart className="h-5 w-5 fill-current" />
+                  </Button>
+                </Link>
                 <div className="flex items-center gap-2 bg-[#0d0f10] px-4 py-2 rounded-lg">
                   <Wallet className="h-4 w-4 text-[#53d337]" />
-                  <span className="text-white font-medium">${balance.toFixed(2)}</span>
+                  <span className="text-white font-medium">‖{balance.toFixed(2)}</span>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -104,7 +113,8 @@ export default function Navbar({ onHomeClick, isHomeActive = true }: NavbarProps
                   </DropdownMenuContent>
                 </DropdownMenu>
               </>
-            ) : (
+            )}
+            {!user && (
               <Link to="/login">
                 <Button className="bg-[#53d337] hover:bg-[#45b82d] text-white">
                   Login

@@ -17,6 +17,8 @@ import MyBets from './pages/MyBets';
 import LiveBetting from './pages/LiveBetting';
 import Wallet from './pages/Wallet';
 import Profile from './pages/Profile';
+import Admin from './pages/Admin';
+import Donation from './pages/Donation';
 
 const queryClient = new QueryClient();
 
@@ -36,6 +38,7 @@ const App = () => (
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/live" element={<LiveBetting />} />
+                  <Route path="/donation" element={<Donation />} />
                   <Route
                     path="/my-bets"
                     element={
@@ -57,6 +60,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <Profile />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin"
+                    element={
+                      <ProtectedRoute>
+                        <Admin />
                       </ProtectedRoute>
                     }
                   />

@@ -69,35 +69,17 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Check if bet already exists
-    const existingBetIndex = betSlip.findIndex((item) => item.game.id === game.id);
-
-    if (existingBetIndex !== -1) {
-      // Update existing bet
-      const updatedBetSlip = [...betSlip];
-      updatedBetSlip[existingBetIndex] = {
+    // Clear existing bet slip and add only the new bet
+    setBetSlip([
+      {
         game,
         betType,
         odds,
-        stake: updatedBetSlip[existingBetIndex].stake,
+        stake: 0,
         spreadValue: betType.includes('spread') ? value : undefined,
         totalValue: betType === 'over' || betType === 'under' ? value : undefined,
-      };
-      setBetSlip(updatedBetSlip);
-    } else {
-      // Add new bet
-      setBetSlip([
-        ...betSlip,
-        {
-          game,
-          betType,
-          odds,
-          stake: 0,
-          spreadValue: betType.includes('spread') ? value : undefined,
-          totalValue: betType === 'over' || betType === 'under' ? value : undefined,
-        },
-      ]);
-    }
+      },
+    ]);
   };
 
   const removeFromBetSlip = (gameId: string) => {
