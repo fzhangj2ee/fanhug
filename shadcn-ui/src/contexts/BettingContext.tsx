@@ -69,17 +69,21 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    console.log('BettingContext: addToBetSlip called', { gameId: game.id, betType, odds, value });
+
     // Clear existing bet slip and add only the new bet
-    setBetSlip([
-      {
-        game,
-        betType,
-        odds,
-        stake: 0,
-        spreadValue: betType.includes('spread') ? value : undefined,
-        totalValue: betType === 'over' || betType === 'under' ? value : undefined,
-      },
-    ]);
+    const newBet: BetSlipItem = {
+      game,
+      betType,
+      odds,
+      stake: 0,
+      spreadValue: betType.includes('spread') ? value : undefined,
+      totalValue: betType === 'over' || betType === 'under' ? value : undefined,
+    };
+
+    setBetSlip([newBet]);
+    
+    console.log('BettingContext: setBetSlip called with new bet', newBet);
     
     // Show toast after state update
     toast.success('Added to bet slip');

@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { X, LogIn, ChevronDown, Info, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PlayMoney from '@/components/PlayMoney';
 
 export default function BetSlip() {
@@ -16,6 +16,10 @@ export default function BetSlip() {
   const [showBetPlaced, setShowBetPlaced] = useState(false);
   const [lastBetDetails, setLastBetDetails] = useState({ totalStake: 0, totalPayout: 0 });
   const [showDetails, setShowDetails] = useState(false);
+
+  useEffect(() => {
+    console.log('BetSlip: betSlip updated', { length: betSlip.length, betSlip });
+  }, [betSlip]);
 
   const totalStake = betSlip.reduce((sum, item) => sum + item.stake, 0);
   
