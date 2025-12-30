@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useBetting } from '@/contexts/BettingContext';
 import { useAuth } from '@/hooks/useAuth';
 import { X, LogIn, ChevronDown, Info, Settings } from 'lucide-react';
@@ -10,7 +11,7 @@ import { useState } from 'react';
 import PlayMoney from '@/components/PlayMoney';
 
 export default function BetSlip() {
-  const { betSlip, removeFromBetSlip, updateStake, placeBets, clearBetSlip } = useBetting();
+  const { betSlip, recentlyPlacedBets, removeFromBetSlip, updateStake, placeBets, clearBetSlip } = useBetting();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showBetPlaced, setShowBetPlaced] = useState(false);
@@ -44,6 +45,7 @@ export default function BetSlip() {
     if (success) {
       setLastBetDetails(betDetails);
       setShowBetPlaced(true);
+      setShowDetails(false); // Reset details to collapsed
       toast.success('Bets placed successfully!');
     } else {
       toast.error('Failed to place bets. Check your balance.');
@@ -78,6 +80,18 @@ export default function BetSlip() {
       'under': 'Under',
     };
     return labels[betType] || betType;
+  };
+
+  const getBetDescription = (item: typeof betSlip[0]) => {
+    if (item.betType === 'over' || item.betType === 'under') {
+      return `${item.betType === 'over' ? 'Over' : 'Under'} ${item.totalValue}`;
+    } else if (item.betType.includes('spread')) {
+      const team = item.betType === 'spread-home' ? item.game.homeTeam : item.game.awayTeam;
+      const spread = item.spreadValue && item.spreadValue > 0 ? `+${item.spreadValue}` : item.spreadValue;
+      return `${team} ${spread}`;
+    } else {
+      return item.betType === 'home' ? item.game.homeTeam : item.game.awayTeam;
+    }
   };
 
   return (
@@ -145,28 +159,51 @@ export default function BetSlip() {
               </div>
             </div>
 
-            <Button
-              variant="ghost"
-              onClick={() => setShowDetails(!showDetails)}
-              className="w-full justify-between text-white hover:bg-gray-700/50 h-12"
-            >
-              <span className="font-medium">View Bets Details</span>
-              <ChevronDown className={`h-5 w-5 transition-transform ${showDetails ? 'rotate-180' : ''}`} />
-            </Button>
+            <Collapsible open={showDetails} onOpenChange={setShowDetails}>
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-between text-white hover:bg-gray-700/50 h-12"
+                >
+                  <span className="font-medium">View Bets Details</span>
+                  <ChevronDown className={`h-5 w-5 transition-transform ${showDetails ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2 space-y-2 max-h-60 overflow-y-auto">
+                {recentlyPlacedBets.map((item, index) => (
+                  <div key={index} className="p-3 bg-gray-800/30 rounded-lg">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm text-white font-medium">
+                        {getBetDescription(item)}
+                      </span>
+                      <span className="text-sm text-green-400 font-medium">
+                        {formatOdds(item.odds)}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {getBetTypeLabel(item.betType)}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {item.game.homeTeam} @ {item.game.awayTeam}
+                    </div>
+                    <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-700">
+                      <span className="text-xs text-gray-400">Stake:</span>
+                      <PlayMoney amount={item.stake} className="text-white text-xs" />
+                    </div>
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-xs text-gray-400">Potential Win:</span>
+                      <PlayMoney amount={item.stake * item.odds} className="text-green-400 text-xs font-medium" />
+                    </div>
+                  </div>
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
 
             <Button
               onClick={handleViewMyBets}
               className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-6 text-base"
             >
               View My Bets
-            </Button>
-
-            <Button
-              variant="ghost"
-              onClick={handleClose}
-              className="w-full text-white font-medium underline hover:bg-transparent"
-            >
-              Keep Picks in Bet Slip
             </Button>
           </div>
         )}
@@ -213,13 +250,7 @@ export default function BetSlip() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-white font-medium text-sm">
-                            {item.betType === 'over' || item.betType === 'under'
-                              ? `${item.betType === 'over' ? 'Over' : 'Under'} ${item.totalValue}`
-                              : item.betType.includes('spread')
-                              ? `${item.betType === 'spread-home' ? item.game.homeTeam : item.game.awayTeam} ${item.spreadValue && item.spreadValue > 0 ? '+' : ''}${item.spreadValue}`
-                              : item.betType === 'home'
-                              ? item.game.homeTeam
-                              : item.game.awayTeam}
+                            {getBetDescription(item)}
                           </span>
                           <span className="text-green-400 text-sm font-medium">
                             {formatOdds(item.odds)}

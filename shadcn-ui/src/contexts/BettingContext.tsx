@@ -24,6 +24,7 @@ interface PlacedBet extends BetSlipItem {
 interface BettingContextType {
   betSlip: BetSlipItem[];
   placedBets: PlacedBet[];
+  recentlyPlacedBets: BetSlipItem[];
   addToBetSlip: (game: Game, betType: BetSlipItem['betType'], odds: number, value?: number) => void;
   removeFromBetSlip: (gameId: string) => void;
   updateStake: (gameId: string, stake: number) => void;
@@ -38,6 +39,7 @@ export function BettingProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [betSlip, setBetSlip] = useState<BetSlipItem[]>([]);
   const [allPlacedBets, setAllPlacedBets] = useState<PlacedBet[]>([]);
+  const [recentlyPlacedBets, setRecentlyPlacedBets] = useState<BetSlipItem[]>([]);
 
   // Load all placed bets from localStorage on mount
   useEffect(() => {
@@ -135,7 +137,11 @@ export function BettingProvider({ children }: { children: ReactNode }) {
 
     setAllPlacedBets([...allPlacedBets, ...newPlacedBets]);
     
-    // Do NOT auto-clear the bet slip - let users manually clear it
+    // Save current bet slip as recently placed bets
+    setRecentlyPlacedBets([...betSlip]);
+    
+    // Clear bet slip for new bets
+    setBetSlip([]);
     
     return true;
   };
@@ -151,6 +157,7 @@ export function BettingProvider({ children }: { children: ReactNode }) {
   const value = {
     betSlip,
     placedBets,
+    recentlyPlacedBets,
     addToBetSlip,
     removeFromBetSlip,
     updateStake,

@@ -1,5 +1,5 @@
 {
-  "timeline_index": 1028,
+  "timeline_index": 1035,
   "planner": {
     "Team Leader": {
       "1": {
@@ -15,7 +15,7 @@
         "start_at": 1767117517.3770065,
         "end_at": 1767121366.042052
       },
-      "current_task_id": "11",
+      "current_task_id": "12",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [],
@@ -144,7 +144,20 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767125458.7766838,
-        "end_at": 1767125560.831646
+        "end_at": 1767126023.6149366
+      },
+      "12": {
+        "task_id": "12",
+        "dependent_task_ids": [],
+        "instruction": "Redesign the bet slip behavior to separate placed bets from new bets:\n\nCurrent Problem:\nIn `/workspace/shadcn-ui/src/components/BetSlip.tsx`, after placing bets, all bets (both placed and new) are shown together in the SINGLES section. The user wants placed bets to be hidden under \"View Bets Details\" while only new unplaced bets are visible in SINGLES.\n\nRequired Solution:\n\n**Concept:**\n- After placing bets, those bets should be moved to a \"recently placed bets\" list\n- The \"View Bets Details\" collapsible section should show these recently placed bets\n- The SINGLES section should only show new bets that haven't been placed yet\n- Remove the \"Keep Picks in Bet Slip\" button\n- When users add new bets, they appear in SINGLES section (not mixed with placed bets)\n\n**Implementation:**\n\n**Step 1: Update BettingContext.tsx**\n\nIn `/workspace/shadcn-ui/src/contexts/BettingContext.tsx`, modify the context to track recently placed bets separately:\n\n1. Add a new state for recently placed bets:\n```tsx\nconst [recentlyPlacedBets, setRecentlyPlacedBets] = useState<BetSlipItem[]>([]);\n```\n\n2. Update the placeBets function to:\n   - Save current betSlip items to recentlyPlacedBets\n   - Clear the betSlip after placing\n   - Return the placed bets info\n\n```tsx\nconst placeBets = (): boolean => {\n  // ... existing validation ...\n  \n  const newPlacedBets: PlacedBet[] = betSlip.map((item) => ({\n    ...item,\n    id: `${item.game.id}-${Date.now()}-${Math.random()}`,\n    userId: user.id,\n    placedAt: new Date(),\n    status: 'pending',\n  }));\n\n  setAllPlacedBets([...allPlacedBets, ...newPlacedBets]);\n  \n  // Save the current bet slip items as recently placed\n  setRecentlyPlacedBets([...betSlip]);\n  \n  // Clear the bet slip for new bets\n  setBetSlip([]);\n  \n  return true;\n};\n```\n\n3. Add recentlyPlacedBets to the context value and export it:\n```tsx\nconst value = {\n  betSlip,\n  placedBets,\n  recentlyPlacedBets,  // Add this\n  addToBetSlip,\n  removeFromBetSlip,\n  updateStake,\n  placeBets,\n  clearBetSlip,\n  getAllUserBets,\n};\n```\n\n4. Update the BettingContextType interface:\n```tsx\ninterface BettingContextType {\n  betSlip: BetSlipItem[];\n  placedBets: PlacedBet[];\n  recentlyPlacedBets: BetSlipItem[];  // Add this\n  addToBetSlip: (game: Game, betType: BetSlipItem['betType'], odds: number, value?: number) => void;\n  removeFromBetSlip: (gameId: string) => void;\n  updateStake: (gameId: string, stake: number) => void;\n  placeBets: () => boolean;\n  clearBetSlip: () => void;\n  getAllUserBets: (userId: string) => PlacedBet[];\n}\n```\n\n**Step 2: Update BetSlip.tsx**\n\nIn `/workspace/shadcn-ui/src/components/BetSlip.tsx`:\n\n1. Get recentlyPlacedBets from context:\n```tsx\nconst { betSlip, recentlyPlacedBets, addToBetSlip, removeFromBetSlip, updateStake, placeBets, clearBetSlip } = useBetting();\n```\n\n2. Update the \"View Bets Details\" section to show recentlyPlacedBets instead of betSlip:\n```tsx\n<Collapsible open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>\n  <CollapsibleTrigger className=\"flex items-center justify-between w-full p-4 bg-gray-800/50 rounded-lg\">\n    <span className=\"text-white font-medium\">View Bets Details</span>\n    <ChevronDown className={`w-5 h-5 text-white transition-transform ${isDetailsOpen ? 'rotate-180' : ''}`} />\n  </CollapsibleTrigger>\n  <CollapsibleContent className=\"mt-2 space-y-2 max-h-60 overflow-y-auto\">\n    {recentlyPlacedBets.map((item, index) => (\n      <div key={index} className=\"p-3 bg-gray-800/30 rounded-lg\">\n        <div className=\"text-sm text-white\">\n          {item.game.homeTeam} vs {item.game.awayTeam}\n        </div>\n        <div className=\"text-xs text-gray-400 mt-1\">\n          {getBetTypeLabel(item.betType)} @ {item.odds > 0 ? '+' : ''}{item.odds}\n        </div>\n        <div className=\"text-xs text-gray-400\">\n          Stake: ${item.stake.toFixed(2)}\n        </div>\n      </div>\n    ))}\n  </CollapsibleContent>\n</Collapsible>\n```\n\n3. Remove the \"Keep Picks in Bet Slip\" button (around line 176-180)\n\n4. The SINGLES section should continue to show only betSlip items (which are now only new unplaced bets after placing)\n\n**Step 3: Add helper function for bet type labels**\n\nAdd this helper function in BetSlip.tsx:\n```tsx\nconst getBetTypeLabel = (betType: string): string => {\n  switch (betType) {\n    case 'home': return 'Home Win';\n    case 'away': return 'Away Win';\n    case 'spread-home': return 'Home Spread';\n    case 'spread-away': return 'Away Spread';\n    case 'over': return 'Over';\n    case 'under': return 'Under';\n    default: return betType;\n  }\n};\n```\n\n**Result:**\n- After placing bets, the \"BET PLACED\" dialog shows the summary\n- The placed bets are moved to \"View Bets Details\" (collapsed by default)\n- The SINGLES section is cleared and ready for new bets\n- When users add new bets, they appear only in SINGLES section\n- \"Keep Picks in Bet Slip\" button is removed\n\n**Files to update:**\n- /workspace/shadcn-ui/src/contexts/BettingContext.tsx\n- /workspace/shadcn-ui/src/components/BetSlip.tsx\n\n**Working directory:** /workspace",
+        "task_type": "general",
+        "code": "",
+        "result": "",
+        "is_success": false,
+        "is_finished": true,
+        "assignee": "Alex",
+        "start_at": 1767126023.6149418,
+        "end_at": 1767126123.9371572
       }
     }
   },
@@ -1177,7 +1190,14 @@
     "1025": 1,
     "1026": 1,
     "1027": 1,
-    "1028": 1
+    "1028": 1,
+    "1029": 1,
+    "1030": 1,
+    "1031": 1,
+    "1032": 1,
+    "1033": 1,
+    "1034": 1,
+    "1035": 0
   },
   "preview_servers": {},
   "preview_server": {
