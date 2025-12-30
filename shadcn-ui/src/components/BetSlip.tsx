@@ -77,18 +77,6 @@ export default function BetSlip() {
     return labels[betType] || betType;
   };
 
-  const PlayMoneySymbol = () => (
-    <span className="relative inline-block mr-0.5">
-      <span className="relative">
-        $
-        <span className="absolute inset-0 flex items-center justify-center">
-          <span className="w-[2px] h-full bg-current absolute left-[40%]"></span>
-          <span className="w-[2px] h-full bg-current absolute left-[60%]"></span>
-        </span>
-      </span>
-    </span>
-  );
-
   return (
     <Card className="border-gray-700 bg-gray-800/50 backdrop-blur sticky top-6">
       <CardHeader className="pb-3">
@@ -177,8 +165,8 @@ export default function BetSlip() {
                 >
                   Log In to Place Bet
                 </Button>
-                <p className="text-sm text-gray-400 flex items-center justify-center">
-                  Minimum Bet: <PlayMoneySymbol />0.10
+                <p className="text-sm text-gray-400 flex items-center justify-center gap-1">
+                  Minimum Bet: <PlayMoney amount={0.10} className="" />
                 </p>
               </div>
             ) : (
@@ -239,7 +227,10 @@ export default function BetSlip() {
                       </span>
                       <div className="relative flex-1">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
-                          <PlayMoneySymbol />
+                          <span className="relative inline-block">
+                            <span className="absolute inset-0 translate-x-[0.15em]">$</span>
+                            <span className="relative">$</span>
+                          </span>
                         </span>
                         <Input
                           type="number"
