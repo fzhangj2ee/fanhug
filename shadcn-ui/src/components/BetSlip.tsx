@@ -50,12 +50,14 @@ export default function BetSlip() {
     }
   };
 
-  const handleKeepPicks = () => {
+  const handleClose = () => {
     setShowBetPlaced(false);
+    clearBetSlip();
   };
 
   const handleViewMyBets = () => {
     setShowBetPlaced(false);
+    clearBetSlip();
     navigate('/my-bets');
   };
 
@@ -115,7 +117,7 @@ export default function BetSlip() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowBetPlaced(false)}
+                  onClick={handleClose}
                   className="h-8 w-8 p-0 text-gray-400 hover:text-white rounded-full bg-gray-700"
                 >
                   <X className="h-4 w-4" />
@@ -147,14 +149,6 @@ export default function BetSlip() {
                 className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-6 text-base"
               >
                 View My Bets
-              </Button>
-
-              <Button
-                onClick={handleKeepPicks}
-                variant="ghost"
-                className="w-full text-white hover:bg-gray-700/50 font-medium underline"
-              >
-                Keep Picks in Bet Slip
               </Button>
             </div>
           </div>

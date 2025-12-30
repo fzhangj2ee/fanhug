@@ -35,48 +35,48 @@ export default function Navbar({ onHomeClick, isHomeActive = true }: NavbarProps
   return (
     <nav className="bg-[#1a1d1f] border-b border-[#2a2d2f] sticky top-0 z-50">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-16 relative">
           {/* Logo */}
-          <div className="flex items-center gap-8">
+          <div className="flex items-center">
             <button
               onClick={onHomeClick}
               className="text-2xl font-bold text-white hover:text-[#53d337] transition-colors"
             >
               FanHug
             </button>
+          </div>
 
-            {/* Navigation Links */}
-            <div className="hidden md:flex items-center gap-6">
+          {/* Centered Navigation Links */}
+          <div className="absolute left-1/2 transform -translate-x-1/2 hidden md:flex items-center gap-6">
+            <Link
+              to="/"
+              className={`text-sm font-medium transition-colors ${
+                isHomeActive ? 'text-[#53d337]' : 'text-[#b1bad3] hover:text-white'
+              }`}
+            >
+              Home
+            </Link>
+            <Link
+              to="/my-bets"
+              className="text-sm font-medium text-[#b1bad3] hover:text-white transition-colors"
+            >
+              My Bets
+            </Link>
+            <Link
+              to="/wallet"
+              className="text-sm font-medium text-[#b1bad3] hover:text-white transition-colors"
+            >
+              Wallet
+            </Link>
+            {isAdmin && (
               <Link
-                to="/"
-                className={`text-sm font-medium transition-colors ${
-                  isHomeActive ? 'text-[#53d337]' : 'text-[#b1bad3] hover:text-white'
-                }`}
+                to="/admin"
+                className="text-sm font-medium text-[#b1bad3] hover:text-white transition-colors flex items-center gap-1"
               >
-                Home
+                <Shield className="h-4 w-4" />
+                Admin
               </Link>
-              <Link
-                to="/my-bets"
-                className="text-sm font-medium text-[#b1bad3] hover:text-white transition-colors"
-              >
-                My Bets
-              </Link>
-              <Link
-                to="/wallet"
-                className="text-sm font-medium text-[#b1bad3] hover:text-white transition-colors"
-              >
-                Wallet
-              </Link>
-              {isAdmin && (
-                <Link
-                  to="/admin"
-                  className="text-sm font-medium text-[#b1bad3] hover:text-white transition-colors flex items-center gap-1"
-                >
-                  <Shield className="h-4 w-4" />
-                  Admin
-                </Link>
-              )}
-            </div>
+            )}
           </div>
 
           {/* User Menu */}
