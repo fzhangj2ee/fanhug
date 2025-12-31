@@ -30,21 +30,23 @@ const App = () => (
               <LiveOddsProvider>
                 <div className="min-h-screen bg-gray-950">
                   <Navbar />
-                  <div className="flex">
-                    <div className="flex-1">
-                      <Routes>
-                        <Route path="/" element={<Index />} />
-                        <Route path="/live" element={<Live />} />
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/my-bets" element={<MyBets />} />
-                        <Route path="/wallet" element={<Wallet />} />
-                        <Route path="/admin" element={<Admin />} />
-                        <Route path="/donation" element={<Donation />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </div>
-                    <div className="hidden lg:block w-96 p-6">
-                      <BetSlip />
+                  <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex">
+                      <div className="flex-1">
+                        <Routes>
+                          <Route path="/" element={<Index />} />
+                          <Route path="/live" element={<Live />} />
+                          <Route path="/login" element={<Login />} />
+                          <Route path="/my-bets" element={<MyBets />} />
+                          <Route path="/wallet" element={<Wallet />} />
+                          <Route path="/admin" element={<Admin />} />
+                          <Route path="/donation" element={<Donation />} />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </div>
+                      <div className="hidden lg:block w-96 pl-6">
+                        <BetSlip />
+                      </div>
                     </div>
                   </div>
                 </div>

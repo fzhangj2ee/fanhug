@@ -132,7 +132,7 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-[#0d0f10]">
-      <div className="container mx-auto px-4 py-6">
+      <div className="py-6">
         {/* Dynamic Breadcrumb */}
         <div className="mb-4">
           <div className="flex items-center gap-2 text-sm text-[#b1bad3]">
