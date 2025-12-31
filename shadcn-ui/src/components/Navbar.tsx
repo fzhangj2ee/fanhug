@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Heart, LogOut, Radio } from 'lucide-react';
+import { Heart, LogOut, Radio, Wallet } from 'lucide-react';
 import PlayMoney from '@/components/PlayMoney';
 import { useWallet } from '@/contexts/WalletContext';
 
@@ -20,7 +20,7 @@ export default function Navbar() {
             <Link to="/" className="text-2xl font-bold text-green-500">
               FanHug
             </Link>
-            <div className="flex space-x-1">
+            <div className="flex items-center space-x-1">
               <Link to="/">
                 <Button
                   variant="ghost"
@@ -58,6 +58,19 @@ export default function Navbar() {
                   My Bets
                 </Button>
               </Link>
+              <Link to="/wallet">
+                <Button
+                  variant="ghost"
+                  className={`${
+                    isActive('/wallet')
+                      ? 'text-white bg-gray-800'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  } flex items-center gap-2`}
+                >
+                  <Wallet className="h-4 w-4" />
+                  Wallet
+                </Button>
+              </Link>
             </div>
           </div>
 
@@ -73,14 +86,9 @@ export default function Navbar() {
             </Link>
             {user ? (
               <>
-                <Link to="/wallet">
-                  <Button
-                    variant="outline"
-                    className="border-green-500 text-green-500 hover:bg-green-500 hover:text-black"
-                  >
-                    <PlayMoney amount={balance} />
-                  </Button>
-                </Link>
+                <div className="flex items-center px-3 py-2 bg-gray-800 rounded-md border border-green-500">
+                  <PlayMoney amount={balance} className="text-green-500 font-semibold" />
+                </div>
                 <Button
                   variant="ghost"
                   onClick={signOut}
