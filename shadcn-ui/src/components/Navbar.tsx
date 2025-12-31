@@ -20,9 +20,9 @@ export default function Navbar() {
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center">
               <img 
-                src="/fanhug-logo.png" 
+                src="https://mgx-backend-cdn.metadl.com/generate/images/770344/2025-12-30/635bc613-3970-4406-8639-18f420413971.png" 
                 alt="FanHug Logo" 
-                className="h-10"
+                className="h-14"
               />
             </Link>
           </div>
