@@ -5,6 +5,9 @@ import { Heart, LogOut, Radio, Wallet } from 'lucide-react';
 import PlayMoney from '@/components/PlayMoney';
 import { useWallet } from '@/contexts/WalletContext';
 
+// Version number - update this when deploying new versions
+const APP_VERSION = 'v1.0.0';
+
 export default function Navbar() {
   const location = useLocation();
   const { user, signOut } = useAuth();
@@ -16,8 +19,8 @@ export default function Navbar() {
     <nav className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-24">
-          {/* Left: Logo - Stretched to fill header as much as possible */}
-          <div className="flex-shrink-0">
+          {/* Left: Logo + Version */}
+          <div className="flex-shrink-0 flex items-center gap-3">
             <Link to="/" className="flex items-center">
               <img 
                 src="/fanhug-logo.png" 
@@ -25,6 +28,9 @@ export default function Navbar() {
                 className="h-20 w-auto"
               />
             </Link>
+            <span className="text-xs text-gray-400 font-mono">
+              {APP_VERSION}
+            </span>
           </div>
 
           {/* Center: Navigation Links */}
