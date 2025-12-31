@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react';
 import { fetchAllGames } from '@/lib/sportsApi';
 import { Game } from '@/types/betting';
 import GameCard from '@/components/GameCard';
-import Navbar from '@/components/Navbar';
-import BetSlip from '@/components/BetSlip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
@@ -134,8 +132,6 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-[#0d0f10]">
-      <Navbar onHomeClick={handleHomeClick} isHomeActive={viewMode === 'home'} />
-      
       <div className="container mx-auto px-4 py-6">
         {/* Dynamic Breadcrumb */}
         <div className="mb-4">
@@ -144,7 +140,7 @@ export default function Index() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr_380px] gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6">
           {/* Left Sidebar */}
           <div className="hidden lg:block">
             <div className="sticky top-24 bg-[#1a1d1f] rounded-lg p-4">
@@ -284,11 +280,6 @@ export default function Index() {
                 ))}
               </div>
             )}
-          </div>
-
-          {/* Bet Slip Sidebar */}
-          <div className="lg:sticky lg:top-6 h-fit">
-            <BetSlip />
           </div>
         </div>
       </div>
