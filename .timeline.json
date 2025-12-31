@@ -1,5 +1,5 @@
 {
-  "timeline_index": 1054,
+  "timeline_index": 1066,
   "planner": {
     "Team Leader": {
       "1": {
@@ -15,7 +15,7 @@
         "start_at": 1767117517.3770065,
         "end_at": 1767121366.042052
       },
-      "current_task_id": "12",
+      "current_task_id": "16",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [],
@@ -157,7 +157,20 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767126023.6149418,
-        "end_at": 1767126123.9371572
+        "end_at": 1767145982.644198
+      },
+      "16": {
+        "task_id": "16",
+        "dependent_task_ids": [],
+        "instruction": "Add a \"Live\" navigation link between \"Home\" and \"My Bets\" in the Navbar. Create a new Live page at /workspace/shadcn-ui/src/pages/Live.tsx that displays only live games (games that are currently in progress). Users should be able to place bets on these live games just like they do on the Home page. The page should reuse the existing GameCard component and betting functionality from the Home page, but filter to show only games where the status indicates they are live/in-progress.",
+        "task_type": "general",
+        "code": "",
+        "result": "",
+        "is_success": false,
+        "is_finished": true,
+        "assignee": "Alex",
+        "start_at": 1767145982.644203,
+        "end_at": 1767146092.4702325
       }
     }
   },
@@ -1216,7 +1229,19 @@
     "1051": 1,
     "1052": 1,
     "1053": 1,
-    "1054": 1
+    "1054": 1,
+    "1055": 1,
+    "1056": 1,
+    "1057": 1,
+    "1058": 1,
+    "1059": 1,
+    "1060": 1,
+    "1061": 1,
+    "1062": 1,
+    "1063": 1,
+    "1064": 1,
+    "1065": 1,
+    "1066": 1
   },
   "preview_servers": {},
   "preview_server": {

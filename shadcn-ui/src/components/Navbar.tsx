@@ -1,123 +1,97 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useWallet } from '@/contexts/WalletContext';
 import { Button } from '@/components/ui/button';
-import { LogOut, Wallet, Shield, Heart } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { toast } from 'sonner';
+import { Heart, LogOut, Radio } from 'lucide-react';
 import PlayMoney from '@/components/PlayMoney';
+import { useWallet } from '@/contexts/WalletContext';
 
-interface NavbarProps {
-  onHomeClick?: () => void;
-  isHomeActive?: boolean;
-}
-
-export default function Navbar({ onHomeClick, isHomeActive = true }: NavbarProps) {
+export default function Navbar() {
+  const location = useLocation();
   const { user, signOut } = useAuth();
   const { balance } = useWallet();
 
-  const isAdmin = user?.email === 'fzhangj2ee@gmail.com';
-
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      toast.success('Logged out successfully');
-    } catch (error) {
-      toast.error('Failed to logout');
-      console.error('Logout error:', error);
-    }
-  };
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="bg-[#1a1d1f] border-b border-[#2a2d2f] sticky top-0 z-50">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16 relative">
-          {/* Logo */}
-          <div className="flex items-center">
-            <button
-              onClick={onHomeClick}
-              className="text-2xl font-bold text-white hover:text-[#53d337] transition-colors"
-            >
+    <nav className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center space-x-8">
+            <Link to="/" className="text-2xl font-bold text-green-500">
               FanHug
-            </button>
-          </div>
-
-          {/* Centered Navigation Links */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 hidden md:flex items-center gap-6">
-            <Link
-              to="/"
-              className={`text-sm font-medium transition-colors ${
-                isHomeActive ? 'text-[#53d337]' : 'text-[#b1bad3] hover:text-white'
-              }`}
-            >
-              Home
             </Link>
-            <Link
-              to="/my-bets"
-              className="text-sm font-medium text-[#b1bad3] hover:text-white transition-colors"
-            >
-              My Bets
-            </Link>
-            <Link
-              to="/wallet"
-              className="text-sm font-medium text-[#b1bad3] hover:text-white transition-colors"
-            >
-              Wallet
-            </Link>
-            {isAdmin && (
-              <Link
-                to="/admin"
-                className="text-sm font-medium text-[#b1bad3] hover:text-white transition-colors flex items-center gap-1"
-              >
-                <Shield className="h-4 w-4" />
-                Admin
+            <div className="flex space-x-1">
+              <Link to="/">
+                <Button
+                  variant="ghost"
+                  className={`${
+                    isActive('/')
+                      ? 'text-white bg-gray-800'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  }`}
+                >
+                  Home
+                </Button>
               </Link>
-            )}
+              <Link to="/live">
+                <Button
+                  variant="ghost"
+                  className={`${
+                    isActive('/live')
+                      ? 'text-white bg-gray-800'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  } flex items-center gap-2`}
+                >
+                  <Radio className="h-4 w-4" />
+                  Live
+                </Button>
+              </Link>
+              <Link to="/my-bets">
+                <Button
+                  variant="ghost"
+                  className={`${
+                    isActive('/my-bets')
+                      ? 'text-white bg-gray-800'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  }`}
+                >
+                  My Bets
+                </Button>
+              </Link>
+            </div>
           </div>
 
-          {/* User Menu */}
-          <div className="flex items-center gap-4">
-            {user && (
+          <div className="flex items-center space-x-4">
+            <Link to="/donation">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gray-400 hover:text-red-400 hover:bg-gray-800"
+              >
+                <Heart className="h-5 w-5" />
+              </Button>
+            </Link>
+            {user ? (
               <>
-                <Link to="/donation">
+                <Link to="/wallet">
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-400 hover:text-red-300 hover:bg-[#2a2d2f]"
+                    variant="outline"
+                    className="border-green-500 text-green-500 hover:bg-green-500 hover:text-black"
                   >
-                    <Heart className="h-5 w-5 fill-current" />
+                    <PlayMoney amount={balance} />
                   </Button>
                 </Link>
-                <div className="flex items-center gap-2 bg-[#0d0f10] px-4 py-2 rounded-lg">
-                  <Wallet className="h-4 w-4 text-[#53d337]" />
-                  <PlayMoney amount={balance} className="text-white font-medium" />
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="text-white hover:bg-[#2a2d2f]">
-                      {user.email}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-[#1a1d1f] border-[#2a2d2f]">
-                    <DropdownMenuItem
-                      onClick={handleLogout}
-                      className="text-white hover:bg-[#2a2d2f] cursor-pointer"
-                    >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Button
+                  variant="ghost"
+                  onClick={signOut}
+                  className="text-gray-400 hover:text-white hover:bg-gray-800"
+                >
+                  <LogOut className="h-5 w-5" />
+                </Button>
               </>
-            )}
-            {!user && (
+            ) : (
               <Link to="/login">
-                <Button className="bg-[#53d337] hover:bg-[#45b82d] text-white">
+                <Button className="bg-green-500 hover:bg-green-600 text-black font-bold">
                   Login
                 </Button>
               </Link>

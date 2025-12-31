@@ -5,20 +5,16 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { WalletProvider } from '@/contexts/WalletContext';
 import { BettingProvider } from '@/contexts/BettingContext';
-import { LiveOddsProvider } from '@/contexts/LiveOddsContext';
-import ProtectedRoute from '@/components/ProtectedRoute';
 import Index from './pages/Index';
-import NotFound from './pages/NotFound';
+import Live from './pages/Live';
 import Login from './pages/Login';
-import Signup from './pages/Signup';
-import ResetPassword from './pages/ResetPassword';
-import AuthCallback from './pages/AuthCallback';
 import MyBets from './pages/MyBets';
-import LiveBetting from './pages/LiveBetting';
 import Wallet from './pages/Wallet';
-import Profile from './pages/Profile';
 import Admin from './pages/Admin';
 import Donation from './pages/Donation';
+import NotFound from './pages/NotFound';
+import Navbar from './components/Navbar';
+import BetSlip from './components/BetSlip';
 
 const queryClient = new QueryClient();
 
@@ -30,50 +26,26 @@ const App = () => (
         <AuthProvider>
           <WalletProvider>
             <BettingProvider>
-              <LiveOddsProvider>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<Signup />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/auth/callback" element={<AuthCallback />} />
-                  <Route path="/live" element={<LiveBetting />} />
-                  <Route path="/donation" element={<Donation />} />
-                  <Route
-                    path="/my-bets"
-                    element={
-                      <ProtectedRoute>
-                        <MyBets />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/wallet"
-                    element={
-                      <ProtectedRoute>
-                        <Wallet />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/profile"
-                    element={
-                      <ProtectedRoute>
-                        <Profile />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin"
-                    element={
-                      <ProtectedRoute>
-                        <Admin />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </LiveOddsProvider>
+              <div className="min-h-screen bg-gray-950">
+                <Navbar />
+                <div className="flex">
+                  <div className="flex-1">
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/live" element={<Live />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/my-bets" element={<MyBets />} />
+                      <Route path="/wallet" element={<Wallet />} />
+                      <Route path="/admin" element={<Admin />} />
+                      <Route path="/donation" element={<Donation />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </div>
+                  <div className="hidden lg:block w-96 p-6">
+                    <BetSlip />
+                  </div>
+                </div>
+              </div>
             </BettingProvider>
           </WalletProvider>
         </AuthProvider>
