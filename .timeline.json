@@ -1,5 +1,5 @@
 {
-  "timeline_index": 1128,
+  "timeline_index": 1137,
   "planner": {
     "Team Leader": {
       "1": {
@@ -15,7 +15,7 @@
         "start_at": 1767117517.3770065,
         "end_at": 1767121366.042052
       },
-      "current_task_id": "25",
+      "current_task_id": "26",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [],
@@ -287,7 +287,20 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767149000.365828,
-        "end_at": 1767149105.2225823
+        "end_at": 1767149335.729711
+      },
+      "26": {
+        "task_id": "26",
+        "dependent_task_ids": [],
+        "instruction": "Fix the double header issue that appears when navigating to My Bets, Wallet, and Donation pages.\n\nThe problem: When users click on \"My Bets\", \"Wallet\", or the \"Donation\" heart icon, a double header appears. This is likely because these page components are rendering their own Navbar component when App.tsx already renders a global Navbar.\n\nPlease:\n1. Check /workspace/shadcn-ui/src/pages/MyBets.tsx - Remove any Navbar import and rendering\n2. Check /workspace/shadcn-ui/src/pages/Wallet.tsx - Remove any Navbar import and rendering  \n3. Check /workspace/shadcn-ui/src/pages/Donation.tsx - Remove any Navbar import and rendering\n4. Ensure these pages only render their main content without the Navbar (since App.tsx already provides the global Navbar)\n5. Verify the pages still work correctly with the global Navbar from App.tsx\n6. Run lint and build to verify",
+        "task_type": "general",
+        "code": "",
+        "result": "",
+        "is_success": false,
+        "is_finished": true,
+        "assignee": "Alex",
+        "start_at": 1767149335.729716,
+        "end_at": 1767149458.9537003
       }
     }
   },
@@ -1420,7 +1433,16 @@
     "1125": 1,
     "1126": 1,
     "1127": 1,
-    "1128": 1
+    "1128": 1,
+    "1129": 1,
+    "1130": 1,
+    "1131": 1,
+    "1132": 1,
+    "1133": 1,
+    "1134": 1,
+    "1135": 1,
+    "1136": 1,
+    "1137": 1
   },
   "preview_servers": {},
   "preview_server": {

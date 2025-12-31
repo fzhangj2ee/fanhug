@@ -1,6 +1,4 @@
-import { useNavigate } from 'react-router-dom';
 import { useWallet } from '@/contexts/WalletContext';
-import Navbar from '@/components/Navbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, TrendingUp, TrendingDown, Wallet as WalletIcon } from 'lucide-react';
@@ -8,12 +6,7 @@ import { toast } from 'sonner';
 import PlayMoney from '@/components/PlayMoney';
 
 export default function Wallet() {
-  const navigate = useNavigate();
   const { balance, transactions, addFunds } = useWallet();
-
-  const handleHomeClick = () => {
-    navigate('/');
-  };
 
   const handleAddFunds = () => {
     addFunds(1000);
@@ -59,9 +52,7 @@ export default function Wallet() {
 
   return (
     <div className="min-h-screen bg-[#0F1419]">
-      <Navbar onHomeClick={handleHomeClick} isHomeActive={false} />
-
-      <div className="container mx-auto px-4 py-8">
+      <div className="py-8">
         <h1 className="text-3xl font-bold text-white mb-6">Wallet</h1>
 
         <Card className="bg-gradient-to-br from-[#00C853] to-[#00E676] border-0 mb-8">

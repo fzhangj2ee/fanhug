@@ -1,5 +1,4 @@
 import { useBetting } from '@/contexts/BettingContext';
-import Navbar from '@/components/Navbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, XCircle, Clock } from 'lucide-react';
@@ -56,9 +55,7 @@ export default function MyBets() {
 
   return (
     <div className="min-h-screen bg-[#0d0f10]">
-      <Navbar />
-      
-      <div className="container mx-auto px-4 py-6">
+      <div className="py-6">
         <h1 className="text-3xl font-bold text-white mb-6">My Bets</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
