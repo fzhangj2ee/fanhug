@@ -5,8 +5,8 @@ import { Heart, LogOut, Radio, Wallet } from 'lucide-react';
 import PlayMoney from '@/components/PlayMoney';
 import { useWallet } from '@/contexts/WalletContext';
 
-// Hardcoded version number for production deployment
-const APP_VERSION = 'v164';
+// Dynamic version number from build environment variable
+const APP_VERSION = import.meta.env.VITE_BUILD_NUMBER ? `v${import.meta.env.VITE_BUILD_NUMBER}` : 'v1';
 
 export default function Navbar() {
   const location = useLocation();
