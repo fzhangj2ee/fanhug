@@ -18,8 +18,12 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Left: Logo */}
           <div className="flex-shrink-0">
-            <Link to="/" className="text-2xl font-bold text-green-500">
-              FanHug
+            <Link to="/" className="flex items-center">
+              <img 
+                src="/fanhug-logo.png" 
+                alt="FanHug Logo" 
+                className="h-10"
+              />
             </Link>
           </div>
 
