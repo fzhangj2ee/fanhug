@@ -5,8 +5,8 @@ import { Heart, LogOut, Radio, Wallet } from 'lucide-react';
 import PlayMoney from '@/components/PlayMoney';
 import { useWallet } from '@/contexts/WalletContext';
 
-// Version number - update this when deploying new versions
-const APP_VERSION = 'v1.0.0';
+// Dynamic version number from environment variable
+const APP_VERSION = `v${import.meta.env.VITE_APP_VERSION || '1'}`;
 
 export default function Navbar() {
   const location = useLocation();
@@ -19,7 +19,7 @@ export default function Navbar() {
     <nav className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-24">
-          {/* Left: Logo + Version */}
+          {/* Left: Logo and Version */}
           <div className="flex-shrink-0 flex items-center gap-3">
             <Link to="/" className="flex items-center">
               <img 
