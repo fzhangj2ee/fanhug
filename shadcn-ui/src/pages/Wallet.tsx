@@ -1,112 +1,73 @@
-import { useWallet } from '@/contexts/WalletContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Plus, TrendingUp, TrendingDown, Wallet as WalletIcon } from 'lucide-react';
-import { toast } from 'sonner';
+import { useWallet } from '@/contexts/WalletContext';
 import PlayMoney from '@/components/PlayMoney';
+import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 export default function Wallet() {
-  const { balance, transactions, addFunds } = useWallet();
-
-  const handleAddFunds = () => {
-    addFunds(1000);
-    toast.success('Added play money to your balance!');
-  };
-
-  const formatDate = (isoString: string) => {
-    const date = new Date(isoString);
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  };
-
-  const getTransactionIcon = (type: string) => {
-    switch (type) {
-      case 'deposit':
-        return <TrendingUp className="h-4 w-4 text-[#00C853]" />;
-      case 'bet_won':
-        return <TrendingUp className="h-4 w-4 text-[#00C853]" />;
-      case 'bet_placed':
-      case 'bet_lost':
-        return <TrendingDown className="h-4 w-4 text-[#FF3B30]" />;
-      default:
-        return <WalletIcon className="h-4 w-4 text-[#8B949E]" />;
-    }
-  };
-
-  const getTransactionColor = (type: string) => {
-    switch (type) {
-      case 'deposit':
-      case 'bet_won':
-        return 'text-[#00C853]';
-      case 'bet_placed':
-      case 'bet_lost':
-        return 'text-[#FF3B30]';
-      default:
-        return 'text-[#8B949E]';
-    }
-  };
+  const { balance, transactions } = useWallet();
 
   return (
-    <div className="min-h-screen bg-[#0F1419]">
-      <div className="py-8">
-        <h1 className="text-3xl font-bold text-white mb-6">Wallet</h1>
+    <div className="min-h-screen bg-gray-950 pt-8 pb-16">
+      <div className="max-w-4xl mx-auto px-4">
+        <h1 className="text-3xl font-bold text-white mb-8">My Wallet</h1>
 
+        {/* Balance Card */}
         <Card className="bg-gradient-to-br from-[#00C853] to-[#00E676] border-0 mb-8">
           <CardContent className="p-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/80 text-sm mb-2">Available Balance</p>
-                <PlayMoney amount={balance} className="text-white text-5xl font-bold" />
-              </div>
-              <Button
-                onClick={handleAddFunds}
-                className="bg-white text-[#00C853] hover:bg-white/90"
-                size="lg"
-              >
-                <Plus className="h-5 w-5 mr-2" />
-                Add Funds
-              </Button>
+            <div>
+              <p className="text-white/80 text-sm mb-2">Available Balance</p>
+              <PlayMoney amount={balance} className="text-white text-5xl font-bold" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-[#1C2128] border-[#2A2F36]">
+        {/* Transaction History */}
+        <Card className="bg-gray-900 border-gray-800">
           <CardHeader>
             <CardTitle className="text-white">Transaction History</CardTitle>
           </CardHeader>
           <CardContent>
             {transactions.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-[#8B949E] text-lg">No transactions yet</p>
-              </div>
+              <p className="text-gray-400 text-center py-8">No transactions yet</p>
             ) : (
               <div className="space-y-3">
                 {transactions.map((transaction) => (
                   <div
                     key={transaction.id}
-                    className="flex items-center justify-between p-4 bg-[#0F1419] rounded-lg hover:bg-[#1A1F26] transition-colors"
+                    className="flex items-center justify-between p-4 bg-gray-800 rounded-lg"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="bg-[#1C2128] p-2 rounded-lg">
-                        {getTransactionIcon(transaction.type)}
+                      <div
+                        className={`p-2 rounded-full ${
+                          transaction.type === 'deposit'
+                            ? 'bg-green-500/20'
+                            : 'bg-red-500/20'
+                        }`}
+                      >
+                        {transaction.type === 'deposit' ? (
+                          <ArrowDownRight className="h-5 w-5 text-green-500" />
+                        ) : (
+                          <ArrowUpRight className="h-5 w-5 text-red-500" />
+                        )}
                       </div>
                       <div>
-                        <p className="text-white font-medium">{transaction.description}</p>
-                        <p className="text-[#8B949E] text-sm">{formatDate(transaction.timestamp)}</p>
+                        <p className="text-white font-medium">
+                          {transaction.type === 'deposit' ? 'Deposit' : 'Withdrawal'}
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          {new Date(transaction.timestamp).toLocaleDateString()}
+                        </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className={`font-bold text-lg ${getTransactionColor(transaction.type)}`}>
-                        {transaction.amount >= 0 ? '+' : ''}
-                        <PlayMoney amount={Math.abs(transaction.amount)} className="inline-flex" />
-                      </p>
-                      <p className="text-[#8B949E] text-sm flex items-center justify-end">
-                        Balance: <PlayMoney amount={transaction.balance} className="ml-1" />
-                      </p>
+                    <div
+                      className={`font-bold ${
+                        transaction.type === 'deposit'
+                          ? 'text-green-500'
+                          : 'text-red-500'
+                      }`}
+                    >
+                      {transaction.type === 'deposit' ? '+' : '-'}
+                      <PlayMoney amount={transaction.amount} />
                     </div>
                   </div>
                 ))}
