@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import { viteSourceLocator } from '@metagptx/vite-plugin-source-locator';
 
-// Use hardcoded version number as requested
-const buildNumber = '174';
+// Build number is now hardcoded to 176 as requested
+const buildNumber = '176';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
