@@ -1,133 +1,72 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Heart, ArrowLeft } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Heart } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function Donation() {
-  const navigate = useNavigate();
-  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
-  const [customAmount, setCustomAmount] = useState('');
+const PAYPAL_DONATION_LINK = 'https://www.paypal.com/donate/?business=GDERQZQ5Y7XDL&no_recurring=0&item_name=FanHug+offers+safe+play-money+sports+betting%2C+fun+and+risk-free%2C+while+supporting+responsible+gaming+and+addiction+recovery.%0A&currency_code=USD';
 
-  const presetAmounts = [5, 10, 25, 50, 100];
+export default function Donation() {
+  const [message, setMessage] = useState('');
 
   const handleDonate = () => {
-    const amount = selectedAmount || parseFloat(customAmount);
-    if (!amount || amount <= 0) {
-      toast.error('Please select or enter a valid donation amount');
-      return;
-    }
+    // Open PayPal donation link in a new tab
+    window.open(PAYPAL_DONATION_LINK, '_blank', 'noopener,noreferrer');
     
-    toast.success(`Thank you for your $${amount.toFixed(2)} donation! Payment integration coming soon.`);
+    // Show confirmation toast
+    toast.success('Redirecting to PayPal for donation. Thank you for your support!');
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0f10]">
-      <div className="py-8">
-        <Button
-          onClick={() => navigate(-1)}
-          variant="ghost"
-          className="text-white hover:bg-[#1a1d1f] mb-6"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
+    <div className="min-h-screen bg-gray-950 pt-8 pb-16">
+      <div className="max-w-2xl mx-auto px-4">
+        <Card className="bg-gray-900 border-gray-800 p-8">
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <Heart className="h-16 w-16 fill-red-500 text-red-500" />
+            </div>
+            <h1 className="text-3xl font-bold text-white mb-4">Support Our Mission</h1>
+            <p className="text-gray-400 text-lg">
+              Your donation helps us maintain and improve FanHug, providing a safe and fun
+              play-money sports betting experience while supporting responsible gaming and
+              addiction recovery initiatives.
+            </p>
+          </div>
 
-        <div className="max-w-2xl mx-auto">
-          <Card className="bg-[#1a1d1f] border-[#2a2d2f]">
-            <CardHeader className="text-center pb-6">
-              <div className="flex justify-center mb-4">
-                <div className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center">
-                  <Heart className="h-10 w-10 text-red-500 fill-current" />
-                </div>
-              </div>
-              <CardTitle className="text-3xl font-bold text-white mb-2">
-                Support Our Mission
-              </CardTitle>
-              <p className="text-[#b1bad3] text-lg">
-                Help us make a difference for those affected by gambling
-              </p>
-            </CardHeader>
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Leave a Message (Optional)
+              </label>
+              <Textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Share why you're supporting FanHug..."
+                className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 min-h-[100px]"
+              />
+            </div>
 
-            <CardContent className="space-y-6">
-              {/* Mission Statement */}
-              <div className="bg-[#0d0f10] rounded-lg p-6 space-y-4">
-                <h3 className="text-xl font-bold text-white">Our Story</h3>
-                <p className="text-[#b1bad3] leading-relaxed">
-                  FanHug was created to provide a safe, play-money environment where people can enjoy the excitement of sports betting without the financial risks. We've seen too many lives affected by gambling addiction, and we're committed to offering an alternative that's fun, engaging, and completely risk-free.
-                </p>
-                <p className="text-[#b1bad3] leading-relaxed">
-                  Your donation helps us maintain and improve this platform, develop educational resources about responsible gaming, and support organizations that help those struggling with gambling addiction.
-                </p>
-              </div>
+            <Button
+              onClick={handleDonate}
+              className="w-full bg-[#0070BA] hover:bg-[#005EA6] text-white font-bold py-6 text-lg transition-colors"
+            >
+              Donate with PayPal
+            </Button>
 
-              {/* Donation Amounts */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold text-white">Choose Your Donation Amount</h3>
-                
-                {/* Preset Amounts */}
-                <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
-                  {presetAmounts.map((amount) => (
-                    <Button
-                      key={amount}
-                      onClick={() => {
-                        setSelectedAmount(amount);
-                        setCustomAmount('');
-                      }}
-                      className={`h-16 text-lg font-bold ${
-                        selectedAmount === amount
-                          ? 'bg-[#53d337] text-black hover:bg-[#45b82d]'
-                          : 'bg-[#2a2d2f] text-white hover:bg-[#3a3d3f]'
-                      }`}
-                    >
-                      ${amount}
-                    </Button>
-                  ))}
-                </div>
+            <div className="text-center text-sm text-gray-500 mt-4">
+              <p>You will be redirected to PayPal to complete your donation securely.</p>
+              <p className="mt-2">Thank you for supporting responsible gaming! ❤️</p>
+            </div>
+          </div>
+        </Card>
 
-                {/* Custom Amount */}
-                <div className="space-y-2">
-                  <label className="text-white text-sm font-medium">Or enter a custom amount:</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#b1bad3] text-lg">
-                      $
-                    </span>
-                    <Input
-                      type="number"
-                      min="1"
-                      step="0.01"
-                      value={customAmount}
-                      onChange={(e) => {
-                        setCustomAmount(e.target.value);
-                        setSelectedAmount(null);
-                      }}
-                      placeholder="0.00"
-                      className="pl-8 bg-[#0d0f10] border-[#2a2d2f] text-white h-14 text-lg"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Donate Button */}
-              <Button
-                onClick={handleDonate}
-                className="w-full bg-[#53d337] hover:bg-[#45b82d] text-black font-bold py-6 text-lg"
-              >
-                <Heart className="h-5 w-5 mr-2 fill-current" />
-                Donate Now
-              </Button>
-
-              {/* Additional Info */}
-              <div className="bg-[#0d0f10] rounded-lg p-4">
-                <p className="text-[#b1bad3] text-sm text-center">
-                  All donations are used to maintain the platform and support gambling addiction prevention programs. 
-                  Payment integration coming soon.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="mt-8 text-center text-gray-500 text-sm">
+          <p>
+            FanHug is committed to promoting responsible gaming and supporting addiction
+            recovery programs.
+          </p>
+          <p className="mt-2">All donations are processed securely through PayPal.</p>
         </div>
       </div>
     </div>
