@@ -40,7 +40,7 @@ export default function Donation() {
             <CardHeader className="text-center pb-6">
               <div className="flex justify-center mb-4">
                 <div className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center">
-                  <Heart className="h-10 w-10 text-red-400 fill-current" />
+                  <Heart className="h-10 w-10 text-red-500 fill-current" />
                 </div>
               </div>
               <CardTitle className="text-3xl font-bold text-white mb-2">
