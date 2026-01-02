@@ -2,16 +2,9 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import { viteSourceLocator } from '@metagptx/vite-plugin-source-locator';
-import fs from 'fs';
 
-// Read build number dynamically from timeline_index
-let buildNumber = '1';
-try {
-  const timelineData = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../.timeline.json'), 'utf-8'));
-  buildNumber = (timelineData.timeline_index || 1).toString();
-} catch (error) {
-  console.warn('Could not read timeline_index, using default build number');
-}
+// Use hardcoded version number as requested
+const buildNumber = '174';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
