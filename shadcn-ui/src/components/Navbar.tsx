@@ -104,9 +104,11 @@ export default function Navbar() {
                   <span className="text-gray-300 text-sm font-medium">
                     {user.email?.split('@')[0] || 'User'}
                   </span>
-                  <div className="flex items-center px-3 py-2 bg-gray-800 rounded-md border border-green-500">
-                    <PlayMoney amount={balance} className="text-green-500 font-semibold" />
-                  </div>
+                  <Link to="/wallet">
+                    <div className="flex items-center px-3 py-2 bg-gray-800 rounded-md border border-green-500 hover:bg-gray-700 transition-colors cursor-pointer">
+                      <PlayMoney amount={balance} className="text-green-500 font-semibold" />
+                    </div>
+                  </Link>
                 </div>
                 <Button
                   variant="ghost"
