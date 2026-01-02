@@ -23,7 +23,7 @@ export default function Navbar() {
           <div className="flex-shrink-0 flex items-center gap-3">
             <Link to="/" className="flex items-center">
               <img 
-                src="/images/FanHug.jpg" 
+                src="/images/FanHug.png" 
                 alt="FanHug Logo" 
                 className="h-20 w-auto"
               />
