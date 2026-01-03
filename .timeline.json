@@ -1,5 +1,5 @@
 {
-  "timeline_index": 1461,
+  "timeline_index": 1469,
   "planner": {
     "Team Leader": {
       "1": {
@@ -15,7 +15,7 @@
         "start_at": 1767117517.3770065,
         "end_at": 1767121366.042052
       },
-      "current_task_id": "50",
+      "current_task_id": "51",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [],
@@ -605,7 +605,20 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767482106.1166596,
-        "end_at": 1767482166.8557565
+        "end_at": 1767482404.37829
+      },
+      "51": {
+        "task_id": "51",
+        "dependent_task_ids": [],
+        "instruction": "Update the admin navigation and create a dedicated Messages page with a table view.\n\n**Requirements:**\n1. When user logs in as admin (fzhangj2ee@gmail.com), display both \"Messages\" and \"Admin\" tabs in the center navigation area of the header\n2. Create a new Messages page (`/messages`) that displays messages in a table format\n3. The table should contain three columns: User, Timestamp, Message Content\n4. Clicking \"Messages\" tab navigates to `/messages` page\n5. The existing Admin page functionality should remain unchanged\n\n**Implementation Steps:**\n\n1. **Update Navbar.tsx** (`/workspace/shadcn-ui/src/components/Navbar.tsx`):\n   - Modify the admin section to show two separate navigation buttons: \"Messages\" and \"Admin\"\n   - Both buttons should be in the center navigation area (where other tabs like Home, Live, My Bets are)\n   - Remove the Messages button with unread count badge from its current position\n   - Add \"Messages\" tab that navigates to `/messages`\n   - Keep \"Admin\" tab that navigates to `/admin`\n   - For regular users, keep the existing \"Contact\" button behavior\n\n2. **Create Messages Page** (`/workspace/shadcn-ui/src/pages/Messages.tsx`):\n   - Create a new page component for displaying messages\n   - Use Table component from shadcn-ui\n   - Display three columns:\n     - User (user_name or user_email)\n     - Timestamp (formatted date and time from created_at)\n     - Message Content (full content text)\n   - Fetch all messages from MessagesContext\n   - Sort by most recent first\n   - Add ability to mark messages as read (update read status)\n   - Show read/unread status with visual indicator\n   - Add loading state while fetching messages\n   - Handle empty state when no messages exist\n\n3. **Update App.tsx** (`/workspace/shadcn-ui/src/App.tsx`):\n   - Add new route: `<Route path=\"/messages\" element={<Messages />} />`\n   - Import the Messages component\n\n4. **Update Admin Page** (`/workspace/shadcn-ui/src/pages/Admin.tsx`):\n   - Remove any message-related functionality if it exists\n   - Keep only user statistics and admin-specific features\n\n**Table Design:**\n```typescript\n<Table>\n  <TableHeader>\n    <TableRow>\n      <TableHead>User</TableHead>\n      <TableHead>Timestamp</TableHead>\n      <TableHead>Message</TableHead>\n      <TableHead>Status</TableHead>\n      <TableHead>Actions</TableHead>\n    </TableRow>\n  </TableHeader>\n  <TableBody>\n    {messages.map((message) => (\n      <TableRow key={message.id}>\n        <TableCell>{message.user_name}</TableCell>\n        <TableCell>{formatDate(message.created_at)}</TableCell>\n        <TableCell>{message.content}</TableCell>\n        <TableCell>\n          <Badge>{message.read ? 'Read' : 'Unread'}</Badge>\n        </TableCell>\n        <TableCell>\n          <Button onClick={() => markAsRead(message.id)}>\n            Mark as Read\n          </Button>\n        </TableCell>\n      </TableRow>\n    ))}\n  </TableBody>\n</Table>\n```\n\n**Files to Create/Modify:**\n- Create: `/workspace/shadcn-ui/src/pages/Messages.tsx`\n- Modify: `/workspace/shadcn-ui/src/components/Navbar.tsx`\n- Modify: `/workspace/shadcn-ui/src/App.tsx`\n\n**Navigation Structure for Admin:**\n```\nCenter Navigation (when admin logged in):\n[Home] [Live] [My Bets] [Wallet] [Donation] [Messages] [Admin]\n```\n\n**Testing:**\n1. Log in as admin (fzhangj2ee@gmail.com)\n2. Verify \"Messages\" and \"Admin\" tabs appear in center navigation\n3. Click \"Messages\" tab\n4. Verify table displays with User, Timestamp, Message columns\n5. Verify messages are sorted by most recent first\n6. Test marking messages as read\n7. Click \"Admin\" tab and verify it still works\n8. Log in as regular user and verify \"Contact\" button still works\n\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly.",
+        "task_type": "general",
+        "code": "",
+        "result": "",
+        "is_success": false,
+        "is_finished": true,
+        "assignee": "Alex",
+        "start_at": 1767482404.3782952,
+        "end_at": 1767482508.651696
       }
     }
   },
@@ -2071,7 +2084,15 @@
     "1458": 1,
     "1459": 1,
     "1460": 1,
-    "1461": 1
+    "1461": 1,
+    "1462": 1,
+    "1463": 1,
+    "1464": 1,
+    "1465": 1,
+    "1466": 1,
+    "1467": 1,
+    "1468": 1,
+    "1469": 1
   },
   "preview_servers": {},
   "preview_server": {

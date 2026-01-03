@@ -112,24 +112,37 @@ export default function Navbar() {
               {user && (
                 <>
                   {isAdmin ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigate('/admin')}
-                      className={`${
-                        isActive('/admin')
-                          ? 'text-white bg-gray-800'
-                          : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                      } relative`}
-                    >
-                      <MessageSquare className="h-4 w-4 mr-1" />
-                      Messages
-                      {unreadCount > 0 && (
-                        <Badge variant="destructive" className="ml-1 px-1.5 py-0.5 text-xs">
-                          {unreadCount}
-                        </Badge>
-                      )}
-                    </Button>
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate('/messages')}
+                        className={`${
+                          isActive('/messages')
+                            ? 'text-white bg-gray-800'
+                            : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                        } relative`}
+                      >
+                        Messages
+                        {unreadCount > 0 && (
+                          <Badge variant="destructive" className="ml-1 px-1.5 py-0.5 text-xs">
+                            {unreadCount}
+                          </Badge>
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate('/admin')}
+                        className={`${
+                          isActive('/admin')
+                            ? 'text-white bg-gray-800'
+                            : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                        }`}
+                      >
+                        Admin
+                      </Button>
+                    </>
                   ) : (
                     <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
                       <DialogTrigger asChild>
