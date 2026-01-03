@@ -1,7 +1,7 @@
 import { useBetting } from '@/contexts/BettingContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, Calendar } from 'lucide-react';
 import PlayMoney from '@/components/PlayMoney';
 
 export default function MyBets() {
@@ -9,6 +9,17 @@ export default function MyBets() {
 
   const formatOdds = (odds: number) => {
     return odds > 0 ? `+${odds}` : `${odds}`;
+  };
+
+  const formatDateTime = (date: Date) => {
+    return new Date(date).toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
   };
 
   const getBetTypeLabel = (betType: string) => {
@@ -42,8 +53,13 @@ export default function MyBets() {
     }
   };
 
-  const pendingBets = placedBets.filter(bet => bet.status === 'pending');
-  const settledBets = placedBets.filter(bet => bet.status !== 'pending');
+  // Sort bets by placement time (newest first)
+  const sortedBets = [...placedBets].sort((a, b) => 
+    new Date(b.placedAt).getTime() - new Date(a.placedAt).getTime()
+  );
+
+  const pendingBets = sortedBets.filter(bet => bet.status === 'pending');
+  const settledBets = sortedBets.filter(bet => bet.status !== 'pending');
 
   const totalWagered = placedBets.reduce((sum, bet) => sum + bet.stake, 0);
   const totalWon = placedBets
@@ -110,8 +126,18 @@ export default function MyBets() {
                         </Badge>
                       </div>
                       <p className="text-[#b1bad3] text-sm">
-                        {bet.game.homeTeam} @ {bet.game.awayTeam}
+                        {bet.game.awayTeam} @ {bet.game.homeTeam}
                       </p>
+                      <div className="flex items-center gap-3 mt-2 text-xs text-[#8B949E]">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>Game: {formatDateTime(bet.game.startTime)}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 mt-1 text-xs text-[#8B949E]">
+                        <Clock className="h-3 w-3" />
+                        <span>Placed: {formatDateTime(bet.placedAt)}</span>
+                      </div>
                     </div>
                     <span className="text-white font-bold">
                       {formatOdds(bet.odds)}
@@ -170,11 +196,21 @@ export default function MyBets() {
                         </Badge>
                       </div>
                       <p className="text-[#b1bad3] text-sm">
-                        {bet.game.homeTeam} @ {bet.game.awayTeam}
+                        {bet.game.awayTeam} @ {bet.game.homeTeam}
                       </p>
                       <p className="text-[#b1bad3] text-xs mt-1">
                         {getBetTypeLabel(bet.betType)} • {formatOdds(bet.odds)}
                       </p>
+                      <div className="flex items-center gap-3 mt-2 text-xs text-[#8B949E]">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>Game: {formatDateTime(bet.game.startTime)}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 mt-1 text-xs text-[#8B949E]">
+                        <Clock className="h-3 w-3" />
+                        <span>Placed: {formatDateTime(bet.placedAt)}</span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex justify-between text-sm pt-2 border-t border-[#2a2d2f]">

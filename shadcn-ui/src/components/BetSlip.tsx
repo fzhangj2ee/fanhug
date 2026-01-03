@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useBetting } from '@/contexts/BettingContext';
 import { useAuth } from '@/hooks/useAuth';
-import { X, LogIn, ChevronDown, Info, Settings } from 'lucide-react';
+import { X, LogIn, ChevronDown, Info, Settings, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useState } from 'react';
@@ -18,12 +18,41 @@ export default function BetSlip() {
   const [lastBetDetails, setLastBetDetails] = useState({ totalStake: 0, totalPayout: 0 });
   const [showDetails, setShowDetails] = useState(false);
 
-  const totalStake = betSlip.reduce((sum, item) => sum + item.stake, 0);
+  // Sort bet slip by game start time (soonest games first)
+  const sortedBetSlip = [...betSlip].sort((a, b) => 
+    new Date(a.game.startTime).getTime() - new Date(b.game.startTime).getTime()
+  );
+
+  const totalStake = sortedBetSlip.reduce((sum, item) => sum + item.stake, 0);
   
-  const totalPotentialWin = betSlip.reduce((sum, item) => {
+  const totalPotentialWin = sortedBetSlip.reduce((sum, item) => {
     const odds = item.odds;
     return sum + (item.stake * odds);
   }, 0);
+
+  const formatGameTime = (date: Date) => {
+    const gameDate = new Date(date);
+    const now = new Date();
+    const diffMs = gameDate.getTime() - now.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 0) {
+      return 'Live Now';
+    } else if (diffMins < 60) {
+      return `Starting in ${diffMins} min`;
+    } else if (diffMins < 1440) {
+      const hours = Math.floor(diffMins / 60);
+      return `Starting in ${hours}h`;
+    } else {
+      return gameDate.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      });
+    }
+  };
 
   const handlePlaceBets = () => {
     if (!user) {
@@ -45,7 +74,7 @@ export default function BetSlip() {
     if (success) {
       setLastBetDetails(betDetails);
       setShowBetPlaced(true);
-      setShowDetails(false); // Reset details to collapsed
+      setShowDetails(false);
       toast.success('Bets placed successfully!');
     } else {
       toast.error('Failed to place bets. Check your balance.');
@@ -184,7 +213,11 @@ export default function BetSlip() {
                       {getBetTypeLabel(item.betType)}
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      {item.game.homeTeam} @ {item.game.awayTeam}
+                      {item.game.awayTeam} @ {item.game.homeTeam}
+                    </div>
+                    <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                      <Calendar className="h-3 w-3" />
+                      <span>{formatGameTime(item.game.startTime)}</span>
                     </div>
                     <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-700">
                       <span className="text-xs text-gray-400">Stake:</span>
@@ -241,7 +274,7 @@ export default function BetSlip() {
             <div>
               <h3 className="text-sm font-bold text-white mb-3">SINGLES</h3>
               <div className="space-y-3 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
-                {betSlip.map((item) => (
+                {sortedBetSlip.map((item) => (
                   <div
                     key={item.game.id}
                     className="bg-gray-900/50 rounded-lg p-3 space-y-2"
@@ -260,7 +293,11 @@ export default function BetSlip() {
                           {getBetTypeLabel(item.betType)}
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
-                          {item.game.homeTeam} @ {item.game.awayTeam}
+                          {item.game.awayTeam} @ {item.game.homeTeam}
+                        </div>
+                        <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                          <Calendar className="h-3 w-3" />
+                          <span>{formatGameTime(item.game.startTime)}</span>
                         </div>
                       </div>
                       <Button

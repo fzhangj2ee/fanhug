@@ -24,7 +24,13 @@ export default function Live() {
       const liveGames = allGames.filter(
         game => game.status === 'live' || game.status === 'in_progress'
       );
-      setGames(liveGames);
+      
+      // Sort by start time (most recent/currently playing games first)
+      const sortedGames = liveGames.sort((a, b) => 
+        new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+      );
+      
+      setGames(sortedGames);
     } catch (error) {
       console.error('Error loading live games:', error);
     } finally {

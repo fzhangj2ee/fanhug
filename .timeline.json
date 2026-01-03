@@ -1,5 +1,5 @@
 {
-  "timeline_index": 1354,
+  "timeline_index": 1366,
   "planner": {
     "Team Leader": {
       "1": {
@@ -15,7 +15,7 @@
         "start_at": 1767117517.3770065,
         "end_at": 1767121366.042052
       },
-      "current_task_id": "40",
+      "current_task_id": "41",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [],
@@ -469,7 +469,20 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767388859.442953,
-        "end_at": 1767388937.0295222
+        "end_at": 1767399719.8520005
+      },
+      "41": {
+        "task_id": "41",
+        "dependent_task_ids": [],
+        "instruction": "Update all betting-related displays to show game time information and sort bets in reverse chronological order (latest bets on top).\n\n**Files to modify:**\n\n1. **My Bets Page** (`/workspace/shadcn-ui/src/pages/MyBets.tsx`)\n   - Add game start time display for each bet\n   - Sort bet history in reverse chronological order (newest first)\n   - Format time clearly (e.g., \"Jan 2, 2026 7:00 PM\")\n\n2. **BetSlip Component** (`/workspace/shadcn-ui/src/components/BetSlip.tsx`)\n   - Add game start time to pending bets display\n   - Sort pending bets by game time (latest/soonest games first)\n\n3. **Live Page** (`/workspace/shadcn-ui/src/pages/Live.tsx`)\n   - Ensure game times are displayed for all live games\n   - Sort games by start time (most recent/current games first)\n\n**Requirements:**\n- Show both game start time AND bet placement time where applicable\n- Use consistent time formatting across all pages\n- Sort all bet lists in reverse chronological order (newest/latest on top)\n- Ensure time displays are clear and user-friendly\n- Keep all existing functionality intact",
+        "task_type": "general",
+        "code": "",
+        "result": "",
+        "is_success": false,
+        "is_finished": true,
+        "assignee": "Alex",
+        "start_at": 1767399719.8520079,
+        "end_at": 1767399929.862096
       }
     }
   },
@@ -1828,7 +1841,19 @@
     "1351": 1,
     "1352": 1,
     "1353": 1,
-    "1354": 1
+    "1354": 1,
+    "1355": 1,
+    "1356": 1,
+    "1357": 1,
+    "1358": 1,
+    "1359": 1,
+    "1360": 1,
+    "1361": 1,
+    "1362": 1,
+    "1363": 1,
+    "1364": 1,
+    "1365": 1,
+    "1366": 1
   },
   "preview_servers": {},
   "preview_server": {
