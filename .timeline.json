@@ -1,5 +1,5 @@
 {
-  "timeline_index": 1469,
+  "timeline_index": 1474,
   "planner": {
     "Team Leader": {
       "1": {
@@ -15,7 +15,7 @@
         "start_at": 1767117517.3770065,
         "end_at": 1767121366.042052
       },
-      "current_task_id": "51",
+      "current_task_id": "52",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [],
@@ -618,7 +618,20 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767482404.3782952,
-        "end_at": 1767482508.651696
+        "end_at": 1767484536.9950855
+      },
+      "52": {
+        "task_id": "52",
+        "dependent_task_ids": [],
+        "instruction": "Make the betting slip scrollable when there are many bets.\n\n**Problem:**\nWhen users add multiple bets to the betting slip, the content overflows and there's no way to scroll to see all bets. This makes it impossible to view or manage all bets when the list is long.\n\n**Solution:**\n\nUpdate the BetSlip component (`/workspace/shadcn-ui/src/components/BetSlip.tsx`) to add scrollable functionality:\n\n1. **Add ScrollArea component** from shadcn-ui to wrap the bets list\n2. **Set max-height** for the scrollable area to prevent overflow\n3. **Keep header and footer fixed** (title and place bet button should remain visible)\n4. **Make only the bets list scrollable** (the middle section with individual bet cards)\n\n**Implementation:**\n\nImport ScrollArea:\n```typescript\nimport { ScrollArea } from '@/components/ui/scroll-area';\n```\n\nWrap the bets mapping section with ScrollArea:\n```typescript\n<ScrollArea className=\"h-[calc(100vh-300px)] pr-4\">\n  {bets.map((bet) => (\n    // existing bet card JSX\n  ))}\n</ScrollArea>\n```\n\n**Key Requirements:**\n- ✅ Header section (title, bet count) should be fixed at top\n- ✅ Bets list should be scrollable in the middle\n- ✅ Footer section (total odds, stake input, place bet button) should be fixed at bottom\n- ✅ Smooth scrolling behavior\n- ✅ Scrollbar should be visible when content overflows\n- ✅ Proper padding to prevent content from being cut off\n\n**Layout Structure:**\n```\n┌─────────────────────┐\n│ BET SLIP (0)        │ ← Fixed Header\n├─────────────────────┤\n│ ┌─────────────────┐ │\n│ │ Bet 1           │ │\n│ │ Bet 2           │ │\n│ │ Bet 3           │ │ ← Scrollable Area\n│ │ Bet 4           │ │\n│ │ ...             │ │\n│ └─────────────────┘ │\n├─────────────────────┤\n│ Total Odds: 2.5x    │\n│ Stake: $10          │ ← Fixed Footer\n│ [Place Bet]         │\n└─────────────────────┘\n```\n\n**Testing:**\n1. Add multiple bets (5+) to the betting slip\n2. Verify scrollbar appears when content overflows\n3. Verify header and footer remain fixed while scrolling\n4. Test scrolling with mouse wheel and scrollbar\n5. Verify all bets are accessible via scrolling\n6. Test on different screen sizes\n\n**Files to Modify:**\n- `/workspace/shadcn-ui/src/components/BetSlip.tsx`\n\n**After Implementation:**\nRun `pnpm run lint && pnpm run build`\n\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly.",
+        "task_type": "general",
+        "code": "",
+        "result": "",
+        "is_success": false,
+        "is_finished": true,
+        "assignee": "Alex",
+        "start_at": 1767484536.995092,
+        "end_at": 1767484600.8763494
       }
     }
   },
@@ -2092,7 +2105,12 @@
     "1466": 1,
     "1467": 1,
     "1468": 1,
-    "1469": 1
+    "1469": 1,
+    "1470": 1,
+    "1471": 1,
+    "1472": 1,
+    "1473": 1,
+    "1474": 1
   },
   "preview_servers": {},
   "preview_server": {
