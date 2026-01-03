@@ -1,5 +1,5 @@
 {
-  "timeline_index": 1389,
+  "timeline_index": 1398,
   "planner": {
     "Team Leader": {
       "1": {
@@ -15,7 +15,7 @@
         "start_at": 1767117517.3770065,
         "end_at": 1767121366.042052
       },
-      "current_task_id": "42",
+      "current_task_id": "43",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [],
@@ -495,7 +495,20 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767412509.1996036,
-        "end_at": 1767412592.0757935
+        "end_at": 1767463291.720203
+      },
+      "43": {
+        "task_id": "43",
+        "dependent_task_ids": [],
+        "instruction": "Migrate betting data storage from localStorage to Supabase database.\n\n**Current Situation:**\n- Supabase URL: https://cubuiswiuxshvipteqdd.supabase.co\n- Supabase is configured in `/workspace/shadcn-ui/src/lib/supabase.ts`\n- Currently using localStorage to store betting data in `/workspace/shadcn-ui/src/contexts/BettingContext.tsx`\n\n**Tasks Required:**\n\n1. **Create SQL Schema File** (`/workspace/shadcn-ui/supabase-schema.sql`):\n   - Create `bets` table with columns:\n     - id (uuid, primary key)\n     - user_id (uuid, references auth.users)\n     - game_id (text)\n     - game_data (jsonb) - stores the full Game object\n     - bet_type (text) - 'home', 'away', 'spread-home', 'spread-away', 'over', 'under'\n     - odds (numeric)\n     - stake (numeric)\n     - spread_value (numeric, nullable)\n     - total_value (numeric, nullable)\n     - status (text) - 'pending', 'won', 'lost'\n     - payout (numeric, nullable)\n     - placed_at (timestamptz)\n     - created_at (timestamptz)\n     - updated_at (timestamptz)\n   - Add indexes on user_id, status, placed_at\n   - Enable Row Level Security (RLS)\n   - Add RLS policies:\n     - Users can read their own bets\n     - Users can insert their own bets\n     - Users can update their own bets\n\n2. **Update BettingContext** (`/workspace/shadcn-ui/src/contexts/BettingContext.tsx`):\n   - Import supabase client\n   - Replace localStorage.getItem/setItem with Supabase queries\n   - Create `loadBetsFromSupabase()` function to fetch bets on mount\n   - Create `saveBetToSupabase()` function to save new bets\n   - Create `updateBetInSupabase()` function to update bet status\n   - Update `placeBets()` to save to Supabase\n   - Update `gradePendingBets()` to update Supabase\n   - Add migration logic to move existing localStorage data to Supabase on first load\n\n3. **Create Migration Helper** (optional but recommended):\n   - Add a one-time migration function that:\n     - Checks if localStorage has data\n     - Uploads all localStorage bets to Supabase\n     - Clears localStorage after successful migration\n     - Shows toast notification about migration\n\n**Files to Create/Modify:**\n- Create: `/workspace/shadcn-ui/supabase-schema.sql`\n- Modify: `/workspace/shadcn-ui/src/contexts/BettingContext.tsx`\n\n**Important Notes:**\n- Keep backward compatibility during migration\n- Handle errors gracefully\n- Test with existing localStorage data\n- Ensure RLS policies are correct for security\n- Use transactions where appropriate\n\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly.",
+        "task_type": "general",
+        "code": "",
+        "result": "",
+        "is_success": false,
+        "is_finished": true,
+        "assignee": "Alex",
+        "start_at": 1767463291.7202067,
+        "end_at": 1767463399.00026
       }
     }
   },
@@ -1889,7 +1902,16 @@
     "1386": 1,
     "1387": 1,
     "1388": 1,
-    "1389": 1
+    "1389": 1,
+    "1390": 1,
+    "1391": 1,
+    "1392": 1,
+    "1393": 1,
+    "1394": 1,
+    "1395": 1,
+    "1396": 1,
+    "1397": 1,
+    "1398": 1
   },
   "preview_servers": {},
   "preview_server": {
