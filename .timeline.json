@@ -1,5 +1,5 @@
 {
-  "timeline_index": 1419,
+  "timeline_index": 1426,
   "planner": {
     "Team Leader": {
       "1": {
@@ -15,7 +15,7 @@
         "start_at": 1767117517.3770065,
         "end_at": 1767121366.042052
       },
-      "current_task_id": "44",
+      "current_task_id": "45",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [],
@@ -521,7 +521,22 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767464336.0810263,
-        "end_at": 1767464484.649062
+        "end_at": 1767465426.7350914
+      },
+      "45": {
+        "task_id": "45",
+        "dependent_task_ids": [
+          "44"
+        ],
+        "instruction": "Update the Navbar component to improve the messaging feature for admin users and fix the navigation layout alignment issues.\n\n**Current Setup:**\n- Navbar component: `/workspace/shadcn-ui/src/components/Navbar.tsx`\n- Admin email: 'admin@fanhug.com'\n- MessagesContext available with unreadCount\n\n**Requirements:**\n\n1. **Replace \"Contact Admin\" with \"Messages\" for Admin Users:**\n   - When admin user (admin@fanhug.com) is logged in, replace \"Contact Admin\" button with \"Messages\" button\n   - Show unread count badge on \"Messages\" button for admin\n   - When clicked, \"Messages\" button should navigate to Admin page and show messages section (or open messages dialog)\n   - Regular users should still see \"Contact Admin\" button with the message form dialog\n\n2. **Fix Navigation Menu Alignment:**\n   - The navigation links (Home, Live, My Bets, Wallet, Donation, Contact Admin/Messages) are currently shifted to the right, causing the Donation link to be squeezed out\n   - Make the navigation links evenly spread across the available space\n   - Center-align the entire navigation portion\n   - Ensure all links are visible and properly spaced\n   - Use flexbox with `justify-center` and `space-x-*` utilities or `justify-evenly`/`justify-around`\n   - Adjust responsive behavior for mobile/tablet views\n\n**Implementation Details:**\n\nFor Admin Messages Button:\n```typescript\n// Check if user is admin\nconst isAdmin = user?.email === 'admin@fanhug.com';\n\n// Conditionally render based on user role\n{isAdmin ? (\n  // Messages button with unread badge for admin\n  <Button variant=\"ghost\" size=\"sm\" onClick={() => navigate('/admin')}>\n    <MessageSquare className=\"w-4 h-4 mr-2\" />\n    Messages\n    {unreadCount > 0 && (\n      <Badge variant=\"destructive\" className=\"ml-2\">{unreadCount}</Badge>\n    )}\n  </Button>\n) : (\n  // Contact Admin dialog for regular users\n  <Dialog>\n    <DialogTrigger asChild>\n      <Button variant=\"ghost\" size=\"sm\">\n        <MessageSquare className=\"w-4 h-4 mr-2\" />\n        Contact Admin\n      </Button>\n    </DialogTrigger>\n    <DialogContent>\n      <DialogHeader>\n        <DialogTitle>Send Message to Admin</DialogTitle>\n      </DialogHeader>\n      <MessageForm />\n    </DialogContent>\n  </Dialog>\n)}\n```\n\nFor Navigation Alignment:\n```typescript\n// Update the nav container to center and evenly distribute links\n<nav className=\"flex items-center justify-center space-x-1 md:space-x-2\">\n  {/* Navigation links */}\n</nav>\n```\n\n**Files to Modify:**\n- `/workspace/shadcn-ui/src/components/Navbar.tsx`\n\n**Technical Stack:**\n- Use existing Shadcn-ui components (Button, Badge, Dialog)\n- TypeScript\n- Tailwind CSS\n- React Router for navigation\n- useMessages hook for unreadCount\n\n**Testing:**\n1. Test as regular user - should see \"Contact Admin\" button\n2. Test as admin user - should see \"Messages\" button with unread count\n3. Verify all navigation links are visible and evenly spaced\n4. Test responsive behavior on different screen sizes\n5. Run lint and build to ensure no errors\n\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly.",
+        "task_type": "general",
+        "code": "",
+        "result": "",
+        "is_success": false,
+        "is_finished": true,
+        "assignee": "Alex",
+        "start_at": 1767465426.7350955,
+        "end_at": 1767465505.1990836
       }
     }
   },
@@ -1945,7 +1960,14 @@
     "1416": 1,
     "1417": 1,
     "1418": 1,
-    "1419": 1
+    "1419": 1,
+    "1420": 1,
+    "1421": 1,
+    "1422": 1,
+    "1423": 1,
+    "1424": 1,
+    "1425": 1,
+    "1426": 1
   },
   "preview_servers": {},
   "preview_server": {
