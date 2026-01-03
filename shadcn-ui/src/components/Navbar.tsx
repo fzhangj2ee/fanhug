@@ -1,9 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Heart, LogOut, Radio, Wallet } from 'lucide-react';
+import { Heart, LogOut, Radio, Wallet, MessageSquare } from 'lucide-react';
 import PlayMoney from '@/components/PlayMoney';
 import { useWallet } from '@/contexts/WalletContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { MessageForm } from '@/components/MessageForm';
+import { useState } from 'react';
 
 // Dynamic version number from build environment variable
 const APP_VERSION = import.meta.env.VITE_BUILD_NUMBER ? `v${import.meta.env.VITE_BUILD_NUMBER}` : 'v1';
@@ -12,6 +15,7 @@ export default function Navbar() {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { balance } = useWallet();
+  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -100,6 +104,24 @@ export default function Navbar() {
             </Link>
             {user ? (
               <>
+                <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-gray-400 hover:text-white hover:bg-gray-800"
+                    >
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Contact Admin
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-gray-900 border-gray-700">
+                    <DialogHeader>
+                      <DialogTitle className="text-white">Send Message to Admin</DialogTitle>
+                    </DialogHeader>
+                    <MessageForm onSuccess={() => setMessageDialogOpen(false)} />
+                  </DialogContent>
+                </Dialog>
                 <div className="flex items-center gap-3">
                   <span className="text-gray-300 text-sm font-medium">
                     {user.email?.split('@')[0] || 'User'}

@@ -61,3 +61,62 @@ CREATE TRIGGER update_bets_updated_at
 -- Grant permissions
 GRANT ALL ON public.bets TO authenticated;
 GRANT USAGE ON SCHEMA public TO authenticated;
+
+-- ============================================
+-- Messages Table
+-- ============================================
+
+-- Create messages table
+CREATE TABLE IF NOT EXISTS public.messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_email TEXT NOT NULL,
+    user_name TEXT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    read BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_messages_user_id ON public.messages(user_id);
+CREATE INDEX IF NOT EXISTS idx_messages_created_at ON public.messages(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_messages_read ON public.messages(read);
+
+-- Enable Row Level Security
+ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies
+-- Allow users to insert their own messages
+CREATE POLICY "Users can insert own messages" ON public.messages
+    FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+-- Allow users to read their own messages
+CREATE POLICY "Users can read own messages" ON public.messages
+    FOR SELECT
+    USING (auth.uid() = user_id);
+
+-- Allow admin to read all messages
+CREATE POLICY "Admin can read all messages" ON public.messages
+    FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM auth.users
+            WHERE auth.users.id = auth.uid()
+            AND auth.users.email = 'fzhangj2ee@gmail.com'
+        )
+    );
+
+-- Allow admin to update read status
+CREATE POLICY "Admin can update messages" ON public.messages
+    FOR UPDATE
+    USING (
+        EXISTS (
+            SELECT 1 FROM auth.users
+            WHERE auth.users.id = auth.uid()
+            AND auth.users.email = 'fzhangj2ee@gmail.com'
+        )
+    );
+
+-- Grant permissions
+GRANT ALL ON public.messages TO authenticated;
