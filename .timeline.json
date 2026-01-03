@@ -1,5 +1,5 @@
 {
-  "timeline_index": 1432,
+  "timeline_index": 1440,
   "planner": {
     "Team Leader": {
       "1": {
@@ -15,7 +15,7 @@
         "start_at": 1767117517.3770065,
         "end_at": 1767121366.042052
       },
-      "current_task_id": "46",
+      "current_task_id": "47",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [],
@@ -551,7 +551,22 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767465758.7355924,
-        "end_at": 1767465868.0331008
+        "end_at": 1767466232.3692057
+      },
+      "47": {
+        "task_id": "47",
+        "dependent_task_ids": [
+          "46"
+        ],
+        "instruction": "Enhance the Contact Admin dialog to display user's message history above the text area, allowing users to view their previously sent messages.\n\n**Current Setup:**\n- MessageForm component: `/workspace/shadcn-ui/src/components/MessageForm.tsx`\n- MessagesContext: `/workspace/shadcn-ui/src/contexts/MessagesContext.tsx`\n- Navbar with Contact Admin dialog: `/workspace/shadcn-ui/src/components/Navbar.tsx`\n- Supabase messages table exists with user_id, user_email, user_name, content, created_at, read fields\n\n**Requirements:**\n\n1. **Update MessagesContext** (`/workspace/shadcn-ui/src/contexts/MessagesContext.tsx`):\n   - Add function `getUserMessages(userId: string)` to fetch messages for a specific user\n   - Filter messages by user_id to get only the current user's sent messages\n   - Sort by created_at descending (most recent first)\n\n2. **Create Message History Component** (`/workspace/shadcn-ui/src/components/MessageHistory.tsx`):\n   - Display user's previously sent messages in a table format\n   - Columns: Date/Time, Message Preview (first 30 chars), Status (Read/Unread)\n   - Make each row clickable to expand and show full message\n   - Use Dialog or expandable row to show full message content\n   - Show \"No messages yet\" if user hasn't sent any messages\n   - Use shadcn-ui Table component\n\n3. **Update Contact Admin Dialog** (in `/workspace/shadcn-ui/src/components/Navbar.tsx`):\n   - Increase dialog size to accommodate message history table\n   - Add MessageHistory component above MessageForm\n   - Layout structure:\n     ```\n     Dialog Header: \"Contact Admin\"\n     \n     Section 1: \"Your Previous Messages\" (MessageHistory component)\n     - Table with message history\n     - Clickable rows to view full message\n     \n     Section 2: \"Send New Message\" (MessageForm component)\n     - Textarea for new message\n     - Submit button\n     ```\n   - Add divider between message history and new message form\n\n4. **Update MessageHistory to Show Full Message**:\n   - When user clicks on a message row, open a nested dialog or expand inline\n   - Display full message content with timestamp\n   - Show read/unread status\n   - Add \"Close\" button to return to message list\n\n**UI Layout Example:**\n```typescript\n<DialogContent className=\"max-w-3xl max-h-[80vh]\">\n  <DialogHeader>\n    <DialogTitle>Contact Admin</DialogTitle>\n  </DialogHeader>\n  \n  <div className=\"space-y-6 overflow-y-auto\">\n    {/* Message History Section */}\n    <div>\n      <h3 className=\"text-lg font-semibold mb-3\">Your Previous Messages</h3>\n      <MessageHistory userId={user.id} />\n    </div>\n    \n    <Separator />\n    \n    {/* New Message Section */}\n    <div>\n      <h3 className=\"text-lg font-semibold mb-3\">Send New Message</h3>\n      <MessageForm />\n    </div>\n  </div>\n</DialogContent>\n```\n\n**Files to Create/Modify:**\n- Create: `/workspace/shadcn-ui/src/components/MessageHistory.tsx`\n- Modify: `/workspace/shadcn-ui/src/contexts/MessagesContext.tsx` (add getUserMessages function)\n- Modify: `/workspace/shadcn-ui/src/components/Navbar.tsx` (update Contact Admin dialog)\n\n**Technical Details:**\n- Use Shadcn-ui components: Table, Dialog, Badge, Separator, ScrollArea\n- TypeScript\n- Tailwind CSS\n- Format dates using `toLocaleDateString()` and `toLocaleTimeString()`\n- Handle loading states while fetching messages\n- Show empty state if no messages\n\n**RLS Policy Check:**\nEnsure Supabase RLS policy allows users to read their own messages:\n```sql\n-- Users can read their own messages\nCREATE POLICY \"Users can read own messages\" ON messages\n  FOR SELECT USING (auth.uid() = user_id);\n```\n\n**Testing:**\n1. Login as regular user\n2. Click \"Contact Admin\" button\n3. Verify message history table appears (empty if no previous messages)\n4. Send a test message\n5. Close and reopen dialog - verify message appears in history\n6. Click on message row to view full content\n7. Send another message and verify it appears at the top\n8. Test with multiple messages\n9. Run lint and build\n\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly.",
+        "task_type": "general",
+        "code": "",
+        "result": "",
+        "is_success": false,
+        "is_finished": true,
+        "assignee": "Alex",
+        "start_at": 1767466232.3692095,
+        "end_at": 1767466322.3405273
       }
     }
   },
@@ -1988,7 +2003,15 @@
     "1429": 1,
     "1430": 1,
     "1431": 1,
-    "1432": 1
+    "1432": 1,
+    "1433": 1,
+    "1434": 1,
+    "1435": 1,
+    "1436": 1,
+    "1437": 1,
+    "1438": 1,
+    "1439": 1,
+    "1440": 1
   },
   "preview_servers": {},
   "preview_server": {

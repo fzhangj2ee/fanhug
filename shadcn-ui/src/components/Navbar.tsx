@@ -7,7 +7,10 @@ import { useWallet } from '@/contexts/WalletContext';
 import { useMessages } from '@/contexts/MessagesContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageForm } from '@/components/MessageForm';
+import MessageHistory from '@/components/MessageHistory';
 import { useState } from 'react';
 
 // Dynamic version number from build environment variable
@@ -139,11 +142,28 @@ export default function Navbar() {
                           Contact
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="bg-gray-900 border-gray-700">
+                      <DialogContent className="bg-gray-900 border-gray-700 max-w-3xl max-h-[80vh]">
                         <DialogHeader>
-                          <DialogTitle className="text-white">Send Message to Admin</DialogTitle>
+                          <DialogTitle className="text-white">Contact Admin</DialogTitle>
                         </DialogHeader>
-                        <MessageForm onSuccess={() => setMessageDialogOpen(false)} />
+                        
+                        <ScrollArea className="h-[60vh] pr-4">
+                          <div className="space-y-6">
+                            {/* Message History Section */}
+                            <div>
+                              <h3 className="text-lg font-semibold mb-3 text-white">Your Previous Messages</h3>
+                              <MessageHistory />
+                            </div>
+                            
+                            <Separator className="bg-gray-700" />
+                            
+                            {/* New Message Section */}
+                            <div>
+                              <h3 className="text-lg font-semibold mb-3 text-white">Send New Message</h3>
+                              <MessageForm onSuccess={() => setMessageDialogOpen(false)} />
+                            </div>
+                          </div>
+                        </ScrollArea>
                       </DialogContent>
                     </Dialog>
                   )}

@@ -19,6 +19,7 @@ interface MessagesContextType {
   sendMessage: (content: string) => Promise<boolean>;
   markAsRead: (messageId: string) => Promise<void>;
   refreshMessages: () => Promise<void>;
+  getUserMessages: (userId: string) => Promise<Message[]>;
   isLoading: boolean;
 }
 
@@ -29,7 +30,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const isAdmin = user?.email === 'admin@fanhug.com';
+  const isAdmin = user?.email === 'fzhangj2ee@gmail.com';
 
   // Load messages
   const refreshMessages = async () => {
@@ -49,6 +50,24 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
       console.error('Error loading messages:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Get messages for a specific user
+  const getUserMessages = async (userId: string): Promise<Message[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching user messages:', error);
+      return [];
     }
   };
 
@@ -144,6 +163,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
     sendMessage,
     markAsRead,
     refreshMessages,
+    getUserMessages,
     isLoading,
   };
 
