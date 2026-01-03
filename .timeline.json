@@ -1,5 +1,5 @@
 {
-  "timeline_index": 1426,
+  "timeline_index": 1432,
   "planner": {
     "Team Leader": {
       "1": {
@@ -15,7 +15,7 @@
         "start_at": 1767117517.3770065,
         "end_at": 1767121366.042052
       },
-      "current_task_id": "45",
+      "current_task_id": "46",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [],
@@ -536,7 +536,22 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767465426.7350955,
-        "end_at": 1767465505.1990836
+        "end_at": 1767465758.7355883
+      },
+      "46": {
+        "task_id": "46",
+        "dependent_task_ids": [
+          "45"
+        ],
+        "instruction": "Fix the double header issue appearing on the Admin page where the Navbar component is being rendered twice.\n\n**Problem:** \nLooking at the screenshots at `/workspace/uploads/image (7).png` and `/workspace/uploads/clipboard (7).png`, the Navbar is appearing twice on the Admin page - once at the top and once below it.\n\n**Root Cause Analysis:**\nThis is likely caused by one of these issues:\n1. The Navbar is being rendered both in the main App.tsx layout AND inside the Admin.tsx component\n2. There's a duplicate Navbar import/render in the Admin page\n3. The layout wrapper is rendering Navbar twice\n\n**Files to Check and Fix:**\n1. `/workspace/shadcn-ui/src/App.tsx` - Check if Navbar is in the main layout\n2. `/workspace/shadcn-ui/src/pages/Admin.tsx` - Check if Navbar is being rendered here\n3. Any layout wrapper components\n\n**Solution:**\n- Ensure Navbar is only rendered ONCE in the application, typically in App.tsx as part of the main layout\n- Remove any duplicate Navbar renders from individual pages like Admin.tsx\n- The Navbar should be outside the Routes component so it appears on all pages\n\n**Expected Structure in App.tsx:**\n```typescript\n<AuthProvider>\n  <WalletProvider>\n    <BettingProvider>\n      <MessagesProvider>\n        <div className=\"min-h-screen bg-background\">\n          <Navbar />  {/* Only here, once */}\n          <main>\n            <Routes>\n              <Route path=\"/\" element={<Home />} />\n              <Route path=\"/admin\" element={<Admin />} />\n              {/* other routes */}\n            </Routes>\n          </main>\n        </div>\n      </MessagesProvider>\n    </BettingProvider>\n  </WalletProvider>\n</AuthProvider>\n```\n\n**Admin.tsx should NOT have:**\n```typescript\n// Remove this if it exists:\n<Navbar />\n```\n\n**Testing:**\n1. Navigate to Admin page and verify only ONE header appears\n2. Check other pages (Home, Live, My Bets, Wallet, Donation) to ensure header still appears\n3. Verify navigation works correctly\n4. Run lint and build\n\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly.",
+        "task_type": "general",
+        "code": "",
+        "result": "",
+        "is_success": false,
+        "is_finished": true,
+        "assignee": "Alex",
+        "start_at": 1767465758.7355924,
+        "end_at": 1767465868.0331008
       }
     }
   },
@@ -1967,7 +1982,13 @@
     "1423": 1,
     "1424": 1,
     "1425": 1,
-    "1426": 1
+    "1426": 1,
+    "1427": 1,
+    "1428": 1,
+    "1429": 1,
+    "1430": 1,
+    "1431": 1,
+    "1432": 1
   },
   "preview_servers": {},
   "preview_server": {

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useBetting } from '@/contexts/BettingContext';
 import { useMessages } from '@/contexts/MessagesContext';
-import Navbar from '@/components/Navbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -106,8 +105,6 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-[#0d0f10]">
-      <Navbar />
-      
       <div className="container mx-auto px-4 py-6">
         {!selectedUser ? (
           <Tabs defaultValue="users" className="w-full">
