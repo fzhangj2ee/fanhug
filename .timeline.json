@@ -1,5 +1,5 @@
 {
-  "timeline_index": 1370,
+  "timeline_index": 1388,
   "planner": {
     "Team Leader": {
       "1": {
@@ -15,7 +15,7 @@
         "start_at": 1767117517.3770065,
         "end_at": 1767121366.042052
       },
-      "current_task_id": "41",
+      "current_task_id": "42",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [],
@@ -482,7 +482,20 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767399719.8520079,
-        "end_at": 1767399929.862096
+        "end_at": 1767412509.1996007
+      },
+      "42": {
+        "task_id": "42",
+        "dependent_task_ids": [],
+        "instruction": "Implement automatic bet grading functionality that periodically checks completed games from the Odds API and settles pending bets.\n\n**Problem:** The application fetches completed game scores from the Odds API (`fetchAllCompletedGames` function exists in `/workspace/shadcn-ui/src/lib/sportsApi.ts`), but there's no logic to automatically grade/settle pending bets when games are completed.\n\n**Solution Required:**\n\n1. **Add grading logic to BettingContext** (`/workspace/shadcn-ui/src/contexts/BettingContext.tsx`):\n   - Create a `gradePendingBets` function that:\n     - Fetches all completed games using `fetchAllCompletedGames()` from sportsApi\n     - Loops through all pending bets\n     - For each pending bet, checks if the game is completed\n     - Determines if the bet won or lost based on final scores\n     - Updates bet status to 'won' or 'lost'\n     - Updates wallet balance for winning bets using `settleBet` from WalletContext\n   \n2. **Implement automatic grading interval**:\n   - Use `useEffect` to set up an interval that calls `gradePendingBets` every 60 seconds\n   - This ensures bets are graded shortly after games complete\n   \n3. **Grading logic for different bet types**:\n   - **Moneyline (home/away)**: Check if the selected team has higher score\n   - **Spread**: Check if the selected team covered the spread (score + spread > opponent score)\n   - **Over/Under**: Check if total score is over or under the line\n   \n4. **Update localStorage**: Save updated bets to localStorage after grading\n\n**Files to modify:**\n- `/workspace/shadcn-ui/src/contexts/BettingContext.tsx` - Add grading logic and auto-grading interval\n- Import `fetchAllCompletedGames` from `/workspace/shadcn-ui/src/lib/sportsApi.ts`\n- Use `settleBet` from WalletContext to update balance for winning bets\n\n**Important:** The grading should run automatically in the background and update bet statuses without user interaction.",
+        "task_type": "general",
+        "code": "",
+        "result": "",
+        "is_success": false,
+        "is_finished": true,
+        "assignee": "Alex",
+        "start_at": 1767412509.1996036,
+        "end_at": 1767412592.0757935
       }
     }
   },
@@ -1857,7 +1870,25 @@
     "1367": 1,
     "1368": 1,
     "1369": 1,
-    "1370": 1
+    "1370": 1,
+    "1371": 1,
+    "1372": 1,
+    "1373": 1,
+    "1374": 1,
+    "1375": 1,
+    "1376": 1,
+    "1377": 1,
+    "1378": 1,
+    "1379": 1,
+    "1380": 1,
+    "1381": 1,
+    "1382": 1,
+    "1383": 1,
+    "1384": 1,
+    "1385": 1,
+    "1386": 1,
+    "1387": 1,
+    "1388": 1
   },
   "preview_servers": {},
   "preview_server": {

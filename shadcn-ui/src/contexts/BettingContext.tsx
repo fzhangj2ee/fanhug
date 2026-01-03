@@ -1,6 +1,8 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { Game } from '@/types/betting';
 import { useAuth } from '@/hooks/useAuth';
+import { useWallet } from '@/contexts/WalletContext';
+import { fetchAllCompletedGames } from '@/lib/sportsApi';
 import { toast } from 'sonner';
 
 interface BetSlipItem {
@@ -31,12 +33,14 @@ interface BettingContextType {
   placeBets: () => boolean;
   clearBetSlip: () => void;
   getAllUserBets: (userId: string) => PlacedBet[];
+  gradePendingBets: () => Promise<void>;
 }
 
 const BettingContext = createContext<BettingContextType | undefined>(undefined);
 
 export function BettingProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const { addFunds } = useWallet();
   const [betSlip, setBetSlip] = useState<BetSlipItem[]>([]);
   const [allPlacedBets, setAllPlacedBets] = useState<PlacedBet[]>([]);
   const [recentlyPlacedBets, setRecentlyPlacedBets] = useState<BetSlipItem[]>([]);
@@ -64,6 +68,83 @@ export function BettingProvider({ children }: { children: ReactNode }) {
 
   // Get current user's bets
   const placedBets = user ? allPlacedBets.filter(bet => bet.userId === user.id) : [];
+
+  // Grade pending bets by checking completed games
+  const gradePendingBets = useCallback(async () => {
+    try {
+      // Fetch all completed games from Odds API
+      const completedGames = await fetchAllCompletedGames();
+      
+      // Get all pending bets
+      const pendingBets = allPlacedBets.filter(bet => bet.status === 'pending');
+      
+      if (pendingBets.length === 0) return;
+      
+      let hasUpdates = false;
+      const updatedBets = allPlacedBets.map(bet => {
+        if (bet.status !== 'pending') return bet;
+        
+        // Check if this bet's game is completed
+        const completedGame = completedGames.get(bet.game.id);
+        if (!completedGame || completedGame.homeScore === undefined || completedGame.awayScore === undefined) {
+          return bet;
+        }
+        
+        // Determine if bet won based on bet type
+        let won = false;
+        
+        if (bet.betType === 'home') {
+          won = completedGame.homeScore > completedGame.awayScore;
+        } else if (bet.betType === 'away') {
+          won = completedGame.awayScore > completedGame.homeScore;
+        } else if (bet.betType === 'spread-home' && bet.spreadValue !== undefined) {
+          won = (completedGame.homeScore + bet.spreadValue) > completedGame.awayScore;
+        } else if (bet.betType === 'spread-away' && bet.spreadValue !== undefined) {
+          won = (completedGame.awayScore + bet.spreadValue) > completedGame.homeScore;
+        } else if (bet.betType === 'over' && bet.totalValue !== undefined) {
+          won = (completedGame.homeScore + completedGame.awayScore) > bet.totalValue;
+        } else if (bet.betType === 'under' && bet.totalValue !== undefined) {
+          won = (completedGame.homeScore + completedGame.awayScore) < bet.totalValue;
+        }
+        
+        // Calculate payout for winning bets
+        const payout = won ? bet.stake * bet.odds : 0;
+        
+        // Update wallet for winning bets
+        if (won) {
+          addFunds(payout);
+          toast.success(`Bet won! +${payout.toFixed(2)} added to your balance`);
+        }
+        
+        hasUpdates = true;
+        
+        return {
+          ...bet,
+          status: won ? 'won' : 'lost',
+          payout: won ? payout : undefined,
+        } as PlacedBet;
+      });
+      
+      if (hasUpdates) {
+        setAllPlacedBets(updatedBets);
+      }
+    } catch (error) {
+      console.error('Error grading bets:', error);
+    }
+  }, [allPlacedBets, addFunds]);
+
+  // Set up automatic grading every 60 seconds
+  useEffect(() => {
+    // Grade bets immediately on mount
+    gradePendingBets();
+    
+    // Set up interval to grade bets every 60 seconds
+    const intervalId = setInterval(() => {
+      gradePendingBets();
+    }, 60000); // 60 seconds
+    
+    return () => clearInterval(intervalId);
+  }, [gradePendingBets]);
 
   const addToBetSlip = (game: Game, betType: BetSlipItem['betType'], odds: number, value?: number) => {
     if (!user) {
@@ -164,6 +245,7 @@ export function BettingProvider({ children }: { children: ReactNode }) {
     placeBets,
     clearBetSlip,
     getAllUserBets,
+    gradePendingBets,
   };
 
   return <BettingContext.Provider value={value}>{children}</BettingContext.Provider>;
