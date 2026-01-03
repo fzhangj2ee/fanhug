@@ -1,8 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -11,25 +9,18 @@ export default function AuthCallback() {
     const handleCallback = async () => {
       try {
         // Get the session from the URL hash
-        const { data, error } = await supabase.auth.getSession();
+        const { error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('Auth callback error:', error);
-          toast.error('Authentication failed. Please try again.');
           navigate('/login');
           return;
         }
 
-        if (data.session) {
-          toast.success('Successfully signed in with Google!');
-          navigate('/', { replace: true });
-        } else {
-          toast.error('No session found. Please try again.');
-          navigate('/login');
-        }
-      } catch (err) {
-        console.error('Unexpected error in auth callback:', err);
-        toast.error('An unexpected error occurred. Please try again.');
+        // Successfully authenticated, redirect to home
+        navigate('/');
+      } catch (error) {
+        console.error('Error handling auth callback:', error);
         navigate('/login');
       }
     };
@@ -38,11 +29,10 @@ export default function AuthCallback() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-[#0d0f10] flex items-center justify-center">
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center">
       <div className="text-center">
-        <Loader2 className="h-12 w-12 animate-spin text-[#53d337] mx-auto mb-4" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
         <p className="text-white text-lg">Completing sign in...</p>
-        <p className="text-[#b1bad3] text-sm mt-2">Please wait while we authenticate you</p>
       </div>
     </div>
   );

@@ -14,6 +14,7 @@ import MyBets from './pages/MyBets';
 import Wallet from './pages/Wallet';
 import Admin from './pages/Admin';
 import Donation from './pages/Donation';
+import AuthCallback from './pages/AuthCallback';
 import NotFound from './pages/NotFound';
 import Navbar from './components/Navbar';
 import BetSlip from './components/BetSlip';
@@ -43,6 +44,7 @@ const App = () => (
                             <Route path="/wallet" element={<Wallet />} />
                             <Route path="/admin" element={<Admin />} />
                             <Route path="/donation" element={<Donation />} />
+                            <Route path="/auth/callback" element={<AuthCallback />} />
                             <Route path="*" element={<NotFound />} />
                           </Routes>
                         </div>

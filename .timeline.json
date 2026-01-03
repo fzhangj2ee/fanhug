@@ -1,5 +1,5 @@
 {
-  "timeline_index": 1453,
+  "timeline_index": 1461,
   "planner": {
     "Team Leader": {
       "1": {
@@ -15,7 +15,7 @@
         "start_at": 1767117517.3770065,
         "end_at": 1767121366.042052
       },
-      "current_task_id": "49",
+      "current_task_id": "50",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [],
@@ -592,7 +592,20 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767476928.147372,
-        "end_at": 1767477001.4652588
+        "end_at": 1767482106.116656
+      },
+      "50": {
+        "task_id": "50",
+        "dependent_task_ids": [],
+        "instruction": "Fix the Google OAuth login redirect issue causing 404 error on /auth/callback.\n\n**Problem:**\nAfter Google login, users are redirected to `/auth/callback` which shows a 404 \"Page Not Found\" error. The OAuth flow was working in previous builds but is now broken.\n\n**Root Cause:**\nThe `/auth/callback` route is missing from the React Router configuration in App.tsx, causing the OAuth callback to fail.\n\n**Solution:**\n\n1. **Check App.tsx** (`/workspace/shadcn-ui/src/App.tsx`):\n   - Verify if `/auth/callback` route exists\n   - If missing, add the route to handle OAuth callback\n\n2. **Create AuthCallback Component** (`/workspace/shadcn-ui/src/pages/AuthCallback.tsx`):\n   - Handle the OAuth callback from Supabase\n   - Extract tokens from URL\n   - Redirect user to home page after successful authentication\n   - Handle errors gracefully\n\n3. **Update App.tsx Routes**:\n   Add the callback route:\n   ```typescript\n   <Route path=\"/auth/callback\" element={<AuthCallback />} />\n   ```\n\n4. **Verify Supabase Configuration**:\n   - Check that the redirect URL is correctly configured in Supabase\n   - Ensure it matches: `https://fanhug.mgx.world/auth/callback`\n\n**Files to Create/Modify:**\n- Create: `/workspace/shadcn-ui/src/pages/AuthCallback.tsx`\n- Modify: `/workspace/shadcn-ui/src/App.tsx`\n\n**AuthCallback Component Implementation:**\n```typescript\nimport { useEffect } from 'react';\nimport { useNavigate } from 'react-router-dom';\nimport { supabase } from '@/lib/supabase';\n\nexport default function AuthCallback() {\n  const navigate = useNavigate();\n\n  useEffect(() => {\n    // Handle the OAuth callback\n    const handleCallback = async () => {\n      try {\n        const { error } = await supabase.auth.getSession();\n        \n        if (error) {\n          console.error('Auth callback error:', error);\n          navigate('/login');\n          return;\n        }\n\n        // Redirect to home page after successful authentication\n        navigate('/');\n      } catch (error) {\n        console.error('Error handling auth callback:', error);\n        navigate('/login');\n      }\n    };\n\n    handleCallback();\n  }, [navigate]);\n\n  return (\n    <div className=\"min-h-screen bg-gray-950 flex items-center justify-center\">\n      <div className=\"text-center\">\n        <div className=\"animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4\"></div>\n        <p className=\"text-white\">Completing sign in...</p>\n      </div>\n    </div>\n  );\n}\n```\n\n**Testing:**\n1. Clear browser cache and cookies\n2. Go to login page\n3. Click \"Sign in with Google\"\n4. Complete Google authentication\n5. Verify redirect to home page (not 404)\n6. Check that user is logged in with correct email\n7. Verify admin features work for fzhangj2ee@gmail.com\n\n**After Implementation:**\nRun `pnpm run lint && pnpm run build`\n\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly.",
+        "task_type": "general",
+        "code": "",
+        "result": "",
+        "is_success": false,
+        "is_finished": true,
+        "assignee": "Alex",
+        "start_at": 1767482106.1166596,
+        "end_at": 1767482166.8557565
       }
     }
   },
@@ -2050,7 +2063,15 @@
     "1450": 1,
     "1451": 1,
     "1452": 1,
-    "1453": 1
+    "1453": 1,
+    "1454": 1,
+    "1455": 1,
+    "1456": 1,
+    "1457": 1,
+    "1458": 1,
+    "1459": 1,
+    "1460": 1,
+    "1461": 1
   },
   "preview_servers": {},
   "preview_server": {
