@@ -20,24 +20,29 @@ export default function MessageHistory() {
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      loadMessages();
-    }
-  }, [user]);
-
   const loadMessages = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    
+    console.log('Loading messages for user:', user.id);
     setLoading(true);
-    const data = await getUserMessages(user.id);
-    setMessages(data);
-    setLoading(false);
+    
+    try {
+      const data = await getUserMessages(user.id);
+      console.log('Fetched messages:', data);
+      setMessages(data);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Refresh messages when dialog opens
   useEffect(() => {
     loadMessages();
-  }, []);
+  }, [user]);
 
   if (loading) {
     return <p className="text-gray-400 text-center py-4">Loading messages...</p>;
@@ -54,7 +59,7 @@ export default function MessageHistory() {
           <TableHeader>
             <TableRow className="bg-gray-800 hover:bg-gray-800">
               <TableHead className="w-12 text-gray-300"></TableHead>
-              <TableHead className="text-gray-300">Date</TableHead>
+              <TableHead className="text-gray-300">Date & Time</TableHead>
               <TableHead className="text-gray-300">Message Preview</TableHead>
               <TableHead className="text-gray-300">Status</TableHead>
             </TableRow>
@@ -74,14 +79,25 @@ export default function MessageHistory() {
                   )}
                 </TableCell>
                 <TableCell className="text-gray-300">
-                  {new Date(message.created_at).toLocaleDateString()}{' '}
-                  {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(message.created_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                  })}{' '}
+                  {new Date(message.created_at).toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
                 </TableCell>
                 <TableCell className="max-w-xs truncate text-gray-300">
-                  {message.content.substring(0, 50)}...
+                  {message.content.substring(0, 50)}
+                  {message.content.length > 50 ? '...' : ''}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={message.read ? 'secondary' : 'default'} className={message.read ? 'bg-gray-600' : 'bg-blue-600'}>
+                  <Badge 
+                    variant={message.read ? 'secondary' : 'default'} 
+                    className={message.read ? 'bg-gray-600' : 'bg-blue-600'}
+                  >
                     {message.read ? 'Read' : 'Unread'}
                   </Badge>
                 </TableCell>
@@ -100,12 +116,21 @@ export default function MessageHistory() {
             <div>
               <div className="text-sm text-gray-400">Sent:</div>
               <div className="text-white">
-                {selectedMessage && new Date(selectedMessage.created_at).toLocaleString()}
+                {selectedMessage && new Date(selectedMessage.created_at).toLocaleString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
               </div>
             </div>
             <div>
               <div className="text-sm text-gray-400">Status:</div>
-              <Badge variant={selectedMessage?.read ? 'secondary' : 'default'} className={selectedMessage?.read ? 'bg-gray-600' : 'bg-blue-600'}>
+              <Badge 
+                variant={selectedMessage?.read ? 'secondary' : 'default'} 
+                className={selectedMessage?.read ? 'bg-gray-600' : 'bg-blue-600'}
+              >
                 {selectedMessage?.read ? 'Read by Admin' : 'Unread'}
               </Badge>
             </div>
