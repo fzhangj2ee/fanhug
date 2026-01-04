@@ -17,6 +17,7 @@ export default function BetSlip() {
   const [showBetPlaced, setShowBetPlaced] = useState(false);
   const [lastBetDetails, setLastBetDetails] = useState({ totalStake: 0, totalPayout: 0 });
   const [showDetails, setShowDetails] = useState(false);
+  const [isPlacingBets, setIsPlacingBets] = useState(false);
 
   // Add safety check for betSlip
   const safeBetSlip = betSlip || [];
@@ -59,7 +60,7 @@ export default function BetSlip() {
     }
   };
 
-  const handlePlaceBets = () => {
+  const handlePlaceBets = async () => {
     if (!user) {
       toast.error('Please login to place bets', {
         action: {
@@ -75,14 +76,23 @@ export default function BetSlip() {
       totalPayout: totalPotentialWin,
     };
 
-    const success = placeBets();
-    if (success) {
-      setLastBetDetails(betDetails);
-      setShowBetPlaced(true);
-      setShowDetails(false);
-      toast.success('Bets placed successfully!');
-    } else {
-      toast.error('Failed to place bets. Check your balance.');
+    setIsPlacingBets(true);
+    try {
+      const success = await placeBets();
+      if (success) {
+        setLastBetDetails(betDetails);
+        setShowBetPlaced(true);
+        setShowDetails(false);
+        toast.success('Bets placed successfully!');
+        console.log('Bets placed, showing confirmation dialog');
+      } else {
+        toast.error('Failed to place bets. Check your balance.');
+      }
+    } catch (error) {
+      console.error('Error placing bets:', error);
+      toast.error('Failed to place bets. Please try again.');
+    } finally {
+      setIsPlacingBets(false);
     }
   };
 
@@ -91,6 +101,7 @@ export default function BetSlip() {
   };
 
   const handleViewMyBets = () => {
+    console.log('Navigating to My Bets page');
     setShowBetPlaced(false);
     navigate('/my-bets');
   };
@@ -369,10 +380,10 @@ export default function BetSlip() {
             {user ? (
               <Button
                 onClick={handlePlaceBets}
-                disabled={totalStake === 0}
+                disabled={totalStake === 0 || isPlacingBets}
                 className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-6 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Place Bet
+                {isPlacingBets ? 'Placing Bets...' : 'Place Bet'}
               </Button>
             ) : (
               <Button

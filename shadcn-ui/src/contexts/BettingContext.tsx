@@ -79,6 +79,7 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       }));
       
       setAllPlacedBets(bets);
+      console.log('Loaded bets from Supabase:', bets.length);
     } catch (error) {
       console.error('Error loading bets:', error);
     } finally {
@@ -359,13 +360,17 @@ export function BettingProvider({ children }: { children: ReactNode }) {
         await saveBetToSupabase(bet);
       }
       
-      setAllPlacedBets([...allPlacedBets, ...newPlacedBets]);
+      // Update local state immediately
+      const updatedBets = [...allPlacedBets, ...newPlacedBets];
+      setAllPlacedBets(updatedBets);
       
       // Save current bet slip as recently placed bets
       setRecentlyPlacedBets([...betSlip]);
       
       // Clear bet slip for new bets
       setBetSlip([]);
+      
+      console.log('Bets placed successfully. Total bets now:', updatedBets.length);
       
       return true;
     } catch (error) {

@@ -1,21 +1,21 @@
 {
-  "timeline_index": 1610,
+  "timeline_index": 1636,
   "planner": {
     "Team Leader": {
       "1": {
         "task_id": "1",
         "dependent_task_ids": [],
-        "instruction": "Research and compile a comprehensive list of soccer team names and their corresponding ESPN CDN team IDs for major leagues including English Premier League, La Liga, Serie A, Bundesliga, Ligue 1, and MLS. The data should be formatted as a mapping of team names to ESPN team IDs, similar to the existing NFL/NBA/MLB/NHL mappings in /workspace/shadcn-ui/src/components/TeamLogo.tsx. Save the research results to /workspace/shadcn-ui/docs/soccer_team_ids.md.",
+        "instruction": "Fix the BetSlip issue where placed bets disappear instead of showing in \"My Bets\". The user reports that after placing a bet, it disappears from the bet slip (which is correct), but it doesn't show up when clicking \"View My Bets\" or in the \"My Bets\" header navigation. This was working before the scroll functionality was added to the bet slip.\n\nInvestigation needed:\n1. Check if bets are being properly saved to Supabase in BettingContext.tsx placeBets() function\n2. Verify that placedBets state is being updated correctly after placement\n3. Ensure the MyBets page is receiving the updated placedBets from context\n4. Check if there's a timing issue between placing bets and navigating to My Bets page\n5. Review the recentlyPlacedBets state management\n\nFiles to check:\n- /workspace/shadcn-ui/src/components/BetSlip.tsx\n- /workspace/shadcn-ui/src/contexts/BettingContext.tsx  \n- /workspace/shadcn-ui/src/pages/MyBets.tsx\n\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly.",
         "task_type": "general",
         "code": "",
         "result": "",
         "is_success": false,
         "is_finished": true,
-        "assignee": "David",
-        "start_at": 1767554720.0628932,
-        "end_at": 1767555007.3801212
+        "assignee": "Alex",
+        "start_at": 1767557417.0209167,
+        "end_at": 1767557559.2870169
       },
-      "current_task_id": "2",
+      "current_task_id": "1",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [
@@ -29,7 +29,7 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767555007.3801565,
-        "end_at": 1767555087.6564524
+        "end_at": 1767557417.0209124
       },
       "3": {
         "task_id": "3",
@@ -2346,7 +2346,33 @@
     "1607": 1,
     "1608": 1,
     "1609": 1,
-    "1610": 1
+    "1610": 1,
+    "1611": 1,
+    "1612": 1,
+    "1613": 1,
+    "1614": 1,
+    "1615": 1,
+    "1616": 1,
+    "1617": 1,
+    "1618": 1,
+    "1619": 1,
+    "1620": 1,
+    "1621": 1,
+    "1622": 1,
+    "1623": 1,
+    "1624": 1,
+    "1625": 1,
+    "1626": 1,
+    "1627": 1,
+    "1628": 1,
+    "1629": 1,
+    "1630": 1,
+    "1631": 1,
+    "1632": 1,
+    "1633": 1,
+    "1634": 1,
+    "1635": 1,
+    "1636": 1
   },
   "preview_servers": {},
   "preview_server": {
