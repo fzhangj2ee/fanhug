@@ -1,5 +1,5 @@
 {
-  "timeline_index": 1636,
+  "timeline_index": 1645,
   "planner": {
     "Team Leader": {
       "1": {
@@ -13,23 +13,21 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767557417.0209167,
-        "end_at": 1767557559.2870169
+        "end_at": 1767557921.10838
       },
-      "current_task_id": "1",
+      "current_task_id": "2",
       "2": {
         "task_id": "2",
-        "dependent_task_ids": [
-          "1"
-        ],
-        "instruction": "Update the TeamLogo component at /workspace/shadcn-ui/src/components/TeamLogo.tsx to include the soccer team ID mappings researched by David. Add the soccer team IDs to the teamIds object under a 'soccer' key, following the same pattern as the existing NFL, NBA, MLB, and NHL mappings. Ensure the component properly displays soccer team logos using ESPN's CDN.",
+        "dependent_task_ids": [],
+        "instruction": "Fix the bet placement balance check issue. The user reports that when clicking \"Place Bet\", they get an error \"Failed to place bets. Check your balance.\" even though they have sufficient balance.\n\nRoot cause: The `placeBets()` function in BettingContext.tsx (lines 330-381) does not check or deduct from the wallet balance before placing bets. It only validates user login, non-empty bet slip, and valid stakes.\n\nRequired fix:\n1. Import and use the `placeBet` function from WalletContext in BettingContext\n2. Calculate the total stake amount from all bets in the bet slip\n3. Before saving bets to Supabase, call `wallet.placeBet(totalStake, description)` to deduct the balance\n4. If `placeBet` returns false (insufficient balance), return false and show appropriate error\n5. Only proceed with saving to Supabase if the wallet deduction succeeds\n\nFiles to modify:\n- /workspace/shadcn-ui/src/contexts/BettingContext.tsx (lines 330-381, specifically the placeBets function)\n\nThe WalletContext.placeBet function (line 57-77 in WalletContext.tsx) already checks if amount > balance and returns false if insufficient.\n\nThe plan has been confirmed with the user. No need to ask human or draft plan again. Proceed directly.",
         "task_type": "general",
         "code": "",
         "result": "",
         "is_success": false,
         "is_finished": true,
         "assignee": "Alex",
-        "start_at": 1767555007.3801565,
-        "end_at": 1767557417.0209124
+        "start_at": 1767557921.1083848,
+        "end_at": 1767557992.9053655
       },
       "3": {
         "task_id": "3",
@@ -2372,7 +2370,16 @@
     "1633": 1,
     "1634": 1,
     "1635": 1,
-    "1636": 1
+    "1636": 1,
+    "1637": 1,
+    "1638": 1,
+    "1639": 1,
+    "1640": 1,
+    "1641": 1,
+    "1642": 1,
+    "1643": 1,
+    "1644": 1,
+    "1645": 1
   },
   "preview_servers": {},
   "preview_server": {

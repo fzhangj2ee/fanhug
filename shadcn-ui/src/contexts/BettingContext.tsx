@@ -41,7 +41,7 @@ const BettingContext = createContext<BettingContextType | undefined>(undefined);
 
 export function BettingProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const { addFunds } = useWallet();
+  const { addFunds, placeBet } = useWallet();
   const [betSlip, setBetSlip] = useState<BetSlipItem[]>([]);
   const [allPlacedBets, setAllPlacedBets] = useState<PlacedBet[]>([]);
   const [recentlyPlacedBets, setRecentlyPlacedBets] = useState<BetSlipItem[]>([]);
@@ -345,6 +345,22 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       return false;
     }
 
+    // Calculate total stake amount
+    const totalStake = betSlip.reduce((sum, item) => sum + item.stake, 0);
+    
+    // Create bet description
+    const betDescription = betSlip.length === 1 
+      ? `Bet on ${betSlip[0].game.homeTeam} vs ${betSlip[0].game.awayTeam}`
+      : `${betSlip.length} bets placed`;
+    
+    // Deduct balance from wallet first
+    const balanceDeducted = placeBet(totalStake, betDescription);
+    if (!balanceDeducted) {
+      console.log('Insufficient balance. Total stake:', totalStake);
+      toast.error('Insufficient balance to place bets');
+      return false;
+    }
+
     // Convert bet slip items to placed bets
     const newPlacedBets: PlacedBet[] = betSlip.map((item) => ({
       ...item,
@@ -375,7 +391,9 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       return true;
     } catch (error) {
       console.error('Error placing bets:', error);
-      toast.error('Failed to place bets. Please try again.');
+      // If saving to Supabase fails, refund the balance
+      addFunds(totalStake);
+      toast.error('Failed to place bets. Your balance has been refunded.');
       return false;
     }
   };
