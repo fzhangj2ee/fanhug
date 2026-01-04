@@ -41,7 +41,7 @@ const BettingContext = createContext<BettingContextType | undefined>(undefined);
 
 export function BettingProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const { addFunds, placeBet } = useWallet();
+  const { addFunds, placeBet, balance } = useWallet();
   const [betSlip, setBetSlip] = useState<BetSlipItem[]>([]);
   const [allPlacedBets, setAllPlacedBets] = useState<PlacedBet[]>([]);
   const [recentlyPlacedBets, setRecentlyPlacedBets] = useState<BetSlipItem[]>([]);
@@ -328,12 +328,21 @@ export function BettingProvider({ children }: { children: ReactNode }) {
   };
 
   const placeBets = async (): Promise<boolean> => {
+    console.log('=== PLACE BETS START ===');
+    console.log('User:', user?.id);
+    console.log('Bet slip length:', betSlip.length);
+    console.log('Current wallet balance:', balance);
+    console.log('placeBet function type:', typeof placeBet);
+    console.log('placeBet function:', placeBet);
+    
     if (!user) {
+      console.log('ERROR: No user logged in');
       toast.error('Please login to place bets');
       return false;
     }
 
     if (betSlip.length === 0) {
+      console.log('ERROR: Bet slip is empty');
       toast.error('No bets in slip');
       return false;
     }
@@ -341,23 +350,40 @@ export function BettingProvider({ children }: { children: ReactNode }) {
     // Check if all bets have valid stakes
     const invalidBets = betSlip.filter((item) => item.stake <= 0);
     if (invalidBets.length > 0) {
+      console.log('ERROR: Invalid stakes found:', invalidBets);
       toast.error('Please enter valid stake amounts for all bets');
       return false;
     }
 
     // Calculate total stake amount
     const totalStake = betSlip.reduce((sum, item) => sum + item.stake, 0);
+    console.log('Total stake calculated:', totalStake);
+    console.log('Balance check:', balance, '>=', totalStake, '?', balance >= totalStake);
     
     // Create bet description
     const betDescription = betSlip.length === 1 
       ? `Bet on ${betSlip[0].game.homeTeam} vs ${betSlip[0].game.awayTeam}`
       : `${betSlip.length} bets placed`;
+    console.log('Bet description:', betDescription);
     
     // Deduct balance from wallet first
-    const balanceDeducted = placeBet(totalStake, betDescription);
-    if (!balanceDeducted) {
-      console.log('Insufficient balance. Total stake:', totalStake);
-      toast.error('Insufficient balance to place bets');
+    console.log('Calling placeBet with amount:', totalStake, 'description:', betDescription);
+    
+    try {
+      const balanceDeducted = placeBet(totalStake, betDescription);
+      console.log('placeBet returned:', balanceDeducted);
+      
+      if (!balanceDeducted) {
+        console.log('ERROR: Balance deduction failed. Insufficient balance.');
+        console.log('Required:', totalStake, 'Available:', balance);
+        toast.error(`Insufficient balance. You have $${balance.toFixed(2)} but need $${totalStake.toFixed(2)}`);
+        return false;
+      }
+      
+      console.log('Balance deducted successfully. New balance should be:', balance - totalStake);
+    } catch (error) {
+      console.error('ERROR: Exception during placeBet call:', error);
+      toast.error('Failed to deduct balance. Please try again.');
       return false;
     }
 
@@ -369,31 +395,38 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       placedAt: new Date(),
       status: 'pending',
     }));
+    console.log('Created', newPlacedBets.length, 'new placed bets');
 
     try {
+      console.log('Saving bets to Supabase...');
       // Save all bets to Supabase
       for (const bet of newPlacedBets) {
         await saveBetToSupabase(bet);
       }
+      console.log('All bets saved to Supabase successfully');
       
       // Update local state immediately
       const updatedBets = [...allPlacedBets, ...newPlacedBets];
       setAllPlacedBets(updatedBets);
+      console.log('Local state updated. Total bets now:', updatedBets.length);
       
       // Save current bet slip as recently placed bets
       setRecentlyPlacedBets([...betSlip]);
+      console.log('Recently placed bets saved');
       
       // Clear bet slip for new bets
       setBetSlip([]);
+      console.log('Bet slip cleared');
       
-      console.log('Bets placed successfully. Total bets now:', updatedBets.length);
-      
+      console.log('=== PLACE BETS SUCCESS ===');
       return true;
     } catch (error) {
-      console.error('Error placing bets:', error);
+      console.error('ERROR: Failed to save bets to Supabase:', error);
       // If saving to Supabase fails, refund the balance
+      console.log('Refunding balance:', totalStake);
       addFunds(totalStake);
       toast.error('Failed to place bets. Your balance has been refunded.');
+      console.log('=== PLACE BETS FAILED ===');
       return false;
     }
   };
