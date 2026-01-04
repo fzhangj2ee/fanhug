@@ -1,73 +1,103 @@
-import { useState } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Heart, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Heart } from 'lucide-react';
-import { toast } from 'sonner';
-
-const PAYPAL_DONATION_LINK = 'https://www.paypal.com/donate/?business=GDERQZQ5Y7XDL&no_recurring=0&item_name=FanHug+offers+safe+play-money+sports+betting%2C+fun+and+risk-free%2C+while+supporting+responsible+gaming+and+addiction+recovery.%0A&currency_code=USD';
 
 export default function Donation() {
-  const [message, setMessage] = useState('');
-
-  const handleDonate = () => {
-    // Open PayPal donation link in a new tab
-    window.open(PAYPAL_DONATION_LINK, '_blank', 'noopener,noreferrer');
-    
-    // Show confirmation toast
-    toast.success('Redirecting to PayPal for donation. Thank you for your support!');
-  };
+  const paypalLink = 'https://www.paypal.com/donate/?hosted_button_id=KQXJ5VXJJJ5XL';
 
   return (
-    <div className="min-h-screen bg-gray-950 pt-8 pb-16">
-      <div className="max-w-2xl mx-auto px-4">
-        <Card className="bg-gray-900 border-gray-800 p-8">
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <Heart className="h-16 w-16 fill-red-500 text-red-500" />
-            </div>
-            <h1 className="text-3xl font-bold text-white mb-4">Support Our Mission</h1>
-            <p className="text-gray-400 text-lg">
-              Your donation helps us maintain and improve FanHug, providing a safe and fun
-              play-money sports betting experience while supporting responsible gaming and
-              addiction recovery initiatives.
-            </p>
-          </div>
+    <div className="min-h-screen bg-gray-950 p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <Card className="border-gray-700 bg-gray-800/50 backdrop-blur">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-white flex items-center gap-2">
+              <Heart className="h-6 w-6 fill-red-500 text-red-500" />
+              Support FanHug
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <p className="text-gray-300 text-lg">
+                FanHug is a passion project built to bring the excitement of sports betting to everyone, completely free. 
+                Your support helps us keep the lights on and continue improving the platform.
+              </p>
 
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Leave a Message (Optional)
-              </label>
-              <Textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Share why you're supporting FanHug..."
-                className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 min-h-[100px]"
-              />
+              {/* Monthly Cost Information */}
+              <Card className="border-green-500/30 bg-gray-900/50">
+                <CardContent className="pt-6">
+                  <h3 className="text-lg font-semibold text-white mb-3">Monthly Operational Costs</h3>
+                  <div className="space-y-2 text-gray-300">
+                    <div className="flex justify-between items-center">
+                      <span>Odds API:</span>
+                      <span className="font-semibold text-green-500">$119/month</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>MGX.dev hosting:</span>
+                      <span className="font-semibold text-green-500">$200/month</span>
+                    </div>
+                    <div className="border-t border-gray-700 pt-2 mt-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold">Total:</span>
+                        <span className="font-bold text-green-500 text-lg">$319/month</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-gray-400 text-sm mt-4 italic">
+                    Any donation helps us keep FanHug running and free for all users.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <p className="text-gray-400">
+                We're committed to keeping FanHug free and ad-free. If you enjoy using the platform and want to help 
+                cover our server costs and API fees, any contribution is greatly appreciated!
+              </p>
             </div>
 
-            <Button
-              onClick={handleDonate}
-              className="w-full bg-[#0070BA] hover:bg-[#005EA6] text-white font-bold py-6 text-lg transition-colors"
-            >
-              Donate with PayPal
-            </Button>
-
-            <div className="text-center text-sm text-gray-500 mt-4">
-              <p>You will be redirected to PayPal to complete your donation securely.</p>
-              <p className="mt-2">Thank you for supporting responsible gaming! ❤️</p>
+            <div className="flex flex-col items-center gap-4 pt-4">
+              <Button
+                onClick={() => window.open(paypalLink, '_blank')}
+                className="bg-green-500 hover:bg-green-600 text-black font-bold text-lg px-8 py-6 flex items-center gap-2"
+              >
+                <Heart className="h-5 w-5 fill-current" />
+                Donate via PayPal
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+              
+              <p className="text-gray-500 text-sm text-center">
+                You'll be redirected to PayPal to complete your donation securely.
+              </p>
             </div>
-          </div>
+
+            <div className="border-t border-gray-700 pt-6 mt-6">
+              <h3 className="text-lg font-semibold text-white mb-3">Why Donate?</h3>
+              <ul className="space-y-2 text-gray-300">
+                <li className="flex items-start gap-2">
+                  <span className="text-green-500 mt-1">✓</span>
+                  <span>Keep FanHug completely free for everyone</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-500 mt-1">✓</span>
+                  <span>Support ongoing development and new features</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-500 mt-1">✓</span>
+                  <span>Help cover API costs for real-time odds and scores</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-500 mt-1">✓</span>
+                  <span>Maintain reliable hosting and fast performance</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="text-center pt-4">
+              <p className="text-gray-400 text-sm">
+                Thank you for being part of the FanHug community! 🙏
+              </p>
+            </div>
+          </CardContent>
         </Card>
-
-        <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>
-            FanHug is committed to promoting responsible gaming and supporting addiction
-            recovery programs.
-          </p>
-          <p className="mt-2">All donations are processed securely through PayPal.</p>
-        </div>
       </div>
     </div>
   );
