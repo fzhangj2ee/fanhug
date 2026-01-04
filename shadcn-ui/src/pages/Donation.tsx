@@ -3,7 +3,11 @@ import { Heart, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Donation() {
-  const paypalLink = 'https://www.paypal.com/donate/?hosted_button_id=KQXJ5VXJJJ5XL';
+  const paypalLink = 'https://www.paypal.com/donate/?business=GDERQZQ5Y7XDL&no_recurring=0&item_name=FanHug+offers+safe+play-money+sports+betting%2C+fun+and+risk-free%2C+while+supporting+responsible+gaming+and+addiction+recovery.%0A&currency_code=USD';
+
+  const handleDonate = () => {
+    window.open(paypalLink, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <div className="min-h-screen bg-gray-950 p-6">
@@ -56,7 +60,7 @@ export default function Donation() {
 
             <div className="flex flex-col items-center gap-4 pt-4">
               <Button
-                onClick={() => window.open(paypalLink, '_blank')}
+                onClick={handleDonate}
                 className="bg-green-500 hover:bg-green-600 text-black font-bold text-lg px-8 py-6 flex items-center gap-2"
               >
                 <Heart className="h-5 w-5 fill-current" />
