@@ -33,7 +33,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-24">
           {/* Left: Logo and Version */}
           <div className="flex-shrink-0 flex items-center gap-3 w-48">
-            <button onClick={() => navigate('/')} className="flex items-center">
+            <button onClick={() => navigate('/about')} className="flex items-center">
               <img 
                 src="/images/FanHug.png" 
                 alt="FanHug Logo" 
