@@ -106,8 +106,7 @@ export default function Navbar() {
                     : 'text-gray-400 hover:text-white hover:bg-gray-800'
                 }`}
               >
-                <Heart className="h-4 w-4 mr-1 fill-red-500 text-red-500" />
-                Donation
+                <Heart className="h-4 w-4 fill-red-500 text-red-500" />
               </Button>
               {user && (
                 <>
