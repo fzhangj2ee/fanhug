@@ -1,21 +1,21 @@
 {
-  "timeline_index": 1509,
+  "timeline_index": 1514,
   "planner": {
     "Team Leader": {
       "1": {
         "task_id": "1",
         "dependent_task_ids": [],
-        "instruction": "Update currency display throughout the application:\n- Change currency symbol from \"‖\" to \"$‖\" (dollar sign plus vertical bar) on all pages EXCEPT the donation page\n- Keep regular \"$\" symbol on the donation page only\n- Files to modify:\n  - /workspace/shadcn-ui/src/components/Navbar.tsx\n  - /workspace/shadcn-ui/src/components/BetSlip.tsx\n  - /workspace/shadcn-ui/src/pages/MyBets.tsx\n  - /workspace/shadcn-ui/src/pages/Wallet.tsx\n  - /workspace/shadcn-ui/src/pages/Admin.tsx\n  - /workspace/shadcn-ui/src/pages/Donation.tsx (keep $ only)",
+        "instruction": "Modify the About page (src/pages/About.tsx) to:\n1. Keep the hero section with \"Experience the thrill...\" text\n2. Keep the 5 benefit cards (Remove Stress, No Impact on Real Games, Test Your Skills, Fan Hug Over Fan Duel, Support Clean Sportsmanship)\n3. Keep the \"Start Betting for Free\" button at the bottom\n4. Remove the \"Why FanHug? Free Betting Without Real Money\" header\n5. Remove the entire \"Our Mission\" card section\n6. Remove the footer note about responsible gaming\nThe page should be cleaner and more focused on the key benefits.",
         "task_type": "general",
         "code": "",
         "result": "",
         "is_success": false,
         "is_finished": true,
         "assignee": "Alex",
-        "start_at": 1767117517.3770065,
-        "end_at": 1767121366.042052
+        "start_at": 1767541008.9992607,
+        "end_at": 1767541106.0510836
       },
-      "current_task_id": "55",
+      "current_task_id": "1",
       "2": {
         "task_id": "2",
         "dependent_task_ids": [],
@@ -670,7 +670,7 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767539284.4523168,
-        "end_at": 1767539385.5594413
+        "end_at": 1767541008.999234
       }
     }
   },
@@ -2184,7 +2184,12 @@
     "1506": 1,
     "1507": 1,
     "1508": 1,
-    "1509": 1
+    "1509": 1,
+    "1510": 1,
+    "1511": 1,
+    "1512": 1,
+    "1513": 1,
+    "1514": 1
   },
   "preview_servers": {},
   "preview_server": {

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Shield, TrendingUp, Users, Sparkles, Target } from 'lucide-react';
+import { Shield, TrendingUp, Users, Sparkles, Target } from 'lucide-react';
 
 export default function About() {
   const navigate = useNavigate();
@@ -18,9 +18,6 @@ export default function About() {
               className="h-32 w-auto"
             />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Why FanHug? Free Betting Without Real Money
-          </h1>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto">
             Experience the thrill of sports betting without the risks. FanHug offers a safe, 
             fun, and ethical way to engage with your favorite sports using play money.
@@ -140,26 +137,6 @@ export default function About() {
           </Card>
         </div>
 
-        {/* Mission Statement */}
-        <Card className="border-green-500/30 bg-gray-900/50 mb-12">
-          <CardContent className="pt-6">
-            <div className="text-center space-y-4">
-              <Heart className="h-12 w-12 fill-red-500 text-red-500 mx-auto" />
-              <h2 className="text-2xl font-bold text-white">Our Mission</h2>
-              <p className="text-gray-300 text-lg max-w-3xl mx-auto">
-                FanHug is committed to providing a safe, fun, and ethical sports betting 
-                experience. We believe sports should bring people together, not tear them apart 
-                through financial stress and addiction.
-              </p>
-              <p className="text-gray-400 max-w-3xl mx-auto">
-                Join thousands of sports fans who enjoy the thrill of betting without the risks. 
-                Test your knowledge, compete with friends, and celebrate the games you love—all 
-                with play money that keeps the fun alive and the games clean.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Call to Action */}
         <div className="text-center space-y-6">
           <Button
@@ -170,24 +147,6 @@ export default function About() {
           </Button>
           <p className="text-gray-500 text-sm">
             No credit card required. No real money. Just pure fun.
-          </p>
-        </div>
-
-        {/* Footer Note */}
-        <div className="mt-16 text-center text-gray-500 text-sm border-t border-gray-800 pt-8">
-          <p>
-            FanHug promotes responsible gaming and supports addiction recovery programs.
-          </p>
-          <p className="mt-2">
-            If you or someone you know has a gambling problem, please seek help at{' '}
-            <a 
-              href="https://www.ncpgambling.org" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-green-500 hover:text-green-400 underline"
-            >
-              ncpgambling.org
-            </a>
           </p>
         </div>
       </div>

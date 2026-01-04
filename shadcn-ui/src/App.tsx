@@ -15,8 +15,8 @@ import Wallet from './pages/Wallet';
 import Admin from './pages/Admin';
 import Messages from './pages/Messages';
 import Donation from './pages/Donation';
-import About from './pages/About';
 import AuthCallback from './pages/AuthCallback';
+import About from './pages/About';
 import NotFound from './pages/NotFound';
 import Navbar from './components/Navbar';
 import BetSlip from './components/BetSlip';
@@ -40,7 +40,6 @@ const App = () => (
                         <div className="flex-1">
                           <Routes>
                             <Route path="/" element={<Index />} />
-                            <Route path="/about" element={<About />} />
                             <Route path="/live" element={<Live />} />
                             <Route path="/login" element={<Login />} />
                             <Route path="/my-bets" element={<MyBets />} />
@@ -49,6 +48,7 @@ const App = () => (
                             <Route path="/messages" element={<Messages />} />
                             <Route path="/donation" element={<Donation />} />
                             <Route path="/auth/callback" element={<AuthCallback />} />
+                            <Route path="/about" element={<About />} />
                             <Route path="*" element={<NotFound />} />
                           </Routes>
                         </div>
