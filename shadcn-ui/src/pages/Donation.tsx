@@ -32,7 +32,7 @@ export default function Donation() {
                       <span className="font-semibold text-green-500">$119/month</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>MGX.dev hosting:</span>
+                      <span>MGX.dev tools subscription:</span>
                       <span className="font-semibold text-green-500">$200/month</span>
                     </div>
                     <div className="border-t border-gray-700 pt-2 mt-2">
