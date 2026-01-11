@@ -204,6 +204,8 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       
       if (pendingBets.length === 0) return;
       
+      console.log(`Grading ${pendingBets.length} pending bets against ${completedGames.size} completed games`);
+      
       let hasUpdates = false;
       const updatedBets = [...allPlacedBets];
       
@@ -213,9 +215,17 @@ export function BettingProvider({ children }: { children: ReactNode }) {
         
         // Check if this bet's game is completed
         const completedGame = completedGames.get(bet.game.id);
-        if (!completedGame || completedGame.homeScore === undefined || completedGame.awayScore === undefined) {
+        
+        // CRITICAL: Only grade if game is truly completed with valid scores
+        if (!completedGame || 
+            completedGame.status !== 'final' ||
+            completedGame.homeScore === undefined || 
+            completedGame.awayScore === undefined) {
+          console.log(`Bet ${bet.id}: Game ${bet.game.id} not completed yet`);
           continue;
         }
+        
+        console.log(`Grading bet ${bet.id} for game ${bet.game.homeTeam} vs ${bet.game.awayTeam}: ${completedGame.homeScore}-${completedGame.awayScore}`);
         
         // Determine if bet won based on bet type
         let won = false;
@@ -236,6 +246,8 @@ export function BettingProvider({ children }: { children: ReactNode }) {
         
         // Calculate payout for winning bets
         const payout = won ? bet.stake * bet.odds : 0;
+        
+        console.log(`Bet ${bet.id} result: ${won ? 'WON' : 'LOST'}, payout: $${payout.toFixed(2)}`);
         
         // Update bet status
         updatedBets[i] = {
@@ -265,23 +277,26 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       
       if (hasUpdates) {
         setAllPlacedBets(updatedBets);
+        console.log('Bet grading completed with updates');
+      } else {
+        console.log('No bets were graded in this cycle');
       }
     } catch (error) {
       console.error('Error grading bets:', error);
     }
   }, [allPlacedBets, addFunds, user]);
 
-  // Set up automatic grading every 60 seconds
+  // Set up automatic grading every 2 minutes (reduced frequency)
   useEffect(() => {
     if (!user) return;
     
     // Grade bets immediately on mount
     gradePendingBets();
     
-    // Set up interval to grade bets every 60 seconds
+    // Set up interval to grade bets every 2 minutes instead of 1 minute
     const intervalId = setInterval(() => {
       gradePendingBets();
-    }, 60000); // 60 seconds
+    }, 120000); // 120 seconds = 2 minutes
     
     return () => clearInterval(intervalId);
   }, [gradePendingBets, user]);
@@ -289,6 +304,20 @@ export function BettingProvider({ children }: { children: ReactNode }) {
   const addToBetSlip = (game: Game, betType: BetSlipItem['betType'], odds: number, value?: number) => {
     if (!user) {
       toast.error('Please login to place bets');
+      return;
+    }
+
+    // Prevent betting on games that have already started or finished
+    const now = new Date();
+    const gameStartTime = new Date(game.startTime);
+    
+    if (gameStartTime <= now) {
+      toast.error('Cannot bet on games that have already started');
+      return;
+    }
+    
+    if (game.status === 'final' || game.status === 'completed') {
+      toast.error('Cannot bet on completed games');
       return;
     }
 
@@ -339,9 +368,6 @@ export function BettingProvider({ children }: { children: ReactNode }) {
     // Safety check for betSlip
     const safeBetSlip = Array.isArray(betSlip) ? betSlip : [];
     console.log('Bet slip length:', safeBetSlip.length);
-    console.log('Bet slip array check:', Array.isArray(betSlip), 'Type:', typeof betSlip);
-    console.log('Current wallet balance:', balance);
-    console.log('placeBet function type:', typeof placeBet);
     
     if (!user) {
       console.log('ERROR: No user logged in');
@@ -355,10 +381,23 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       return false;
     }
 
-    // Check if all bets have valid stakes
-    const invalidBets = safeBetSlip.filter((item) => item.stake <= 0);
+    // Validate that games haven't started yet
+    const now = new Date();
+    const invalidBets = safeBetSlip.filter(item => {
+      const gameStartTime = new Date(item.game.startTime);
+      return gameStartTime <= now || item.game.status === 'final' || item.game.status === 'completed';
+    });
+    
     if (invalidBets.length > 0) {
-      console.log('ERROR: Invalid stakes found:', invalidBets);
+      console.log('ERROR: Some games have already started or finished');
+      toast.error('Cannot bet on games that have already started or finished');
+      return false;
+    }
+
+    // Check if all bets have valid stakes
+    const zeroStakeBets = safeBetSlip.filter((item) => item.stake <= 0);
+    if (zeroStakeBets.length > 0) {
+      console.log('ERROR: Invalid stakes found:', zeroStakeBets);
       toast.error('Please enter valid stake amounts for all bets');
       return false;
     }
@@ -366,7 +405,6 @@ export function BettingProvider({ children }: { children: ReactNode }) {
     // Calculate total stake amount with safety check
     const totalStake = safeBetSlip.reduce((sum, item) => sum + (Number(item.stake) || 0), 0);
     console.log('Total stake calculated:', totalStake);
-    console.log('Balance check:', balance, '>=', totalStake, '?', balance >= totalStake);
     
     // Create bet description
     const betDescription = safeBetSlip.length === 1 
@@ -375,7 +413,7 @@ export function BettingProvider({ children }: { children: ReactNode }) {
     console.log('Bet description:', betDescription);
     
     // Deduct balance from wallet first
-    console.log('Calling placeBet with amount:', totalStake, 'description:', betDescription);
+    console.log('Calling placeBet with amount:', totalStake);
     
     try {
       const balanceDeducted = placeBet(totalStake, betDescription);
@@ -383,12 +421,11 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       
       if (!balanceDeducted) {
         console.log('ERROR: Balance deduction failed. Insufficient balance.');
-        console.log('Required:', totalStake, 'Available:', balance);
         toast.error(`Insufficient balance. You have $${balance.toFixed(2)} but need $${totalStake.toFixed(2)}`);
         return false;
       }
       
-      console.log('Balance deducted successfully. New balance should be:', balance - totalStake);
+      console.log('Balance deducted successfully.');
     } catch (error) {
       console.error('ERROR: Exception during placeBet call:', error);
       toast.error('Failed to deduct balance. Please try again.');
