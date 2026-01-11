@@ -17,7 +17,12 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [walletState, setWalletState] = useState<WalletState>(() => {
     const saved = localStorage.getItem('wallet');
     if (saved) {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      // Ensure balance is a number, not a string
+      return {
+        balance: Number(parsed.balance),
+        transactions: parsed.transactions,
+      };
     }
     return {
       balance: INITIAL_BALANCE,
@@ -39,55 +44,74 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   }, [walletState]);
 
   const addFunds = (amount: number) => {
+    const numAmount = Number(amount);
+    const newBalance = Number(walletState.balance) + numAmount;
+    
     const transaction: Transaction = {
       id: Date.now().toString(),
       type: 'deposit',
-      amount,
+      amount: numAmount,
       description: 'Added funds',
       timestamp: new Date().toISOString(),
-      balance: walletState.balance + amount,
+      balance: newBalance,
     };
 
     setWalletState({
-      balance: walletState.balance + amount,
+      balance: newBalance,
       transactions: [transaction, ...walletState.transactions],
     });
   };
 
   const placeBet = (amount: number, description: string): boolean => {
-    if (amount > walletState.balance) {
+    const numAmount = Number(amount);
+    const currentBalance = Number(walletState.balance);
+    
+    console.log('=== PLACE BET WALLET CHECK ===');
+    console.log('Amount to bet:', numAmount, 'Type:', typeof numAmount);
+    console.log('Current balance:', currentBalance, 'Type:', typeof currentBalance);
+    console.log('Has sufficient funds:', currentBalance >= numAmount);
+    
+    if (currentBalance < numAmount) {
+      console.log('FAILED: Insufficient balance');
       return false;
     }
 
+    const newBalance = currentBalance - numAmount;
+    
     const transaction: Transaction = {
       id: Date.now().toString(),
       type: 'bet_placed',
-      amount: -amount,
+      amount: -numAmount,
       description,
       timestamp: new Date().toISOString(),
-      balance: walletState.balance - amount,
+      balance: newBalance,
     };
 
     setWalletState({
-      balance: walletState.balance - amount,
+      balance: newBalance,
       transactions: [transaction, ...walletState.transactions],
     });
-
+    
+    console.log('SUCCESS: Bet placed, new balance:', newBalance);
     return true;
   };
 
   const settleBet = (amount: number, won: boolean, description: string) => {
+    const numAmount = Number(amount);
+    const currentBalance = Number(walletState.balance);
+    const newBalance = won ? currentBalance + numAmount : currentBalance;
+    
     const transaction: Transaction = {
       id: Date.now().toString(),
       type: won ? 'bet_won' : 'bet_lost',
-      amount: won ? amount : 0,
+      amount: won ? numAmount : 0,
       description,
       timestamp: new Date().toISOString(),
-      balance: won ? walletState.balance + amount : walletState.balance,
+      balance: newBalance,
     };
 
     setWalletState({
-      balance: won ? walletState.balance + amount : walletState.balance,
+      balance: newBalance,
       transactions: [transaction, ...walletState.transactions],
     });
   };
@@ -95,7 +119,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   return (
     <WalletContext.Provider
       value={{
-        balance: walletState.balance,
+        balance: Number(walletState.balance),
         transactions: walletState.transactions,
         addFunds,
         placeBet,
