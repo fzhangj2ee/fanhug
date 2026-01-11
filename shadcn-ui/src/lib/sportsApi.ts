@@ -66,6 +66,16 @@ function decimalToAmerican(decimalOdds: number): number {
   }
 }
 
+// Ensure odds are in American format
+function ensureAmericanOdds(odds: number): number {
+  // If odds are between 1.01 and 100, they're likely decimal odds
+  if (odds > 1 && odds < 100) {
+    return decimalToAmerican(odds);
+  }
+  // If odds are >= 100 or <= -100, they're already American odds
+  return Math.round(odds);
+}
+
 // Convert Odds API response to our Game format
 function convertToGame(apiGame: OddsApiGame, isLive: boolean = false): Game | null {
   try {
@@ -123,10 +133,10 @@ function convertToGame(apiGame: OddsApiGame, isLive: boolean = false): Game | nu
       homeScore: undefined,
       awayScore: undefined,
       
-      // Moneyline (American odds)
+      // Moneyline (American odds) - ensure proper format
       moneyline: {
-        home: homeOutcome.price,
-        away: awayOutcome.price,
+        home: ensureAmericanOdds(homeOutcome.price),
+        away: ensureAmericanOdds(awayOutcome.price),
       },
     };
 
@@ -138,9 +148,9 @@ function convertToGame(apiGame: OddsApiGame, isLive: boolean = false): Game | nu
       if (homeSpread && awaySpread && homeSpread.point !== undefined && awaySpread.point !== undefined) {
         game.spread = {
           home: homeSpread.point,
-          homeOdds: homeSpread.price,
+          homeOdds: ensureAmericanOdds(homeSpread.price),
           away: awaySpread.point,
-          awayOdds: awaySpread.price,
+          awayOdds: ensureAmericanOdds(awaySpread.price),
         };
       }
     }
@@ -153,9 +163,9 @@ function convertToGame(apiGame: OddsApiGame, isLive: boolean = false): Game | nu
       if (overOutcome && underOutcome && overOutcome.point !== undefined) {
         game.total = {
           over: overOutcome.point,
-          overOdds: overOutcome.price,
+          overOdds: ensureAmericanOdds(overOutcome.price),
           under: underOutcome.point || overOutcome.point,
-          underOdds: underOutcome.price,
+          underOdds: ensureAmericanOdds(underOutcome.price),
         };
       }
     }
