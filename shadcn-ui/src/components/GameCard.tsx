@@ -50,9 +50,8 @@ export default function GameCard({ game }: GameCardProps) {
     }
   };
 
-  const formatAmericanOdds = (odds: number) => {
-    if (odds > 0) return `+${odds}`;
-    return odds.toString();
+  const formatDecimalOdds = (odds: number) => {
+    return odds.toFixed(2);
   };
 
   const getOddsChange = (field: 'homeOdds' | 'awayOdds') => {
@@ -118,7 +117,7 @@ export default function GameCard({ game }: GameCardProps) {
           'text-sm font-bold transition-colors',
           isIncreasing ? 'text-green-400' : isDecreasing ? 'text-red-400' : 'text-[#53d337]'
         )}>
-          {formatAmericanOdds(odds)}
+          {formatDecimalOdds(odds)}
         </span>
         {isIncreasing && (
           <TrendingUp className="h-3 w-3 text-green-400 absolute top-1 right-1" />

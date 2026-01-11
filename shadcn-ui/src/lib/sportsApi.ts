@@ -66,16 +66,6 @@ function decimalToAmerican(decimalOdds: number): number {
   }
 }
 
-// Ensure odds are in American format
-function ensureAmericanOdds(odds: number): number {
-  // If odds are between 1.01 and 100, they're likely decimal odds
-  if (odds > 1 && odds < 100) {
-    return decimalToAmerican(odds);
-  }
-  // If odds are >= 100 or <= -100, they're already American odds
-  return Math.round(odds);
-}
-
 // Convert Odds API response to our Game format
 function convertToGame(apiGame: OddsApiGame, isLive: boolean = false): Game | null {
   try {
@@ -100,9 +90,9 @@ function convertToGame(apiGame: OddsApiGame, isLive: boolean = false): Game | nu
 
     if (!homeOutcome || !awayOutcome) return null;
 
-    // Convert odds to decimal format for compatibility
-    const homeOdds = americanToDecimal(homeOutcome.price);
-    const awayOdds = americanToDecimal(awayOutcome.price);
+    // Keep odds in decimal format as returned by API
+    const homeOdds = homeOutcome.price;
+    const awayOdds = awayOutcome.price;
 
     // Determine sport category
     let sport = 'Other';
@@ -133,10 +123,10 @@ function convertToGame(apiGame: OddsApiGame, isLive: boolean = false): Game | nu
       homeScore: undefined,
       awayScore: undefined,
       
-      // Moneyline (American odds) - ensure proper format
+      // Moneyline (decimal odds format)
       moneyline: {
-        home: ensureAmericanOdds(homeOutcome.price),
-        away: ensureAmericanOdds(awayOutcome.price),
+        home: Number(homeOutcome.price.toFixed(2)),
+        away: Number(awayOutcome.price.toFixed(2)),
       },
     };
 
@@ -148,9 +138,9 @@ function convertToGame(apiGame: OddsApiGame, isLive: boolean = false): Game | nu
       if (homeSpread && awaySpread && homeSpread.point !== undefined && awaySpread.point !== undefined) {
         game.spread = {
           home: homeSpread.point,
-          homeOdds: ensureAmericanOdds(homeSpread.price),
+          homeOdds: Number(homeSpread.price.toFixed(2)),
           away: awaySpread.point,
-          awayOdds: ensureAmericanOdds(awaySpread.price),
+          awayOdds: Number(awaySpread.price.toFixed(2)),
         };
       }
     }
@@ -163,9 +153,9 @@ function convertToGame(apiGame: OddsApiGame, isLive: boolean = false): Game | nu
       if (overOutcome && underOutcome && overOutcome.point !== undefined) {
         game.total = {
           over: overOutcome.point,
-          overOdds: ensureAmericanOdds(overOutcome.price),
+          overOdds: Number(overOutcome.price.toFixed(2)),
           under: underOutcome.point || overOutcome.point,
-          underOdds: ensureAmericanOdds(underOutcome.price),
+          underOdds: Number(underOutcome.price.toFixed(2)),
         };
       }
     }
