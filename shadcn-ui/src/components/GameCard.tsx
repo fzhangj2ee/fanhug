@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useBetting } from '@/contexts/BettingContext';
 import { useAuth } from '@/hooks/useAuth';
-import { useLiveOdds } from '@/contexts/LiveOddsContext';
+import { useLiveOddsSafe } from '@/contexts/LiveOddsContext';
 import { Star, TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -18,7 +18,7 @@ interface GameCardProps {
 export default function GameCard({ game }: GameCardProps) {
   const { addToBetSlip } = useBetting();
   const { user } = useAuth();
-  const { oddsChanges } = useLiveOdds();
+  const { oddsChanges } = useLiveOddsSafe();
   const navigate = useNavigate();
   const [isFavorite, setIsFavorite] = useState(false);
 

@@ -157,3 +157,17 @@ export function useLiveOdds() {
   }
   return context;
 }
+
+// Safe hook that returns default values if not within provider
+export function useLiveOddsSafe() {
+  const context = useContext(LiveOddsContext);
+  if (context === undefined) {
+    return {
+      games: [],
+      setGames: () => {},
+      oddsChanges: new Map<string, OddsChange>(),
+      isUpdating: false,
+    };
+  }
+  return context;
+}
