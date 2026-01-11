@@ -307,17 +307,15 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Prevent betting on games that have already started or finished
-    const now = new Date();
-    const gameStartTime = new Date(game.startTime);
-    
-    if (gameStartTime <= now) {
-      toast.error('Cannot bet on games that have already started');
+    // Only block betting on completed/finished games
+    if (game.status === 'final' || game.status === 'completed' || game.status === 'cancelled' || game.status === 'postponed') {
+      toast.error('Cannot bet on completed or cancelled games');
       return;
     }
     
-    if (game.status === 'final' || game.status === 'completed') {
-      toast.error('Cannot bet on completed games');
+    // Also check if game has final scores (indicates completion)
+    if (game.homeScore !== undefined && game.awayScore !== undefined && !game.isLive) {
+      toast.error('This game has finished');
       return;
     }
 
@@ -381,16 +379,25 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       return false;
     }
 
-    // Validate that games haven't started yet
-    const now = new Date();
+    // Validate that games are not completed/finished
     const invalidBets = safeBetSlip.filter(item => {
-      const gameStartTime = new Date(item.game.startTime);
-      return gameStartTime <= now || item.game.status === 'final' || item.game.status === 'completed';
+      // Block only completed, cancelled, or postponed games
+      const isCompleted = item.game.status === 'final' || 
+                         item.game.status === 'completed' || 
+                         item.game.status === 'cancelled' || 
+                         item.game.status === 'postponed';
+      
+      // Also check if game has final scores but is not live
+      const hasFinishedScores = item.game.homeScore !== undefined && 
+                               item.game.awayScore !== undefined && 
+                               !item.game.isLive;
+      
+      return isCompleted || hasFinishedScores;
     });
     
     if (invalidBets.length > 0) {
-      console.log('ERROR: Some games have already started or finished');
-      toast.error('Cannot bet on games that have already started or finished');
+      console.log('ERROR: Some games have finished or been cancelled');
+      toast.error('Cannot bet on completed or cancelled games. Please remove them from your bet slip.');
       return false;
     }
 
