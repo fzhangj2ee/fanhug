@@ -26,6 +26,15 @@ export default function Donation() {
                 Your support helps us keep the lights on and continue improving the platform.
               </p>
 
+              {/* Professional Player Message */}
+              <Card className="border-yellow-500/30 bg-yellow-500/5">
+                <CardContent className="pt-6">
+                  <p className="text-gray-300 text-base">
+                    If you are a professional player and tired of the madness, please seriously consider donating to keep your sanity.
+                  </p>
+                </CardContent>
+              </Card>
+
               {/* Monthly Cost Information */}
               <Card className="border-green-500/30 bg-gray-900/50">
                 <CardContent className="pt-6">
@@ -71,28 +80,6 @@ export default function Donation() {
               <p className="text-gray-500 text-sm text-center">
                 You'll be redirected to PayPal to complete your donation securely.
               </p>
-            </div>
-
-            <div className="border-t border-gray-700 pt-6 mt-6">
-              <h3 className="text-lg font-semibold text-white mb-3">Why Donate?</h3>
-              <ul className="space-y-2 text-gray-300">
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-1">✓</span>
-                  <span>Keep FanHug completely free for everyone</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-1">✓</span>
-                  <span>Support ongoing development and new features</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-1">✓</span>
-                  <span>Help cover API costs for real-time odds and scores</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-1">✓</span>
-                  <span>Maintain reliable hosting and fast performance</span>
-                </li>
-              </ul>
             </div>
 
             <div className="text-center pt-4">
