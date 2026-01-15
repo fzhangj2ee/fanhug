@@ -3,7 +3,7 @@ import { Heart, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Donation() {
-  const paypalLink = 'https://www.paypal.com/donate/?business=GDERQZQ5Y7XDL&no_recurring=0&item_name=FanHug+offers+safe+play-money+sports+betting%2C+fun+and+risk-free%2C+while+supporting+responsible+gaming+and+addiction+recovery.%0A&currency_code=USD';
+  const paypalLink = 'https://www.paypal.com/donate/?business=GDERQZQ5Y7XDL&no_recurring=0&item_name=FanHug+offers+safe+play-money+sports+prediction%2C+fun+and+risk-free%2C+while+supporting+responsible+gaming+and+addiction+recovery.%0A&currency_code=USD';
 
   const handleDonate = () => {
     window.open(paypalLink, '_blank', 'noopener,noreferrer');
@@ -22,7 +22,7 @@ export default function Donation() {
           <CardContent className="space-y-6">
             <div className="space-y-4">
               <p className="text-gray-300 text-lg">
-                FanHug is a passion project built to bring the excitement of sports betting to everyone, completely free. 
+                FanHug is a passion project built to bring the excitement of sports prediction to everyone, completely free. 
                 Your support helps us keep the lights on and continue improving the platform.
               </p>
 

@@ -62,7 +62,7 @@ export default function BetSlip() {
 
   const handlePlaceBets = async () => {
     if (!user) {
-      toast.error('Please login to place bets', {
+      toast.error('Please login to make picks', {
         action: {
           label: 'Login',
           onClick: () => navigate('/login'),
@@ -83,14 +83,14 @@ export default function BetSlip() {
         setLastBetDetails(betDetails);
         setShowBetPlaced(true);
         setShowDetails(false);
-        toast.success('Bets placed successfully!');
-        console.log('Bets placed, showing confirmation dialog');
+        toast.success('Picks placed successfully!');
+        console.log('Picks placed, showing confirmation dialog');
       } else {
-        toast.error('Failed to place bets. Check your balance.');
+        toast.error('Failed to place picks. Check your balance.');
       }
     } catch (error) {
-      console.error('Error placing bets:', error);
-      toast.error('Failed to place bets. Please try again.');
+      console.error('Error placing picks:', error);
+      toast.error('Failed to place picks. Please try again.');
     } finally {
       setIsPlacingBets(false);
     }
@@ -101,14 +101,14 @@ export default function BetSlip() {
   };
 
   const handleViewMyBets = () => {
-    console.log('Navigating to My Bets page');
+    console.log('Navigating to My Picks page');
     setShowBetPlaced(false);
     navigate('/my-bets');
   };
 
   const handleClearAll = () => {
     clearBetSlip();
-    toast.success('Bet slip cleared');
+    toast.success('Pick slip cleared');
   };
 
   const formatOdds = (odds: number) => {
@@ -147,7 +147,7 @@ export default function BetSlip() {
             <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-black font-bold">
               {safeBetSlip.length}
             </div>
-            BET SLIP
+            PICK SLIP
           </CardTitle>
           <div className="flex items-center gap-2">
             {safeBetSlip.length > 0 && (
@@ -182,7 +182,7 @@ export default function BetSlip() {
         {showBetPlaced && (
           <div className="bg-green-500/10 border-2 border-green-500 rounded-lg p-4 space-y-4 mb-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-green-500 font-bold text-lg">BET PLACED</h3>
+              <h3 className="text-green-500 font-bold text-lg">PICK PLACED</h3>
               <Button
                 variant="ghost"
                 size="sm"
@@ -210,7 +210,7 @@ export default function BetSlip() {
                   variant="ghost"
                   className="w-full justify-between text-white hover:bg-gray-700/50 h-12"
                 >
-                  <span className="font-medium">View Bets Details</span>
+                  <span className="font-medium">View Picks Details</span>
                   <ChevronDown className={`h-5 w-5 transition-transform ${showDetails ? 'rotate-180' : ''}`} />
                 </Button>
               </CollapsibleTrigger>
@@ -252,7 +252,7 @@ export default function BetSlip() {
               onClick={handleViewMyBets}
               className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-6 text-base"
             >
-              View My Bets
+              View My Picks
             </Button>
           </div>
         )}
@@ -270,17 +270,17 @@ export default function BetSlip() {
                   onClick={() => navigate('/login')}
                   className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-6 text-lg"
                 >
-                  Log In to Place Bet
+                  Log In to Make Pick
                 </Button>
                 <p className="text-sm text-gray-400 flex items-center justify-center gap-1">
-                  Minimum Bet: <PlayMoney amount={0.10} className="" />
+                  Minimum Pick: <PlayMoney amount={0.10} className="" />
                 </p>
               </div>
             ) : (
               <div className="space-y-4">
                 <h3 className="text-white font-bold text-lg">YOUR PICKS WILL SHOW UP HERE.</h3>
                 <p className="text-gray-400 text-sm">
-                  Select picks to then see the different types of bets available, including Singles, Parlays, Teasers, Round Robins and more.
+                  Select picks to then see the different types of predictions available, including Singles, Parlays, Teasers, Round Robins and more.
                 </p>
               </div>
             )}
@@ -383,14 +383,14 @@ export default function BetSlip() {
                 disabled={totalStake === 0 || isPlacingBets}
                 className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-6 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isPlacingBets ? 'Placing Bets...' : 'Place Bet'}
+                {isPlacingBets ? 'Making Picks...' : 'Make Pick'}
               </Button>
             ) : (
               <Button
                 onClick={() => navigate('/login')}
                 className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-6 text-lg"
               >
-                Log In to Place Bet
+                Log In to Make Pick
               </Button>
             )}
           </>

@@ -68,12 +68,12 @@ export default function Index() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Trophy className="h-8 w-8 text-green-500" />
-            <h1 className="text-4xl font-bold text-white">Sports Betting</h1>
+            <h1 className="text-4xl font-bold text-white">Sports Prediction</h1>
           </div>
           <p className="text-gray-400">
             {games.length === 0 
               ? 'No games available at the moment.' 
-              : `${games.length} ${games.length === 1 ? 'game' : 'games'} available for betting`}
+              : `${games.length} ${games.length === 1 ? 'game' : 'games'} available for prediction`}
           </p>
         </div>
 

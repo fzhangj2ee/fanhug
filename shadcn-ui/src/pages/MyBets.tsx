@@ -72,12 +72,12 @@ export default function MyBets() {
   return (
     <div className="min-h-screen bg-[#0d0f10]">
       <div className="py-6">
-        <h1 className="text-3xl font-bold text-white mb-6">My Bets</h1>
+        <h1 className="text-3xl font-bold text-white mb-6">My Picks</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <Card className="bg-[#1a1d1f] border-[#2a2d2f]">
             <CardContent className="p-4">
-              <p className="text-[#b1bad3] text-sm mb-1">Total Bets</p>
+              <p className="text-[#b1bad3] text-sm mb-1">Total Picks</p>
               <p className="text-white text-2xl font-bold">{placedBets.length}</p>
             </CardContent>
           </Card>
@@ -106,7 +106,7 @@ export default function MyBets() {
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Clock className="h-5 w-5 text-yellow-500" />
-                Pending Bets ({pendingBets.length})
+                Pending Picks ({pendingBets.length})
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -160,13 +160,13 @@ export default function MyBets() {
         <Card className="bg-[#1a1d1f] border-[#2a2d2f]">
           <CardHeader>
             <CardTitle className="text-white">
-              Bet History ({settledBets.length})
+              Pick History ({settledBets.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {settledBets.length === 0 ? (
               <p className="text-[#b1bad3] text-center py-8">
-                No settled bets yet
+                No settled picks yet
               </p>
             ) : (
               settledBets.map((bet) => (

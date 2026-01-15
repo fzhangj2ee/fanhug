@@ -40,13 +40,13 @@ export default function LiveBetting() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Activity className="h-8 w-8 text-[#FF3B30]" />
-            <h1 className="text-4xl font-bold text-white">Live Betting</h1>
+            <h1 className="text-4xl font-bold text-white">Live Prediction</h1>
             <Badge className="bg-[#FF3B30] text-white">
               <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-2" />
               {displayGames.length} Live
             </Badge>
           </div>
-          <p className="text-[#8B949E]">Watch odds change in real-time and place your bets</p>
+          <p className="text-[#8B949E]">Watch odds change in real-time and make your picks</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -72,7 +72,7 @@ export default function LiveBetting() {
               <div className="text-center py-12">
                 <Activity className="h-16 w-16 text-[#2A2F36] mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-white mb-2">No Live Games</h3>
-                <p className="text-[#8B949E]">Check back soon for live betting opportunities</p>
+                <p className="text-[#8B949E]">Check back soon for live prediction opportunities</p>
               </div>
             )}
           </div>

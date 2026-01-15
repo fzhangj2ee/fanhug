@@ -82,7 +82,7 @@ export default function Navbar() {
                     : 'text-gray-400 hover:text-white hover:bg-gray-800'
                 }`}
               >
-                My Bets
+                My Picks
               </Button>
               <Button
                 variant="ghost"

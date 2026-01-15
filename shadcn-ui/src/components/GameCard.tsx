@@ -59,13 +59,13 @@ export default function GameCard({ game }: GameCardProps) {
     return oddsChanges.get(key);
   };
 
-  const handleBetClick = (
+  const handlePickClick = (
     betType: 'home' | 'away' | 'spread-home' | 'spread-away' | 'over' | 'under',
     odds: number,
     value?: number
   ) => {
     if (!user) {
-      toast.error('Please login to place bets', {
+      toast.error('Please login to make picks', {
         action: {
           label: 'Login',
           onClick: () => navigate('/login'),
@@ -87,7 +87,7 @@ export default function GameCard({ game }: GameCardProps) {
     const isIncreasing = change?.direction === 'up';
     const isDecreasing = change?.direction === 'down';
 
-    // Format the value display based on bet type
+    // Format the value display based on pick type
     let displayValue = '';
     if (value !== undefined) {
       if (betType === 'over') {
@@ -101,7 +101,7 @@ export default function GameCard({ game }: GameCardProps) {
 
     return (
       <button
-        onClick={() => handleBetClick(betType, odds, value)}
+        onClick={() => handlePickClick(betType, odds, value)}
         className={cn(
           'flex flex-col items-center justify-center px-2 bg-[#1a1d1f] hover:bg-[#2a2d2f] transition-all duration-200 w-full relative group h-[60px]',
           isIncreasing && 'border-green-500/30 bg-green-500/5',
@@ -158,7 +158,7 @@ export default function GameCard({ game }: GameCardProps) {
           )}
         </div>
 
-        {/* Betting Odds Header Row - Full Width */}
+        {/* Prediction Odds Header Row - Full Width */}
         <div className="grid grid-cols-4 border-b border-gray-700">
           <div className="bg-[#0d0f10]"></div>
           <div className="text-center py-1.5 bg-[#0d0f10] border-l border-gray-700">

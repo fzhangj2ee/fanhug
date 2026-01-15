@@ -130,7 +130,7 @@ export default function Signup() {
   return (
     <AuthForm
       title="Create Account"
-      description="Sign up to start betting on your favorite sports"
+      description="Sign up to start making picks on your favorite sports"
       error={authError || undefined}
     >
       {/* Social Signup Buttons */}
