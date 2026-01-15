@@ -43,6 +43,7 @@ export async function signInWithOAuth(provider: Provider) {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
+      // Use relative path to preserve the current domain
       redirectTo: `${window.location.origin}/auth/callback`,
     },
   });
@@ -58,6 +59,7 @@ export async function signOut() {
 
 export async function resetPassword(email: string) {
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    // Use relative path to preserve the current domain
     redirectTo: `${window.location.origin}/update-password`,
   });
 
