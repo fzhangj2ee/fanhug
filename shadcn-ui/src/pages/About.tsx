@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Shield, TrendingUp, Users, Sparkles, AlertTriangle } from 'lucide-react';
+import { Shield, TrendingUp, Users, Sparkles, Bell } from 'lucide-react';
 
 export default function About() {
   const navigate = useNavigate();
@@ -114,11 +114,11 @@ export default function About() {
           </Card>
 
           {/* Benefit 5: Wake Up Call */}
-          <Card className="border-gray-700 bg-gray-800/50 backdrop-blur hover:border-red-500/50 transition-colors md:col-span-2">
+          <Card className="border-gray-700 bg-gray-800/50 backdrop-blur hover:border-yellow-500/50 transition-colors md:col-span-2">
             <CardHeader>
               <CardTitle className="text-xl font-bold text-white flex items-center gap-3">
-                <div className="p-3 bg-red-500/10 rounded-lg">
-                  <AlertTriangle className="h-6 w-6 text-red-500" />
+                <div className="p-3 bg-yellow-500/10 rounded-lg">
+                  <Bell className="h-6 w-6 text-yellow-500" />
                 </div>
                 A Wake Up Call
               </CardTitle>
