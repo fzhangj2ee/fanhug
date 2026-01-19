@@ -47,17 +47,27 @@ export function BettingProvider({ children }: { children: ReactNode }) {
   const [recentlyPlacedBets, setRecentlyPlacedBets] = useState<BetSlipItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Check if current user is admin
+  const isAdmin = user?.email === 'fzhangj2ee@gmail.com';
+
   // Load bets from Supabase
   const loadBetsFromSupabase = useCallback(async () => {
     if (!user) return;
     
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('bets')
         .select('*')
-        .eq('user_id', user.id)
         .order('placed_at', { ascending: false });
+      
+      // If not admin, filter by user_id
+      // If admin, load ALL bets
+      if (!isAdmin) {
+        query = query.eq('user_id', user.id);
+      }
+      
+      const { data, error } = await query;
       
       if (error) {
         console.error('Error loading bets:', error);
@@ -79,13 +89,13 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       }));
       
       setAllPlacedBets(bets);
-      console.log('Loaded bets from Supabase:', bets.length);
+      console.log(`Loaded ${bets.length} bets from Supabase${isAdmin ? ' (ADMIN - ALL USERS)' : ' (current user only)'}`);
     } catch (error) {
       console.error('Error loading bets:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user, isAdmin]);
 
   // Save bet to Supabase
   const saveBetToSupabase = async (bet: PlacedBet) => {
@@ -263,8 +273,8 @@ export function BettingProvider({ children }: { children: ReactNode }) {
             payout: won ? payout : undefined,
           });
           
-          // Update wallet for winning bets
-          if (won) {
+          // Update wallet for winning bets (only for the bet owner)
+          if (won && bet.userId === user.id) {
             addFunds(payout);
             toast.success(`Bet won! +$${payout.toFixed(2)} added to your balance`);
           }
