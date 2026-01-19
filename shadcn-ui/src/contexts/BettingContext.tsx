@@ -48,9 +48,6 @@ export function BettingProvider({ children }: { children: ReactNode }) {
   const [recentlyPlacedBets, setRecentlyPlacedBets] = useState<BetSlipItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Check if current user is admin
-  const isAdmin = user?.email === 'fzhangj2ee@gmail.com';
-
   // Load bets from Supabase
   const loadBetsFromSupabase = useCallback(async () => {
     if (!user) {
@@ -58,14 +55,18 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       return;
     }
     
+    // CRITICAL FIX: Compute isAdmin INSIDE the callback to avoid stale closure
+    const isAdmin = user.email === 'fzhangj2ee@gmail.com';
+    
     setIsLoading(true);
     try {
       console.log('');
       console.log('🔄 ============================================');
-      console.log('🔄 LOADING BETS FROM SUPABASE');
+      console.log('🔄 LOADING BETS FROM SUPABASE - VERSION 4');
       console.log('🔄 ============================================');
       console.log('👤 Current user email:', user.email);
       console.log('🆔 Current user ID:', user.id);
+      console.log('🔍 Admin check: user.email === "fzhangj2ee@gmail.com"');
       console.log('👑 Is Admin:', isAdmin);
       console.log('');
       
@@ -144,7 +145,7 @@ export function BettingProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [user, isAdmin]);
+  }, [user]);
 
   // Save bet to Supabase
   const saveBetToSupabase = async (bet: PlacedBet) => {
