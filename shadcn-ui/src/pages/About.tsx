@@ -1,159 +1,148 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Shield, Users, TrendingUp, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Shield, TrendingUp, Users, Sparkles, Bell } from 'lucide-react';
 
 export default function About() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-950 p-6">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gray-950 pt-8 pb-16">
+      <div className="max-w-6xl mx-auto px-4">
         {/* Hero Section */}
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-white">About FanHug</h1>
-          <p className="text-xl text-gray-300">
-            The Future of Sports Prediction - Safe, Fun, and Free
+        <div className="text-center mb-12">
+          <div className="flex justify-center mb-6">
+            <img 
+              src="/images/FanHug.png" 
+              alt="FanHug Logo" 
+              className="h-32 w-auto"
+            />
+          </div>
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            Experience the thrill of sports prediction without the risks. FanHug offers a safe, 
+            fun, and ethical way to engage with your favorite sports using play money.
           </p>
         </div>
 
-        {/* Mission Statement */}
-        <Card className="border-gray-700 bg-gray-800/50 backdrop-blur">
-          <CardHeader>
-            <CardTitle className="text-2xl text-white">Our Mission</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-gray-300 text-lg">
-              FanHug is revolutionizing sports prediction by providing a completely free, 
-              risk-free platform where fans can enjoy the thrill of predicting game outcomes 
-              without the dangers of real-money gambling.
-            </p>
-            <p className="text-gray-300">
-              We believe sports should bring people together, not tear them apart through 
-              gambling addiction and financial loss. That's why we created a platform that 
-              captures all the excitement of sports prediction while eliminating the risks.
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Key Features Grid */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card className="border-gray-700 bg-gray-800/50 backdrop-blur">
+        {/* Benefits Grid */}
+        <div className="grid md:grid-cols-2 gap-6 mb-12">
+          {/* Benefit 1: Remove Stress */}
+          <Card className="border-gray-700 bg-gray-800/50 backdrop-blur hover:border-green-500/50 transition-colors">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Shield className="h-6 w-6 text-green-500" />
-                100% Safe & Free
+              <CardTitle className="text-xl font-bold text-white flex items-center gap-3">
+                <div className="p-3 bg-green-500/10 rounded-lg">
+                  <Shield className="h-6 w-6 text-green-500" />
+                </div>
+                Remove Stress Watching Games
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-gray-300">
-                No real money, no risk, no addiction. Just pure sports prediction fun with 
-                virtual currency. Perfect for learning and entertainment without any financial danger.
+            <CardContent className="text-gray-300 space-y-2">
+              <p>
+                Enjoy sports without the anxiety of real money at stake. Watch games for pure 
+                entertainment and passion, not financial pressure.
+              </p>
+              <p className="text-sm text-gray-400">
+                No more sleepless nights worrying about your picks. Just pure, stress-free fun.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-gray-700 bg-gray-800/50 backdrop-blur">
+          {/* Benefit 2: No Impact on Real Games */}
+          <Card className="border-gray-700 bg-gray-800/50 backdrop-blur hover:border-green-500/50 transition-colors">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Users className="h-6 w-6 text-blue-500" />
-                Community Driven
+              <CardTitle className="text-xl font-bold text-white flex items-center gap-3">
+                <div className="p-3 bg-green-500/10 rounded-lg">
+                  <TrendingUp className="h-6 w-6 text-green-500" />
+                </div>
+                No Impact on Real Games
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-gray-300">
-                Join a community of sports fans who love the game. Compete on leaderboards, 
-                share strategies, and enjoy friendly competition without the toxic environment 
-                of real-money gambling.
+            <CardContent className="text-gray-300 space-y-2">
+              <p>
+                Real money betting, especially large amounts, can influence game outcomes and 
+                corrupt the integrity of sports.
+              </p>
+              <p className="text-sm text-gray-400">
+                Play-money prediction keeps games pure, fair, and free from the corruption that 
+                comes with high-stakes gambling.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-gray-700 bg-gray-800/50 backdrop-blur">
+          {/* Benefit 3: Fan Hug Over Fan Duel */}
+          <Card className="border-gray-700 bg-gray-800/50 backdrop-blur hover:border-green-500/50 transition-colors">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <TrendingUp className="h-6 w-6 text-purple-500" />
-                Real-Time Action
+              <CardTitle className="text-xl font-bold text-white flex items-center gap-3">
+                <div className="p-3 bg-green-500/10 rounded-lg">
+                  <Users className="h-6 w-6 text-green-500" />
+                </div>
+                Fan Hug Over Fan Duel
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-gray-300">
-                Live odds updates, in-game predictions, and instant results. Experience all 
-                the excitement of sports prediction with real-time data from professional 
-                sports leagues.
+            <CardContent className="text-gray-300 space-y-2">
+              <p>
+                We promote community and fun over gambling addiction. Build a supportive 
+                community of sports fans who love the game.
+              </p>
+              <p className="text-sm text-gray-400">
+                No pressure, no addiction, just pure fun. We want to see fans hugging, not 
+                dueling with their wallets.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-yellow-500/50 bg-yellow-500/5 backdrop-blur">
+          {/* Benefit 4: Support Clean Sportsmanship */}
+          <Card className="border-gray-700 bg-gray-800/50 backdrop-blur hover:border-green-500/50 transition-colors">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Bell className="h-6 w-6 text-yellow-500" />
+              <CardTitle className="text-xl font-bold text-white flex items-center gap-3">
+                <div className="p-3 bg-green-500/10 rounded-lg">
+                  <Sparkles className="h-6 w-6 text-green-500" />
+                </div>
+                Help Professional Players Play Clean Games
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-gray-300 space-y-2">
+              <p>
+                By choosing play-money prediction, you're supporting real sportsmanship and ethics 
+                in professional sports. Keep sports integrity intact.
+              </p>
+              <p className="text-sm text-gray-400">
+                When prediction doesn't involve real money that could influence outcomes, athletes 
+                can focus on what matters: playing their best and competing fairly.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Benefit 5: Wake Up Call */}
+          <Card className="border-gray-700 bg-gray-800/50 backdrop-blur hover:border-yellow-500/50 transition-colors md:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-xl font-bold text-white flex items-center gap-3">
+                <div className="p-3 bg-yellow-500/10 rounded-lg">
+                  <Bell className="h-6 w-6 text-yellow-500" />
+                </div>
                 A Wake Up Call
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-gray-300">
+            <CardContent className="text-gray-300 space-y-2">
+              <p>
                 Evil controls the world by dividing us and turning us against one another. Even sports—meant to unite fans—are twisted into arenas of rivalry and greed. Betting is encouraged, games are manipulated, and suffering spreads far beyond the field. It is time to take back control, restore integrity, and return sports to clean, fair competition.
               </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Why FanHug Section */}
-        <Card className="border-gray-700 bg-gray-800/50 backdrop-blur">
-          <CardHeader>
-            <CardTitle className="text-2xl text-white">Why Choose FanHug?</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                <p className="text-gray-300">
-                  <strong className="text-white">Zero Financial Risk:</strong> Never worry about 
-                  losing money or developing gambling problems.
-                </p>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                <p className="text-gray-300">
-                  <strong className="text-white">Learn & Improve:</strong> Practice your sports 
-                  knowledge and prediction skills in a safe environment.
-                </p>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                <p className="text-gray-300">
-                  <strong className="text-white">Always Free:</strong> No subscriptions, no hidden 
-                  fees, no pressure to spend money.
-                </p>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                <p className="text-gray-300">
-                  <strong className="text-white">Family Friendly:</strong> A platform that promotes 
-                  healthy sports fandom without the dangers of gambling.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* CTA Section */}
-        <Card className="border-green-500/50 bg-green-500/5 backdrop-blur">
-          <CardContent className="pt-6 text-center space-y-4">
-            <h3 className="text-2xl font-bold text-white">Ready to Get Started?</h3>
-            <p className="text-gray-300 text-lg">
-              Join thousands of sports fans enjoying risk-free prediction fun!
-            </p>
-            <Button
-              onClick={() => navigate('/signup')}
-              className="bg-green-500 hover:bg-green-600 text-black font-bold text-lg px-8 py-6"
-            >
-              Start Making Picks for Free
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Call to Action */}
+        <div className="text-center space-y-6">
+          <Button
+            onClick={() => navigate('/')}
+            className="bg-green-500 hover:bg-green-600 text-black font-bold text-xl px-12 py-8"
+          >
+            Start Making Picks for Free
+          </Button>
+          <p className="text-gray-500 text-sm">
+            No credit card required. No real money. Just pure fun.
+          </p>
+        </div>
       </div>
     </div>
   );
