@@ -35,6 +35,7 @@ interface BettingContextType {
   clearBetSlip: () => void;
   getAllUserBets: (userId: string) => PlacedBet[];
   gradePendingBets: () => Promise<void>;
+  allPlacedBets: PlacedBet[]; // Expose for admin
 }
 
 const BettingContext = createContext<BettingContextType | undefined>(undefined);
@@ -56,6 +57,10 @@ export function BettingProvider({ children }: { children: ReactNode }) {
     
     setIsLoading(true);
     try {
+      console.log('=== LOADING BETS FROM SUPABASE ===');
+      console.log('Current user:', user.email, 'ID:', user.id);
+      console.log('Is Admin:', isAdmin);
+      
       let query = supabase
         .from('bets')
         .select('*')
@@ -64,7 +69,10 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       // If not admin, filter by user_id
       // If admin, load ALL bets
       if (!isAdmin) {
+        console.log('Loading bets for current user only');
         query = query.eq('user_id', user.id);
+      } else {
+        console.log('ADMIN MODE: Loading ALL bets from ALL users');
       }
       
       const { data, error } = await query;
@@ -72,6 +80,11 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       if (error) {
         console.error('Error loading bets:', error);
         return;
+      }
+      
+      console.log('Raw data from Supabase:', data?.length, 'bets');
+      if (data && data.length > 0) {
+        console.log('Sample bet user_ids:', data.slice(0, 5).map(b => b.user_id));
       }
       
       const bets: PlacedBet[] = (data || []).map(bet => ({
@@ -89,7 +102,12 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       }));
       
       setAllPlacedBets(bets);
-      console.log(`Loaded ${bets.length} bets from Supabase${isAdmin ? ' (ADMIN - ALL USERS)' : ' (current user only)'}`);
+      
+      // Get unique user IDs
+      const uniqueUserIds = [...new Set(bets.map(b => b.userId))];
+      console.log(`Loaded ${bets.length} bets from ${uniqueUserIds.length} unique users`);
+      console.log('Unique user IDs:', uniqueUserIds);
+      console.log('=== END LOADING BETS ===');
     } catch (error) {
       console.error('Error loading bets:', error);
     } finally {
@@ -514,6 +532,7 @@ export function BettingProvider({ children }: { children: ReactNode }) {
     clearBetSlip,
     getAllUserBets,
     gradePendingBets,
+    allPlacedBets: Array.isArray(allPlacedBets) ? allPlacedBets : [],
   };
 
   return <BettingContext.Provider value={value}>{children}</BettingContext.Provider>;

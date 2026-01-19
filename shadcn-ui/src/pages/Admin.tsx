@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useBetting } from '@/contexts/BettingContext';
 import { useMessages } from '@/contexts/MessagesContext';
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import PlayMoney from '@/components/PlayMoney';
 
 interface UserStats {
+  userId: string;
   email: string;
   balance: number;
   totalBets: number;
@@ -35,45 +36,79 @@ interface Message {
 }
 
 export default function Admin() {
-  const { user, users } = useAuth();
-  const { getAllUserBets } = useBetting();
+  const { user, users: authUsers } = useAuth();
+  const { getAllUserBets, allPlacedBets } = useBetting();
   const { messages, unreadCount, markAsRead } = useMessages();
   const navigate = useNavigate();
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
 
+  // Get unique user IDs from all bets
+  const uniqueUserIds = useMemo(() => {
+    const ids = [...new Set(allPlacedBets.map(bet => bet.userId))];
+    console.log('Unique user IDs from bets:', ids);
+    return ids;
+  }, [allPlacedBets]);
+
+  // Create a map of user IDs to emails from auth users
+  const userIdToEmailMap = useMemo(() => {
+    const map = new Map<string, string>();
+    authUsers.forEach(u => {
+      if (u.id && u.email) {
+        map.set(u.id, u.email);
+      }
+    });
+    console.log('User ID to Email map:', Array.from(map.entries()));
+    return map;
+  }, [authUsers]);
+
+  // Calculate stats for each user who has placed bets
+  const userStats: UserStats[] = useMemo(() => {
+    const stats = uniqueUserIds.map((userId) => {
+      const userBets = getAllUserBets(userId);
+      const wins = userBets.filter(bet => bet.status === 'won').length;
+      const losses = userBets.filter(bet => bet.status === 'lost').length;
+      const pending = userBets.filter(bet => bet.status === 'pending').length;
+      const totalWagered = userBets.reduce((sum, bet) => sum + bet.stake, 0);
+      const totalWon = userBets
+        .filter(bet => bet.status === 'won')
+        .reduce((sum, bet) => sum + (bet.payout || 0), 0);
+      const netProfit = totalWon - userBets.filter(bet => bet.status === 'lost').reduce((sum, bet) => sum + bet.stake, 0);
+
+      // Try to get email from auth users, otherwise use user ID
+      const email = userIdToEmailMap.get(userId) || `User ${userId.substring(0, 8)}...`;
+
+      return {
+        userId,
+        email,
+        balance: 0,
+        totalBets: userBets.length,
+        wins,
+        losses,
+        pending,
+        totalWagered,
+        totalWon,
+        netProfit,
+      };
+    });
+
+    console.log('User stats calculated:', stats);
+    return stats;
+  }, [uniqueUserIds, getAllUserBets, userIdToEmailMap]);
+
+  // Check admin access after all hooks
   if (!user || user.email !== 'fzhangj2ee@gmail.com') {
     navigate('/');
     return null;
   }
 
-  const userStats: UserStats[] = users.map((u) => {
-    const userBets = getAllUserBets(u.id);
-    const wins = userBets.filter(bet => bet.status === 'won').length;
-    const losses = userBets.filter(bet => bet.status === 'lost').length;
-    const pending = userBets.filter(bet => bet.status === 'pending').length;
-    const totalWagered = userBets.reduce((sum, bet) => sum + bet.stake, 0);
-    const totalWon = userBets
-      .filter(bet => bet.status === 'won')
-      .reduce((sum, bet) => sum + (bet.payout || 0), 0);
-    const netProfit = totalWon - userBets.filter(bet => bet.status === 'lost').reduce((sum, bet) => sum + bet.stake, 0);
+  console.log('=== ADMIN PAGE DEBUG ===');
+  console.log('Current user:', user.email, 'ID:', user.id);
+  console.log('Total bets loaded:', allPlacedBets.length);
+  console.log('Auth users list:', authUsers.length);
 
-    return {
-      email: u.email || '',
-      balance: 0,
-      totalBets: userBets.length,
-      wins,
-      losses,
-      pending,
-      totalWagered,
-      totalWon,
-      netProfit,
-    };
-  });
-
-  const selectedUserData = selectedUser ? users.find(u => u.email === selectedUser) : null;
-  const selectedUserBets = selectedUserData ? getAllUserBets(selectedUserData.id) : [];
-  const selectedUserStats = userStats.find(s => s.email === selectedUser);
+  const selectedUserBets = selectedUserId ? getAllUserBets(selectedUserId) : [];
+  const selectedUserStats = userStats.find(s => s.userId === selectedUserId);
 
   const formatOdds = (odds: number) => {
     if (odds >= 2.0) {
@@ -106,13 +141,13 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-[#0d0f10]">
       <div className="container mx-auto px-4 py-6">
-        {!selectedUser ? (
+        {!selectedUserId ? (
           <Tabs defaultValue="users" className="w-full">
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
               <TabsList className="bg-[#1a1d1f]">
                 <TabsTrigger value="users" className="data-[state=active]:bg-[#2a2d2f]">
-                  Users
+                  Users ({userStats.length})
                 </TabsTrigger>
                 <TabsTrigger value="messages" className="data-[state=active]:bg-[#2a2d2f]">
                   Messages
@@ -128,39 +163,45 @@ export default function Admin() {
             <TabsContent value="users">
               <Card className="bg-[#1a1d1f] border-[#2a2d2f]">
                 <CardHeader>
-                  <CardTitle className="text-white">All Users</CardTitle>
+                  <CardTitle className="text-white">All Users with Bets</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-[#2a2d2f] hover:bg-[#2a2d2f]">
-                        <TableHead className="text-[#b1bad3]">Email</TableHead>
-                        <TableHead className="text-[#b1bad3]">Total Bets</TableHead>
-                        <TableHead className="text-[#b1bad3]">Wins</TableHead>
-                        <TableHead className="text-[#b1bad3]">Losses</TableHead>
-                        <TableHead className="text-[#b1bad3]">Pending</TableHead>
-                        <TableHead className="text-[#b1bad3]">Net Profit</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {userStats.map((stats) => (
-                        <TableRow
-                          key={stats.email}
-                          className="border-[#2a2d2f] hover:bg-[#2a2d2f] cursor-pointer"
-                          onClick={() => setSelectedUser(stats.email)}
-                        >
-                          <TableCell className="text-white font-medium">{stats.email}</TableCell>
-                          <TableCell className="text-white">{stats.totalBets}</TableCell>
-                          <TableCell className="text-green-400">{stats.wins}</TableCell>
-                          <TableCell className="text-red-400">{stats.losses}</TableCell>
-                          <TableCell className="text-yellow-400">{stats.pending}</TableCell>
-                          <TableCell className={stats.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}>
-                            <PlayMoney amount={stats.netProfit} />
-                          </TableCell>
+                  {userStats.length === 0 ? (
+                    <div className="text-center py-8 text-[#b1bad3]">
+                      No users have placed bets yet
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-[#2a2d2f] hover:bg-[#2a2d2f]">
+                          <TableHead className="text-[#b1bad3]">Email / User ID</TableHead>
+                          <TableHead className="text-[#b1bad3]">Total Bets</TableHead>
+                          <TableHead className="text-[#b1bad3]">Wins</TableHead>
+                          <TableHead className="text-[#b1bad3]">Losses</TableHead>
+                          <TableHead className="text-[#b1bad3]">Pending</TableHead>
+                          <TableHead className="text-[#b1bad3]">Net Profit</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {userStats.map((stats) => (
+                          <TableRow
+                            key={stats.userId}
+                            className="border-[#2a2d2f] hover:bg-[#2a2d2f] cursor-pointer"
+                            onClick={() => setSelectedUserId(stats.userId)}
+                          >
+                            <TableCell className="text-white font-medium">{stats.email}</TableCell>
+                            <TableCell className="text-white">{stats.totalBets}</TableCell>
+                            <TableCell className="text-green-400">{stats.wins}</TableCell>
+                            <TableCell className="text-red-400">{stats.losses}</TableCell>
+                            <TableCell className="text-yellow-400">{stats.pending}</TableCell>
+                            <TableCell className={stats.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}>
+                              <PlayMoney amount={stats.netProfit} />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -228,14 +269,14 @@ export default function Admin() {
           <>
             <div className="flex items-center gap-4 mb-6">
               <Button
-                onClick={() => setSelectedUser(null)}
+                onClick={() => setSelectedUserId(null)}
                 variant="ghost"
                 className="text-white hover:bg-[#1a1d1f]"
               >
                 <ChevronLeft className="h-4 w-4 mr-2" />
                 Back to Users
               </Button>
-              <h1 className="text-3xl font-bold text-white">User Details: {selectedUser}</h1>
+              <h1 className="text-3xl font-bold text-white">User Details: {selectedUserStats?.email}</h1>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
