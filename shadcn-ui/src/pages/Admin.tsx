@@ -43,29 +43,59 @@ export default function Admin() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
 
+  console.log('');
+  console.log('🎯 ============================================');
+  console.log('🎯 ADMIN PAGE RENDER');
+  console.log('🎯 ============================================');
+  console.log('👤 Current user:', user?.email, 'ID:', user?.id);
+  console.log('📊 allPlacedBets from context:', allPlacedBets.length, 'bets');
+  console.log('👥 authUsers from context:', authUsers.length, 'users');
+
   // Get unique user IDs from all bets
   const uniqueUserIds = useMemo(() => {
+    console.log('');
+    console.log('🔍 Computing uniqueUserIds...');
+    console.log('🔍 Input allPlacedBets:', allPlacedBets.length);
+    
+    if (allPlacedBets.length > 0) {
+      console.log('🔍 Sample bets:', allPlacedBets.slice(0, 5).map(b => ({
+        id: b.id.substring(0, 8),
+        userId: b.userId,
+        game: `${b.game.homeTeam} vs ${b.game.awayTeam}`
+      })));
+    }
+    
     const ids = [...new Set(allPlacedBets.map(bet => bet.userId))];
-    console.log('Unique user IDs from bets:', ids);
+    console.log('🔍 Unique user IDs extracted:', ids);
+    console.log('🔍 Number of unique users:', ids.length);
     return ids;
   }, [allPlacedBets]);
 
   // Create a map of user IDs to emails from auth users
   const userIdToEmailMap = useMemo(() => {
+    console.log('');
+    console.log('📧 Computing userIdToEmailMap...');
     const map = new Map<string, string>();
     authUsers.forEach(u => {
       if (u.id && u.email) {
         map.set(u.id, u.email);
+        console.log('📧 Mapped:', u.id, '->', u.email);
       }
     });
-    console.log('User ID to Email map:', Array.from(map.entries()));
+    console.log('📧 Total mappings:', map.size);
     return map;
   }, [authUsers]);
 
   // Calculate stats for each user who has placed bets
   const userStats: UserStats[] = useMemo(() => {
+    console.log('');
+    console.log('📈 Computing userStats...');
+    console.log('📈 Processing', uniqueUserIds.length, 'unique users');
+    
     const stats = uniqueUserIds.map((userId) => {
       const userBets = getAllUserBets(userId);
+      console.log('📈 User', userId, ':', userBets.length, 'bets');
+      
       const wins = userBets.filter(bet => bet.status === 'won').length;
       const losses = userBets.filter(bet => bet.status === 'lost').length;
       const pending = userBets.filter(bet => bet.status === 'pending').length;
@@ -77,6 +107,14 @@ export default function Admin() {
 
       // Try to get email from auth users, otherwise use user ID
       const email = userIdToEmailMap.get(userId) || `User ${userId.substring(0, 8)}...`;
+      
+      console.log('📈 Stats for', email, ':', {
+        totalBets: userBets.length,
+        wins,
+        losses,
+        pending,
+        netProfit
+      });
 
       return {
         userId,
@@ -92,7 +130,9 @@ export default function Admin() {
       };
     });
 
-    console.log('User stats calculated:', stats);
+    console.log('📈 Final userStats array length:', stats.length);
+    console.log('🎯 ============================================');
+    console.log('');
     return stats;
   }, [uniqueUserIds, getAllUserBets, userIdToEmailMap]);
 
@@ -101,11 +141,6 @@ export default function Admin() {
     navigate('/');
     return null;
   }
-
-  console.log('=== ADMIN PAGE DEBUG ===');
-  console.log('Current user:', user.email, 'ID:', user.id);
-  console.log('Total bets loaded:', allPlacedBets.length);
-  console.log('Auth users list:', authUsers.length);
 
   const selectedUserBets = selectedUserId ? getAllUserBets(selectedUserId) : [];
   const selectedUserStats = userStats.find(s => s.userId === selectedUserId);

@@ -53,13 +53,21 @@ export function BettingProvider({ children }: { children: ReactNode }) {
 
   // Load bets from Supabase
   const loadBetsFromSupabase = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('❌ loadBetsFromSupabase: No user, returning early');
+      return;
+    }
     
     setIsLoading(true);
     try {
-      console.log('=== LOADING BETS FROM SUPABASE ===');
-      console.log('Current user:', user.email, 'ID:', user.id);
-      console.log('Is Admin:', isAdmin);
+      console.log('');
+      console.log('🔄 ============================================');
+      console.log('🔄 LOADING BETS FROM SUPABASE');
+      console.log('🔄 ============================================');
+      console.log('👤 Current user email:', user.email);
+      console.log('🆔 Current user ID:', user.id);
+      console.log('👑 Is Admin:', isAdmin);
+      console.log('');
       
       let query = supabase
         .from('bets')
@@ -69,22 +77,37 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       // If not admin, filter by user_id
       // If admin, load ALL bets
       if (!isAdmin) {
-        console.log('Loading bets for current user only');
+        console.log('🔒 REGULAR USER MODE: Filtering by user_id =', user.id);
         query = query.eq('user_id', user.id);
       } else {
-        console.log('ADMIN MODE: Loading ALL bets from ALL users');
+        console.log('👑 ADMIN MODE: Loading ALL bets from ALL users (NO FILTER)');
       }
       
+      console.log('📡 Executing Supabase query...');
       const { data, error } = await query;
       
       if (error) {
-        console.error('Error loading bets:', error);
+        console.error('❌ Error loading bets from Supabase:', error);
         return;
       }
       
-      console.log('Raw data from Supabase:', data?.length, 'bets');
+      console.log('');
+      console.log('📊 SUPABASE QUERY RESULTS:');
+      console.log('📊 Total bets returned:', data?.length || 0);
+      
       if (data && data.length > 0) {
-        console.log('Sample bet user_ids:', data.slice(0, 5).map(b => b.user_id));
+        console.log('📊 First 10 bet user_ids:', data.slice(0, 10).map(b => ({
+          bet_id: b.id.substring(0, 8),
+          user_id: b.user_id,
+          game: `${b.game_data?.homeTeam} vs ${b.game_data?.awayTeam}`
+        })));
+        
+        // Show ALL unique user IDs in the raw data
+        const rawUserIds = [...new Set(data.map(b => b.user_id))];
+        console.log('📊 Unique user IDs in raw data:', rawUserIds);
+        console.log('📊 Number of unique users:', rawUserIds.length);
+      } else {
+        console.log('⚠️ No bets returned from Supabase');
       }
       
       const bets: PlacedBet[] = (data || []).map(bet => ({
@@ -101,15 +124,23 @@ export function BettingProvider({ children }: { children: ReactNode }) {
         placedAt: new Date(bet.placed_at),
       }));
       
+      console.log('');
+      console.log('✅ Bets mapped to PlacedBet objects:', bets.length);
+      
       setAllPlacedBets(bets);
+      console.log('✅ allPlacedBets state updated');
       
       // Get unique user IDs
       const uniqueUserIds = [...new Set(bets.map(b => b.userId))];
-      console.log(`Loaded ${bets.length} bets from ${uniqueUserIds.length} unique users`);
-      console.log('Unique user IDs:', uniqueUserIds);
-      console.log('=== END LOADING BETS ===');
+      console.log('');
+      console.log('📈 FINAL STATISTICS:');
+      console.log('📈 Total bets loaded:', bets.length);
+      console.log('📈 Unique users with bets:', uniqueUserIds.length);
+      console.log('📈 User IDs:', uniqueUserIds);
+      console.log('🔄 ============================================');
+      console.log('');
     } catch (error) {
-      console.error('Error loading bets:', error);
+      console.error('❌ Exception in loadBetsFromSupabase:', error);
     } finally {
       setIsLoading(false);
     }
