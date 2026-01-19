@@ -30,33 +30,7 @@ export default function Donation() {
               <Card className="border-yellow-500/30 bg-yellow-500/5">
                 <CardContent className="pt-6">
                   <p className="text-gray-300 text-base">
-                    If you are a professional player and tired of the madness, please seriously consider donating to keep your sanity.
-                  </p>
-                </CardContent>
-              </Card>
-
-              {/* Monthly Cost Information */}
-              <Card className="border-green-500/30 bg-gray-900/50">
-                <CardContent className="pt-6">
-                  <h3 className="text-lg font-semibold text-white mb-3">Monthly Operational Costs</h3>
-                  <div className="space-y-2 text-gray-300">
-                    <div className="flex justify-between items-center">
-                      <span>Odds API:</span>
-                      <span className="font-semibold text-green-500">$119/month</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>MGX.dev tools subscription:</span>
-                      <span className="font-semibold text-green-500">$200/month</span>
-                    </div>
-                    <div className="border-t border-gray-700 pt-2 mt-2">
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold">Total:</span>
-                        <span className="font-bold text-green-500 text-lg">$319/month</span>
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-gray-400 text-sm mt-4 italic">
-                    Any donation helps us keep FanHug running and free for all users.
+                    If you are a professional player whose integrity has been impacted by real-money betting, we invite you to consider a donation to support our mission of restoring clean, fair sports.
                   </p>
                 </CardContent>
               </Card>
