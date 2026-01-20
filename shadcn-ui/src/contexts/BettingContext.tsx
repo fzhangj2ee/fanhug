@@ -1,4 +1,3 @@
-// Version: Admin dashboard fix - fetch all users' bets when admin is logged in (v274)
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { Game } from '@/types/betting';
 import { useAuth } from '@/hooks/useAuth';
@@ -36,7 +35,7 @@ interface BettingContextType {
   clearBetSlip: () => void;
   getAllUserBets: (userId: string) => PlacedBet[];
   gradePendingBets: () => Promise<void>;
-  allPlacedBets: PlacedBet[]; // Expose for admin
+  allPlacedBets: PlacedBet[];
 }
 
 const BettingContext = createContext<BettingContextType | undefined>(undefined);
@@ -49,24 +48,18 @@ export function BettingProvider({ children }: { children: ReactNode }) {
   const [recentlyPlacedBets, setRecentlyPlacedBets] = useState<BetSlipItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load bets from Supabase
+  // Load bets from Supabase - only current user's bets
   const loadBetsFromSupabase = useCallback(async () => {
     if (!user) return;
     
     setIsLoading(true);
     try {
-      // Check if user is admin
-      const isAdmin = user.email === 'fzhangj2ee@gmail.com';
-      
-      // Build query
-      let query = supabase.from('bets').select('*').order('placed_at', { ascending: false });
-      
-      // Only filter by user_id if NOT admin
-      if (!isAdmin) {
-        query = query.eq('user_id', user.id);
-      }
-      
-      const { data, error } = await query;
+      // Fetch only current user's bets
+      const { data, error } = await supabase
+        .from('bets')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('placed_at', { ascending: false });
       
       if (error) {
         console.error('Supabase error:', error);
@@ -89,10 +82,6 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       }));
       
       setAllPlacedBets(bets);
-      
-      // Single clear log statement
-      const uniqueUsers = [...new Set(bets.map(b => b.userId))];
-      console.log(`[BettingContext] Admin: ${isAdmin}, Records: ${bets.length}, Unique Users: ${uniqueUsers.length}, User IDs: ${JSON.stringify(uniqueUsers)}`);
     } catch (error) {
       console.error('Exception in loadBetsFromSupabase:', error);
     } finally {

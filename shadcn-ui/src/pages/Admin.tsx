@@ -1,6 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useBetting } from '@/contexts/BettingContext';
 import { useMessages } from '@/contexts/MessagesContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -11,6 +10,22 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Mail, MailOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PlayMoney from '@/components/PlayMoney';
+import { supabase } from '@/lib/supabase';
+import { Game } from '@/types/betting';
+
+interface PlacedBet {
+  id: string;
+  userId: string;
+  game: Game;
+  betType: 'home' | 'away' | 'spread-home' | 'spread-away' | 'over' | 'under';
+  odds: number;
+  stake: number;
+  spreadValue?: number;
+  totalValue?: number;
+  placedAt: Date;
+  status: 'pending' | 'won' | 'lost';
+  payout?: number;
+}
 
 interface UserStats {
   userId: string;
@@ -37,64 +52,88 @@ interface Message {
 
 export default function Admin() {
   const { user, users: authUsers } = useAuth();
-  const { getAllUserBets, allPlacedBets } = useBetting();
   const { messages, unreadCount, markAsRead } = useMessages();
   const navigate = useNavigate();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [allBets, setAllBets] = useState<PlacedBet[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  console.log('');
-  console.log('🎯 ============================================');
-  console.log('🎯 ADMIN PAGE RENDER');
-  console.log('🎯 ============================================');
-  console.log('👤 Current user:', user?.email, 'ID:', user?.id);
-  console.log('📊 allPlacedBets from context:', allPlacedBets.length, 'bets');
-  console.log('👥 authUsers from context:', authUsers.length, 'users');
+  // Fetch ALL bets from Supabase (admin only)
+  useEffect(() => {
+    const fetchAllBets = async () => {
+      if (!user || user.email !== 'fzhangj2ee@gmail.com') return;
+      
+      setIsLoading(true);
+      try {
+        console.log('🔍 [Admin] Fetching ALL bets from Supabase...');
+        
+        // Fetch ALL bets without user_id filter
+        const { data, error } = await supabase
+          .from('bets')
+          .select('*')
+          .order('placed_at', { ascending: false });
+        
+        if (error) {
+          console.error('❌ [Admin] Supabase error:', error);
+          return;
+        }
+        
+        // Map to PlacedBet objects
+        const bets: PlacedBet[] = (data || []).map(bet => ({
+          id: bet.id,
+          userId: bet.user_id,
+          game: bet.game_data as Game,
+          betType: bet.bet_type as PlacedBet['betType'],
+          odds: Number(bet.odds),
+          stake: Number(bet.stake),
+          spreadValue: bet.spread_value ? Number(bet.spread_value) : undefined,
+          totalValue: bet.total_value ? Number(bet.total_value) : undefined,
+          status: bet.status as PlacedBet['status'],
+          payout: bet.payout ? Number(bet.payout) : undefined,
+          placedAt: new Date(bet.placed_at),
+        }));
+        
+        setAllBets(bets);
+        
+        const uniqueUsers = [...new Set(bets.map(b => b.userId))];
+        console.log(`✅ [Admin] Fetched ${bets.length} bets from ${uniqueUsers.length} unique users`);
+        console.log(`✅ [Admin] User IDs: ${JSON.stringify(uniqueUsers)}`);
+      } catch (error) {
+        console.error('❌ [Admin] Exception fetching bets:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchAllBets();
+  }, [user]);
 
   // Get unique user IDs from all bets
   const uniqueUserIds = useMemo(() => {
-    console.log('');
-    console.log('🔍 Computing uniqueUserIds...');
-    console.log('🔍 Input allPlacedBets:', allPlacedBets.length);
-    
-    if (allPlacedBets.length > 0) {
-      console.log('🔍 Sample bets:', allPlacedBets.slice(0, 5).map(b => ({
-        id: b.id.substring(0, 8),
-        userId: b.userId,
-        game: `${b.game.homeTeam} vs ${b.game.awayTeam}`
-      })));
-    }
-    
-    const ids = [...new Set(allPlacedBets.map(bet => bet.userId))];
-    console.log('🔍 Unique user IDs extracted:', ids);
-    console.log('🔍 Number of unique users:', ids.length);
-    return ids;
-  }, [allPlacedBets]);
+    return [...new Set(allBets.map(bet => bet.userId))];
+  }, [allBets]);
 
   // Create a map of user IDs to emails from auth users
   const userIdToEmailMap = useMemo(() => {
-    console.log('');
-    console.log('📧 Computing userIdToEmailMap...');
     const map = new Map<string, string>();
     authUsers.forEach(u => {
       if (u.id && u.email) {
         map.set(u.id, u.email);
-        console.log('📧 Mapped:', u.id, '->', u.email);
       }
     });
-    console.log('📧 Total mappings:', map.size);
     return map;
   }, [authUsers]);
 
+  // Get bets for a specific user
+  const getUserBets = (userId: string): PlacedBet[] => {
+    return allBets.filter(bet => bet.userId === userId);
+  };
+
   // Calculate stats for each user who has placed bets
   const userStats: UserStats[] = useMemo(() => {
-    console.log('');
-    console.log('📈 Computing userStats...');
-    console.log('📈 Processing', uniqueUserIds.length, 'unique users');
-    
-    const stats = uniqueUserIds.map((userId) => {
-      const userBets = getAllUserBets(userId);
-      console.log('📈 User', userId, ':', userBets.length, 'bets');
+    return uniqueUserIds.map((userId) => {
+      const userBets = getUserBets(userId);
       
       const wins = userBets.filter(bet => bet.status === 'won').length;
       const losses = userBets.filter(bet => bet.status === 'lost').length;
@@ -107,14 +146,6 @@ export default function Admin() {
 
       // Try to get email from auth users, otherwise use user ID
       const email = userIdToEmailMap.get(userId) || `User ${userId.substring(0, 8)}...`;
-      
-      console.log('📈 Stats for', email, ':', {
-        totalBets: userBets.length,
-        wins,
-        losses,
-        pending,
-        netProfit
-      });
 
       return {
         userId,
@@ -129,12 +160,7 @@ export default function Admin() {
         netProfit,
       };
     });
-
-    console.log('📈 Final userStats array length:', stats.length);
-    console.log('🎯 ============================================');
-    console.log('');
-    return stats;
-  }, [uniqueUserIds, getAllUserBets, userIdToEmailMap]);
+  }, [uniqueUserIds, allBets, userIdToEmailMap]);
 
   // Check admin access after all hooks
   if (!user || user.email !== 'fzhangj2ee@gmail.com') {
@@ -142,7 +168,7 @@ export default function Admin() {
     return null;
   }
 
-  const selectedUserBets = selectedUserId ? getAllUserBets(selectedUserId) : [];
+  const selectedUserBets = selectedUserId ? getUserBets(selectedUserId) : [];
   const selectedUserStats = userStats.find(s => s.userId === selectedUserId);
 
   const formatOdds = (odds: number) => {
@@ -153,7 +179,7 @@ export default function Admin() {
     }
   };
 
-  const getBetDescription = (bet: typeof selectedUserBets[0]) => {
+  const getBetDescription = (bet: PlacedBet) => {
     const { betType, spreadValue, totalValue } = bet;
     
     if (betType === 'home') return bet.game.homeTeam;
@@ -201,7 +227,11 @@ export default function Admin() {
                   <CardTitle className="text-white">All Users with Bets</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {userStats.length === 0 ? (
+                  {isLoading ? (
+                    <div className="text-center py-8 text-[#b1bad3]">
+                      Loading bets...
+                    </div>
+                  ) : userStats.length === 0 ? (
                     <div className="text-center py-8 text-[#b1bad3]">
                       No users have placed bets yet
                     </div>
