@@ -50,97 +50,29 @@ export function BettingProvider({ children }: { children: ReactNode }) {
 
   // Load bets from Supabase
   const loadBetsFromSupabase = useCallback(async () => {
-    console.log('🚀 BettingContext VERSION 5 - EXTREME DEBUG MODE');
-    
-    if (!user) {
-      console.log('❌ loadBetsFromSupabase: No user, returning early');
-      return;
-    }
-    
-    // CRITICAL: Check admin status with extreme verbosity
-    console.log('');
-    console.log('🔍 ============================================');
-    console.log('🔍 ADMIN CHECK DETAILS');
-    console.log('🔍 ============================================');
-    console.log('🔍 user object:', user);
-    console.log('🔍 user.email type:', typeof user.email);
-    console.log('🔍 user.email value:', JSON.stringify(user.email));
-    console.log('🔍 Expected admin email:', JSON.stringify('fzhangj2ee@gmail.com'));
-    console.log('🔍 Strict equality (===):', user.email === 'fzhangj2ee@gmail.com');
-    console.log('🔍 Loose equality (==):', user.email == 'fzhangj2ee@gmail.com');
-    console.log('🔍 Email match (toLowerCase):', user.email?.toLowerCase() === 'fzhangj2ee@gmail.com');
-    
-    const isAdmin = user.email === 'fzhangj2ee@gmail.com';
-    console.log('🔍 Final isAdmin value:', isAdmin);
-    console.log('🔍 ============================================');
-    console.log('');
+    if (!user) return;
     
     setIsLoading(true);
     try {
-      console.log('🔄 ============================================');
-      console.log('🔄 LOADING BETS FROM SUPABASE');
-      console.log('🔄 ============================================');
-      console.log('👤 Current user email:', user.email);
-      console.log('🆔 Current user ID:', user.id);
-      console.log('👑 Is Admin:', isAdmin);
-      console.log('');
+      // Check if user is admin
+      const isAdmin = user.email === 'fzhangj2ee@gmail.com';
       
-      let query = supabase
-        .from('bets')
-        .select('*')
-        .order('placed_at', { ascending: false });
+      // Build query
+      let query = supabase.from('bets').select('*').order('placed_at', { ascending: false });
       
-      console.log('📋 Base query created (no filters yet)');
-      
-      // If not admin, filter by user_id
-      // If admin, load ALL bets
+      // Only filter by user_id if NOT admin
       if (!isAdmin) {
-        console.log('🔒 REGULAR USER MODE: Adding user_id filter =', user.id);
         query = query.eq('user_id', user.id);
-        console.log('🔒 Filter applied: .eq("user_id", "' + user.id + '")');
-      } else {
-        console.log('👑👑👑 ADMIN MODE ACTIVATED 👑👑👑');
-        console.log('👑 NO FILTER APPLIED - LOADING ALL BETS');
-        console.log('👑 Query will return ALL users\' bets');
       }
       
-      console.log('📡 Executing Supabase query NOW...');
       const { data, error } = await query;
       
       if (error) {
-        console.error('❌ Error loading bets from Supabase:', error);
+        console.error('Supabase error:', error);
         return;
       }
       
-      console.log('');
-      console.log('📊 ============================================');
-      console.log('📊 SUPABASE QUERY RESULTS');
-      console.log('📊 ============================================');
-      console.log('📊 Total bets returned:', data?.length || 0);
-      console.log('📊 Data is null?:', data === null);
-      console.log('📊 Data is undefined?:', data === undefined);
-      console.log('📊 Data is array?:', Array.isArray(data));
-      
-      if (data && data.length > 0) {
-        console.log('📊 All bet user_ids:', data.map(b => b.user_id));
-        console.log('📊 First 5 bets details:', data.slice(0, 5).map(b => ({
-          bet_id: b.id.substring(0, 8),
-          user_id: b.user_id,
-          game: `${b.game_data?.homeTeam} vs ${b.game_data?.awayTeam}`,
-          status: b.status
-        })));
-        
-        // Show ALL unique user IDs in the raw data
-        const rawUserIds = [...new Set(data.map(b => b.user_id))];
-        console.log('📊 Unique user IDs in raw data:', rawUserIds);
-        console.log('📊 Number of unique users:', rawUserIds.length);
-        console.log('📊 ============================================');
-      } else {
-        console.log('⚠️ No bets returned from Supabase');
-        console.log('📊 ============================================');
-      }
-      console.log('');
-      
+      // Map to PlacedBet objects
       const bets: PlacedBet[] = (data || []).map(bet => ({
         id: bet.id,
         userId: bet.user_id,
@@ -155,22 +87,13 @@ export function BettingProvider({ children }: { children: ReactNode }) {
         placedAt: new Date(bet.placed_at),
       }));
       
-      console.log('✅ Bets mapped to PlacedBet objects:', bets.length);
-      
       setAllPlacedBets(bets);
-      console.log('✅ allPlacedBets state updated with', bets.length, 'bets');
       
-      // Get unique user IDs
-      const uniqueUserIds = [...new Set(bets.map(b => b.userId))];
-      console.log('');
-      console.log('📈 FINAL STATISTICS:');
-      console.log('📈 Total bets loaded:', bets.length);
-      console.log('📈 Unique users with bets:', uniqueUserIds.length);
-      console.log('📈 User IDs:', uniqueUserIds);
-      console.log('🔄 ============================================');
-      console.log('');
+      // Single clear log statement
+      const uniqueUsers = [...new Set(bets.map(b => b.userId))];
+      console.log(`[BettingContext] Admin: ${isAdmin}, Records: ${bets.length}, Unique Users: ${uniqueUsers.length}, User IDs: ${JSON.stringify(uniqueUsers)}`);
     } catch (error) {
-      console.error('❌ Exception in loadBetsFromSupabase:', error);
+      console.error('Exception in loadBetsFromSupabase:', error);
     } finally {
       setIsLoading(false);
     }
@@ -449,21 +372,15 @@ export function BettingProvider({ children }: { children: ReactNode }) {
   };
 
   const placeBets = async (): Promise<boolean> => {
-    console.log('=== PLACE BETS START ===');
-    console.log('User:', user?.id);
-    
     // Safety check for betSlip
     const safeBetSlip = Array.isArray(betSlip) ? betSlip : [];
-    console.log('Bet slip length:', safeBetSlip.length);
     
     if (!user) {
-      console.log('ERROR: No user logged in');
       toast.error('Please login to place bets');
       return false;
     }
 
     if (safeBetSlip.length === 0) {
-      console.log('ERROR: Bet slip is empty');
       toast.error('No bets in slip');
       return false;
     }
@@ -485,7 +402,6 @@ export function BettingProvider({ children }: { children: ReactNode }) {
     });
     
     if (invalidBets.length > 0) {
-      console.log('ERROR: Some games have finished or been cancelled');
       toast.error('Cannot bet on completed or cancelled games. Please remove them from your bet slip.');
       return false;
     }
@@ -493,35 +409,26 @@ export function BettingProvider({ children }: { children: ReactNode }) {
     // Check if all bets have valid stakes
     const zeroStakeBets = safeBetSlip.filter((item) => item.stake <= 0);
     if (zeroStakeBets.length > 0) {
-      console.log('ERROR: Invalid stakes found:', zeroStakeBets);
       toast.error('Please enter valid stake amounts for all bets');
       return false;
     }
 
     // Calculate total stake amount with safety check
     const totalStake = safeBetSlip.reduce((sum, item) => sum + (Number(item.stake) || 0), 0);
-    console.log('Total stake calculated:', totalStake);
     
     // Create bet description
     const betDescription = safeBetSlip.length === 1 
       ? `Bet on ${safeBetSlip[0].game.homeTeam} vs ${safeBetSlip[0].game.awayTeam}`
       : `${safeBetSlip.length} bets placed`;
-    console.log('Bet description:', betDescription);
     
     // Deduct balance from wallet first
-    console.log('Calling placeBet with amount:', totalStake);
-    
     try {
       const balanceDeducted = placeBet(totalStake, betDescription);
-      console.log('placeBet returned:', balanceDeducted);
       
       if (!balanceDeducted) {
-        console.log('ERROR: Balance deduction failed. Insufficient balance.');
         toast.error(`Insufficient balance. You have $${balance.toFixed(2)} but need $${totalStake.toFixed(2)}`);
         return false;
       }
-      
-      console.log('Balance deducted successfully.');
     } catch (error) {
       console.error('ERROR: Exception during placeBet call:', error);
       toast.error('Failed to deduct balance. Please try again.');
@@ -536,39 +443,30 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       placedAt: new Date(),
       status: 'pending',
     }));
-    console.log('Created', newPlacedBets.length, 'new placed bets');
 
     try {
-      console.log('Saving bets to Supabase...');
       // Save all bets to Supabase
       for (const bet of newPlacedBets) {
         await saveBetToSupabase(bet);
       }
-      console.log('All bets saved to Supabase successfully');
       
       // Update local state immediately
       const safeAllPlacedBets = Array.isArray(allPlacedBets) ? allPlacedBets : [];
       const updatedBets = [...safeAllPlacedBets, ...newPlacedBets];
       setAllPlacedBets(updatedBets);
-      console.log('Local state updated. Total bets now:', updatedBets.length);
       
       // Save current bet slip as recently placed bets
       setRecentlyPlacedBets([...safeBetSlip]);
-      console.log('Recently placed bets saved');
       
       // Clear bet slip for new bets
       setBetSlip([]);
-      console.log('Bet slip cleared');
       
-      console.log('=== PLACE BETS SUCCESS ===');
       return true;
     } catch (error) {
       console.error('ERROR: Failed to save bets to Supabase:', error);
       // If saving to Supabase fails, refund the balance
-      console.log('Refunding balance:', totalStake);
       addFunds(totalStake);
       toast.error('Failed to place bets. Your balance has been refunded.');
-      console.log('=== PLACE BETS FAILED ===');
       return false;
     }
   };
