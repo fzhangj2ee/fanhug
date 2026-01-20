@@ -50,23 +50,38 @@ export function BettingProvider({ children }: { children: ReactNode }) {
 
   // Load bets from Supabase
   const loadBetsFromSupabase = useCallback(async () => {
+    console.log('🚀 BettingContext VERSION 5 - EXTREME DEBUG MODE');
+    
     if (!user) {
       console.log('❌ loadBetsFromSupabase: No user, returning early');
       return;
     }
     
-    // CRITICAL FIX: Compute isAdmin INSIDE the callback to avoid stale closure
+    // CRITICAL: Check admin status with extreme verbosity
+    console.log('');
+    console.log('🔍 ============================================');
+    console.log('🔍 ADMIN CHECK DETAILS');
+    console.log('🔍 ============================================');
+    console.log('🔍 user object:', user);
+    console.log('🔍 user.email type:', typeof user.email);
+    console.log('🔍 user.email value:', JSON.stringify(user.email));
+    console.log('🔍 Expected admin email:', JSON.stringify('fzhangj2ee@gmail.com'));
+    console.log('🔍 Strict equality (===):', user.email === 'fzhangj2ee@gmail.com');
+    console.log('🔍 Loose equality (==):', user.email == 'fzhangj2ee@gmail.com');
+    console.log('🔍 Email match (toLowerCase):', user.email?.toLowerCase() === 'fzhangj2ee@gmail.com');
+    
     const isAdmin = user.email === 'fzhangj2ee@gmail.com';
+    console.log('🔍 Final isAdmin value:', isAdmin);
+    console.log('🔍 ============================================');
+    console.log('');
     
     setIsLoading(true);
     try {
-      console.log('');
       console.log('🔄 ============================================');
-      console.log('🔄 LOADING BETS FROM SUPABASE - VERSION 4');
+      console.log('🔄 LOADING BETS FROM SUPABASE');
       console.log('🔄 ============================================');
       console.log('👤 Current user email:', user.email);
       console.log('🆔 Current user ID:', user.id);
-      console.log('🔍 Admin check: user.email === "fzhangj2ee@gmail.com"');
       console.log('👑 Is Admin:', isAdmin);
       console.log('');
       
@@ -75,16 +90,21 @@ export function BettingProvider({ children }: { children: ReactNode }) {
         .select('*')
         .order('placed_at', { ascending: false });
       
+      console.log('📋 Base query created (no filters yet)');
+      
       // If not admin, filter by user_id
       // If admin, load ALL bets
       if (!isAdmin) {
-        console.log('🔒 REGULAR USER MODE: Filtering by user_id =', user.id);
+        console.log('🔒 REGULAR USER MODE: Adding user_id filter =', user.id);
         query = query.eq('user_id', user.id);
+        console.log('🔒 Filter applied: .eq("user_id", "' + user.id + '")');
       } else {
-        console.log('👑 ADMIN MODE: Loading ALL bets from ALL users (NO FILTER)');
+        console.log('👑👑👑 ADMIN MODE ACTIVATED 👑👑👑');
+        console.log('👑 NO FILTER APPLIED - LOADING ALL BETS');
+        console.log('👑 Query will return ALL users\' bets');
       }
       
-      console.log('📡 Executing Supabase query...');
+      console.log('📡 Executing Supabase query NOW...');
       const { data, error } = await query;
       
       if (error) {
@@ -93,23 +113,33 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       }
       
       console.log('');
-      console.log('📊 SUPABASE QUERY RESULTS:');
+      console.log('📊 ============================================');
+      console.log('📊 SUPABASE QUERY RESULTS');
+      console.log('📊 ============================================');
       console.log('📊 Total bets returned:', data?.length || 0);
+      console.log('📊 Data is null?:', data === null);
+      console.log('📊 Data is undefined?:', data === undefined);
+      console.log('📊 Data is array?:', Array.isArray(data));
       
       if (data && data.length > 0) {
-        console.log('📊 First 10 bet user_ids:', data.slice(0, 10).map(b => ({
+        console.log('📊 All bet user_ids:', data.map(b => b.user_id));
+        console.log('📊 First 5 bets details:', data.slice(0, 5).map(b => ({
           bet_id: b.id.substring(0, 8),
           user_id: b.user_id,
-          game: `${b.game_data?.homeTeam} vs ${b.game_data?.awayTeam}`
+          game: `${b.game_data?.homeTeam} vs ${b.game_data?.awayTeam}`,
+          status: b.status
         })));
         
         // Show ALL unique user IDs in the raw data
         const rawUserIds = [...new Set(data.map(b => b.user_id))];
         console.log('📊 Unique user IDs in raw data:', rawUserIds);
         console.log('📊 Number of unique users:', rawUserIds.length);
+        console.log('📊 ============================================');
       } else {
         console.log('⚠️ No bets returned from Supabase');
+        console.log('📊 ============================================');
       }
+      console.log('');
       
       const bets: PlacedBet[] = (data || []).map(bet => ({
         id: bet.id,
@@ -125,11 +155,10 @@ export function BettingProvider({ children }: { children: ReactNode }) {
         placedAt: new Date(bet.placed_at),
       }));
       
-      console.log('');
       console.log('✅ Bets mapped to PlacedBet objects:', bets.length);
       
       setAllPlacedBets(bets);
-      console.log('✅ allPlacedBets state updated');
+      console.log('✅ allPlacedBets state updated with', bets.length, 'bets');
       
       // Get unique user IDs
       const uniqueUserIds = [...new Set(bets.map(b => b.userId))];
