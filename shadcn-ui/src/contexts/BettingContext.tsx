@@ -1,3 +1,4 @@
+// Version: Admin dashboard fix - fetch all users' bets when admin is logged in (v274)
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { Game } from '@/types/betting';
 import { useAuth } from '@/hooks/useAuth';
