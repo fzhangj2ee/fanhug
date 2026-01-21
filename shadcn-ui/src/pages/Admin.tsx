@@ -79,6 +79,10 @@ export default function Admin() {
           return;
         }
         
+        // 🔍 DEBUG: Print raw data from Supabase IMMEDIATELY after fetch
+        console.log('🔍 [Admin Debug] Raw Supabase response - Total bets fetched:', data?.length || 0);
+        console.log('🔍 [Admin Debug] Raw data from Supabase:', data);
+        
         // Map to PlacedBet objects
         const bets: PlacedBet[] = (data || []).map(bet => ({
           id: bet.id,
