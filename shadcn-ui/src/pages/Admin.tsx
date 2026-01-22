@@ -16,6 +16,7 @@ import { Game } from '@/types/betting';
 interface PlacedBet {
   id: string;
   userId: string;
+  userEmail?: string;
   game: Game;
   betType: 'home' | 'away' | 'spread-home' | 'spread-away' | 'over' | 'under';
   odds: number;
@@ -51,7 +52,7 @@ interface Message {
 }
 
 export default function Admin() {
-  const { user, users: authUsers } = useAuth();
+  const { user } = useAuth();
   const { messages, unreadCount, markAsRead } = useMessages();
   const navigate = useNavigate();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -59,32 +60,87 @@ export default function Admin() {
   const [allBets, setAllBets] = useState<PlacedBet[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch ALL bets from Supabase (admin only)
+  // Fetch ALL bets with user emails from Supabase (admin only)
   useEffect(() => {
-    const fetchAllBets = async () => {
+    const fetchAllBetsWithEmails = async () => {
       if (!user || user.email !== 'fzhangj2ee@gmail.com') return;
       
       setIsLoading(true);
       try {
-        console.log('🔍 [Admin] Fetching ALL bets from Supabase...');
+        console.log('🔍 [Admin] Fetching ALL bets with user emails from Supabase...');
         
-        // Fetch ALL bets without user_id filter
-        const { data, error } = await supabase
+        // Try to use the RPC function first
+        const { data: rpcData, error: rpcError } = await supabase.rpc('get_all_bets_with_emails');
+        
+        if (!rpcError && rpcData) {
+          console.log('✅ [Admin] RPC succeeded - Total bets fetched:', rpcData.length);
+          
+          const bets: PlacedBet[] = rpcData.map((bet: any) => ({
+            id: bet.id,
+            userId: bet.user_id,
+            userEmail: bet.user_email,
+            game: bet.game_data as Game,
+            betType: bet.bet_type as PlacedBet['betType'],
+            odds: Number(bet.odds),
+            stake: Number(bet.stake),
+            spreadValue: bet.spread_value ? Number(bet.spread_value) : undefined,
+            totalValue: bet.total_value ? Number(bet.total_value) : undefined,
+            status: bet.status as PlacedBet['status'],
+            payout: bet.payout ? Number(bet.payout) : undefined,
+            placedAt: new Date(bet.placed_at),
+          }));
+          
+          setAllBets(bets);
+          console.log('✅ [Admin] Processed bets with emails:', bets.map(b => ({ userId: b.userId, email: b.userEmail })));
+          return;
+        }
+        
+        console.log('⚠️ [Admin] RPC failed, using fallback method:', rpcError);
+        
+        // Fallback: Fetch bets and manually join with user emails
+        const { data: betsData, error: betsError } = await supabase
           .from('bets')
           .select('*')
           .order('placed_at', { ascending: false });
         
-        if (error) {
-          console.error('❌ [Admin] Supabase error:', error);
+        if (betsError) {
+          console.error('❌ [Admin] Supabase error:', betsError);
           return;
         }
         
-        console.log('✅ [Admin] Raw Supabase response - Total bets fetched:', data?.length || 0);
+        console.log('✅ [Admin] Fetched bets:', betsData?.length || 0);
         
-        // Map to PlacedBet objects
-        const bets: PlacedBet[] = (data || []).map(bet => ({
+        // Get unique user IDs
+        const uniqueUserIds = [...new Set((betsData || []).map((b: any) => b.user_id))];
+        console.log('👥 [Admin] Unique user IDs:', uniqueUserIds);
+        
+        // Manually fetch user emails by querying a view or using raw SQL
+        // Create a map of user IDs to emails
+        const userEmailMap = new Map<string, string>();
+        
+        // Try to fetch user data using a custom query
+        for (const userId of uniqueUserIds) {
+          try {
+            // Use raw SQL to query auth.users (requires proper RLS policies)
+            const { data: userData, error: userError } = await supabase
+              .rpc('get_user_email', { user_id: userId });
+            
+            if (!userError && userData) {
+              userEmailMap.set(userId, userData);
+              console.log(`✅ [Admin] Fetched email for ${userId}: ${userData}`);
+            } else {
+              console.log(`⚠️ [Admin] Could not fetch email for ${userId}`);
+            }
+          } catch (err) {
+            console.error(`❌ [Admin] Error fetching user ${userId}:`, err);
+          }
+        }
+        
+        // Map bets with emails
+        const bets: PlacedBet[] = (betsData || []).map((bet: any) => ({
           id: bet.id,
           userId: bet.user_id,
+          userEmail: userEmailMap.get(bet.user_id),
           game: bet.game_data as Game,
           betType: bet.bet_type as PlacedBet['betType'],
           odds: Number(bet.odds),
@@ -97,11 +153,7 @@ export default function Admin() {
         }));
         
         setAllBets(bets);
-        
-        const uniqueUsers = [...new Set(bets.map(b => b.userId))];
-        console.log(`✅ [Admin] Fetched ${bets.length} bets from ${uniqueUsers.length} unique users`);
-        console.log(`✅ [Admin] User IDs: ${JSON.stringify(uniqueUsers)}`);
-        console.log(`✅ [Admin] AuthUsers from context:`, authUsers.map(u => ({ id: u.id, email: u.email })));
+        console.log('✅ [Admin] Processed bets with fallback:', bets.map(b => ({ userId: b.userId, email: b.userEmail })));
       } catch (error) {
         console.error('❌ [Admin] Exception fetching bets:', error);
       } finally {
@@ -109,25 +161,13 @@ export default function Admin() {
       }
     };
     
-    fetchAllBets();
-  }, [user, authUsers]);
+    fetchAllBetsWithEmails();
+  }, [user]);
 
   // Get unique user IDs from all bets
   const uniqueUserIds = useMemo(() => {
     return [...new Set(allBets.map(bet => bet.userId))];
   }, [allBets]);
-
-  // Create a map of user IDs to emails from auth users (version 278 mechanism)
-  const userIdToEmailMap = useMemo(() => {
-    const map = new Map<string, string>();
-    authUsers.forEach(u => {
-      if (u.id && u.email) {
-        map.set(u.id, u.email);
-      }
-    });
-    console.log('📧 [Admin] User email map from authUsers:', Object.fromEntries(map));
-    return map;
-  }, [authUsers]);
 
   // Get bets for a specific user
   const getUserBets = (userId: string): PlacedBet[] => {
@@ -148,10 +188,8 @@ export default function Admin() {
         .reduce((sum, bet) => sum + (bet.payout || 0), 0);
       const netProfit = totalWon - userBets.filter(bet => bet.status === 'lost').reduce((sum, bet) => sum + bet.stake, 0);
 
-      // Try to get email from auth users (version 278 mechanism), otherwise use user ID
-      const email = userIdToEmailMap.get(userId) || `User ${userId.substring(0, 8)}...`;
-      
-      console.log(`👤 [Admin] User ${userId}: email = ${email}`);
+      // Get email from the first bet of this user (they all have the same email)
+      const email = userBets[0]?.userEmail || `User ${userId.substring(0, 8)}...`;
 
       return {
         userId,
@@ -166,7 +204,7 @@ export default function Admin() {
         netProfit,
       };
     });
-  }, [uniqueUserIds, allBets, userIdToEmailMap]);
+  }, [uniqueUserIds, allBets]);
 
   // Check admin access after all hooks
   if (!user || user.email !== 'fzhangj2ee@gmail.com') {
@@ -235,7 +273,7 @@ export default function Admin() {
                 <CardContent>
                   {isLoading ? (
                     <div className="text-center py-8 text-[#b1bad3]">
-                      Loading bets...
+                      Loading bets and user information...
                     </div>
                   ) : userStats.length === 0 ? (
                     <div className="text-center py-8 text-[#b1bad3]">
@@ -245,7 +283,7 @@ export default function Admin() {
                     <Table>
                       <TableHeader>
                         <TableRow className="border-[#2a2d2f] hover:bg-[#2a2d2f]">
-                          <TableHead className="text-[#b1bad3]">Email / User ID</TableHead>
+                          <TableHead className="text-[#b1bad3]">Email</TableHead>
                           <TableHead className="text-[#b1bad3]">Total Bets</TableHead>
                           <TableHead className="text-[#b1bad3]">Wins</TableHead>
                           <TableHead className="text-[#b1bad3]">Losses</TableHead>
