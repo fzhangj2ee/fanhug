@@ -16,6 +16,7 @@ import { Game } from '@/types/betting';
 interface PlacedBet {
   id: string;
   userId: string;
+  userEmail?: string;
   game: Game;
   betType: 'home' | 'away' | 'spread-home' | 'spread-away' | 'over' | 'under';
   odds: number;
@@ -58,34 +59,86 @@ export default function Admin() {
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [allBets, setAllBets] = useState<PlacedBet[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [userEmails, setUserEmails] = useState<Map<string, string>>(new Map());
 
-  // Fetch ALL bets from Supabase (admin only)
+  // Fetch ALL bets with user emails from Supabase (admin only)
   useEffect(() => {
-    const fetchAllBets = async () => {
+    const fetchAllBetsWithEmails = async () => {
       if (!user || user.email !== 'fzhangj2ee@gmail.com') return;
       
       setIsLoading(true);
       try {
-        console.log('🔍 [Admin] Fetching ALL bets from Supabase...');
+        console.log('🔍 [Admin] Fetching ALL bets with user emails from Supabase...');
         
-        // Fetch ALL bets without user_id filter
-        const { data, error } = await supabase
-          .from('bets')
-          .select('*')
-          .order('placed_at', { ascending: false });
+        // Use raw SQL query to join bets with auth.users to get emails
+        const { data, error } = await supabase.rpc('get_all_bets_with_emails');
         
         if (error) {
-          console.error('❌ [Admin] Supabase error:', error);
+          console.error('❌ [Admin] RPC error, falling back to regular query:', error);
+          
+          // Fallback: fetch bets normally and try to get emails from service role
+          const { data: betsData, error: betsError } = await supabase
+            .from('bets')
+            .select('*')
+            .order('placed_at', { ascending: false });
+          
+          if (betsError) {
+            console.error('❌ [Admin] Supabase error:', betsError);
+            return;
+          }
+          
+          console.log('✅ [Admin] Fetched bets, now fetching user emails...');
+          
+          // Get unique user IDs
+          const uniqueUserIds = [...new Set((betsData || []).map((b: any) => b.user_id))];
+          
+          // Fetch user emails by querying a custom view or function
+          // Since we can't access auth.users directly, we'll use the listUsers admin function
+          const userEmailMap = new Map<string, string>();
+          
+          // Try to get all users (this requires service role key)
+          try {
+            const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
+            
+            if (!usersError && users) {
+              users.forEach(u => {
+                if (u.id && u.email) {
+                  userEmailMap.set(u.id, u.email);
+                }
+              });
+              console.log('✅ [Admin] Fetched user emails via admin.listUsers:', userEmailMap.size);
+            }
+          } catch (err) {
+            console.error('❌ [Admin] Cannot access admin.listUsers:', err);
+          }
+          
+          // Map bets with emails
+          const bets: PlacedBet[] = (betsData || []).map((bet: any) => ({
+            id: bet.id,
+            userId: bet.user_id,
+            userEmail: userEmailMap.get(bet.user_id) || undefined,
+            game: bet.game_data as Game,
+            betType: bet.bet_type as PlacedBet['betType'],
+            odds: Number(bet.odds),
+            stake: Number(bet.stake),
+            spreadValue: bet.spread_value ? Number(bet.spread_value) : undefined,
+            totalValue: bet.total_value ? Number(bet.total_value) : undefined,
+            status: bet.status as PlacedBet['status'],
+            payout: bet.payout ? Number(bet.payout) : undefined,
+            placedAt: new Date(bet.placed_at),
+          }));
+          
+          setAllBets(bets);
+          console.log(`✅ [Admin] Processed ${bets.length} bets from ${uniqueUserIds.length} unique users`);
           return;
         }
         
-        console.log('✅ [Admin] Raw Supabase response - Total bets fetched:', data?.length || 0);
+        // If RPC succeeded, process the data
+        console.log('✅ [Admin] RPC response - Total bets fetched:', data?.length || 0);
         
-        // Map to PlacedBet objects
-        const bets: PlacedBet[] = (data || []).map(bet => ({
+        const bets: PlacedBet[] = (data || []).map((bet: any) => ({
           id: bet.id,
           userId: bet.user_id,
+          userEmail: bet.user_email || undefined,
           game: bet.game_data as Game,
           betType: bet.bet_type as PlacedBet['betType'],
           odds: Number(bet.odds),
@@ -98,38 +151,7 @@ export default function Admin() {
         }));
         
         setAllBets(bets);
-        
-        // Get unique user IDs
-        const uniqueUserIds = [...new Set(bets.map(b => b.userId))];
-        console.log(`✅ [Admin] Fetched ${bets.length} bets from ${uniqueUserIds.length} unique users`);
-        
-        // Fetch user emails from auth.users using admin API
-        if (uniqueUserIds.length > 0) {
-          const emailMap = new Map<string, string>();
-          
-          // Fetch each user's email
-          for (const userId of uniqueUserIds) {
-            try {
-              const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
-              
-              if (userError) {
-                console.error(`❌ [Admin] Error fetching user ${userId}:`, userError);
-                emailMap.set(userId, `User ${userId.substring(0, 8)}...`);
-              } else if (userData?.user?.email) {
-                emailMap.set(userId, userData.user.email);
-                console.log(`✅ [Admin] Fetched email for user ${userId}: ${userData.user.email}`);
-              } else {
-                emailMap.set(userId, `User ${userId.substring(0, 8)}...`);
-              }
-            } catch (err) {
-              console.error(`❌ [Admin] Exception fetching user ${userId}:`, err);
-              emailMap.set(userId, `User ${userId.substring(0, 8)}...`);
-            }
-          }
-          
-          setUserEmails(emailMap);
-          console.log('✅ [Admin] User email map:', Object.fromEntries(emailMap));
-        }
+        console.log(`✅ [Admin] Processed ${bets.length} bets`);
       } catch (error) {
         console.error('❌ [Admin] Exception fetching bets:', error);
       } finally {
@@ -137,7 +159,7 @@ export default function Admin() {
       }
     };
     
-    fetchAllBets();
+    fetchAllBetsWithEmails();
   }, [user]);
 
   // Get unique user IDs from all bets
@@ -164,8 +186,8 @@ export default function Admin() {
         .reduce((sum, bet) => sum + (bet.payout || 0), 0);
       const netProfit = totalWon - userBets.filter(bet => bet.status === 'lost').reduce((sum, bet) => sum + bet.stake, 0);
 
-      // Get email from the fetched user emails map
-      const email = userEmails.get(userId) || `User ${userId.substring(0, 8)}...`;
+      // Get email from the first bet of this user (they all have the same email)
+      const email = userBets[0]?.userEmail || `User ${userId.substring(0, 8)}...`;
 
       return {
         userId,
@@ -180,7 +202,7 @@ export default function Admin() {
         netProfit,
       };
     });
-  }, [uniqueUserIds, allBets, userEmails]);
+  }, [uniqueUserIds, allBets]);
 
   // Check admin access after all hooks
   if (!user || user.email !== 'fzhangj2ee@gmail.com') {
