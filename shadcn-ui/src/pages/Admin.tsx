@@ -51,13 +51,14 @@ interface Message {
 }
 
 export default function Admin() {
-  const { user, users: authUsers } = useAuth();
+  const { user } = useAuth();
   const { messages, unreadCount, markAsRead } = useMessages();
   const navigate = useNavigate();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [allBets, setAllBets] = useState<PlacedBet[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [userEmails, setUserEmails] = useState<Map<string, string>>(new Map());
 
   // Fetch ALL bets from Supabase (admin only)
   useEffect(() => {
@@ -79,9 +80,7 @@ export default function Admin() {
           return;
         }
         
-        // 🔍 DEBUG: Print raw data from Supabase IMMEDIATELY after fetch
-        console.log('🔍 [Admin Debug] Raw Supabase response - Total bets fetched:', data?.length || 0);
-        console.log('🔍 [Admin Debug] Raw data from Supabase:', data);
+        console.log('✅ [Admin] Raw Supabase response - Total bets fetched:', data?.length || 0);
         
         // Map to PlacedBet objects
         const bets: PlacedBet[] = (data || []).map(bet => ({
@@ -100,9 +99,37 @@ export default function Admin() {
         
         setAllBets(bets);
         
-        const uniqueUsers = [...new Set(bets.map(b => b.userId))];
-        console.log(`✅ [Admin] Fetched ${bets.length} bets from ${uniqueUsers.length} unique users`);
-        console.log(`✅ [Admin] User IDs: ${JSON.stringify(uniqueUsers)}`);
+        // Get unique user IDs
+        const uniqueUserIds = [...new Set(bets.map(b => b.userId))];
+        console.log(`✅ [Admin] Fetched ${bets.length} bets from ${uniqueUserIds.length} unique users`);
+        
+        // Fetch user emails from auth.users using admin API
+        if (uniqueUserIds.length > 0) {
+          const emailMap = new Map<string, string>();
+          
+          // Fetch each user's email
+          for (const userId of uniqueUserIds) {
+            try {
+              const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+              
+              if (userError) {
+                console.error(`❌ [Admin] Error fetching user ${userId}:`, userError);
+                emailMap.set(userId, `User ${userId.substring(0, 8)}...`);
+              } else if (userData?.user?.email) {
+                emailMap.set(userId, userData.user.email);
+                console.log(`✅ [Admin] Fetched email for user ${userId}: ${userData.user.email}`);
+              } else {
+                emailMap.set(userId, `User ${userId.substring(0, 8)}...`);
+              }
+            } catch (err) {
+              console.error(`❌ [Admin] Exception fetching user ${userId}:`, err);
+              emailMap.set(userId, `User ${userId.substring(0, 8)}...`);
+            }
+          }
+          
+          setUserEmails(emailMap);
+          console.log('✅ [Admin] User email map:', Object.fromEntries(emailMap));
+        }
       } catch (error) {
         console.error('❌ [Admin] Exception fetching bets:', error);
       } finally {
@@ -117,17 +144,6 @@ export default function Admin() {
   const uniqueUserIds = useMemo(() => {
     return [...new Set(allBets.map(bet => bet.userId))];
   }, [allBets]);
-
-  // Create a map of user IDs to emails from auth users
-  const userIdToEmailMap = useMemo(() => {
-    const map = new Map<string, string>();
-    authUsers.forEach(u => {
-      if (u.id && u.email) {
-        map.set(u.id, u.email);
-      }
-    });
-    return map;
-  }, [authUsers]);
 
   // Get bets for a specific user
   const getUserBets = (userId: string): PlacedBet[] => {
@@ -148,8 +164,8 @@ export default function Admin() {
         .reduce((sum, bet) => sum + (bet.payout || 0), 0);
       const netProfit = totalWon - userBets.filter(bet => bet.status === 'lost').reduce((sum, bet) => sum + bet.stake, 0);
 
-      // Try to get email from auth users, otherwise use user ID
-      const email = userIdToEmailMap.get(userId) || `User ${userId.substring(0, 8)}...`;
+      // Get email from the fetched user emails map
+      const email = userEmails.get(userId) || `User ${userId.substring(0, 8)}...`;
 
       return {
         userId,
@@ -164,7 +180,7 @@ export default function Admin() {
         netProfit,
       };
     });
-  }, [uniqueUserIds, allBets, userIdToEmailMap]);
+  }, [uniqueUserIds, allBets, userEmails]);
 
   // Check admin access after all hooks
   if (!user || user.email !== 'fzhangj2ee@gmail.com') {
@@ -233,7 +249,7 @@ export default function Admin() {
                 <CardContent>
                   {isLoading ? (
                     <div className="text-center py-8 text-[#b1bad3]">
-                      Loading bets...
+                      Loading bets and user information...
                     </div>
                   ) : userStats.length === 0 ? (
                     <div className="text-center py-8 text-[#b1bad3]">
@@ -243,7 +259,7 @@ export default function Admin() {
                     <Table>
                       <TableHeader>
                         <TableRow className="border-[#2a2d2f] hover:bg-[#2a2d2f]">
-                          <TableHead className="text-[#b1bad3]">Email / User ID</TableHead>
+                          <TableHead className="text-[#b1bad3]">Email</TableHead>
                           <TableHead className="text-[#b1bad3]">Total Bets</TableHead>
                           <TableHead className="text-[#b1bad3]">Wins</TableHead>
                           <TableHead className="text-[#b1bad3]">Losses</TableHead>
@@ -459,4 +475,4 @@ export default function Admin() {
       </Dialog>
     </div>
   );
-}// Build trigger for version 276
+}
