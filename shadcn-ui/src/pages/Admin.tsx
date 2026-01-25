@@ -17,6 +17,7 @@ interface PlacedBet {
   id: string;
   userId: string;
   userEmail?: string;
+  userName?: string;
   game: Game;
   betType: 'home' | 'away' | 'spread-home' | 'spread-away' | 'over' | 'under';
   odds: number;
@@ -31,6 +32,7 @@ interface PlacedBet {
 interface UserStats {
   userId: string;
   email: string;
+  userName: string;
   balance: number;
   totalBets: number;
   wins: number;
@@ -79,6 +81,7 @@ export default function Admin() {
             id: bet.id,
             userId: bet.user_id,
             userEmail: bet.user_email,
+            userName: bet.user_name,
             game: bet.game_data as Game,
             betType: bet.bet_type as PlacedBet['betType'],
             odds: Number(bet.odds),
@@ -91,13 +94,13 @@ export default function Admin() {
           }));
           
           setAllBets(bets);
-          console.log('✅ [Admin] Processed bets with emails:', bets.map(b => ({ userId: b.userId, email: b.userEmail })));
+          console.log('✅ [Admin] Processed bets with emails:', bets.map(b => ({ userId: b.userId, email: b.userEmail, name: b.userName })));
           return;
         }
         
         console.log('⚠️ [Admin] RPC failed, using fallback method:', rpcError);
         
-        // Fallback: Fetch bets and manually join with user emails
+        // Fallback: Fetch bets without emails
         const { data: betsData, error: betsError } = await supabase
           .from('bets')
           .select('*')
@@ -110,37 +113,11 @@ export default function Admin() {
         
         console.log('✅ [Admin] Fetched bets:', betsData?.length || 0);
         
-        // Get unique user IDs
-        const uniqueUserIds = [...new Set((betsData || []).map((b: any) => b.user_id))];
-        console.log('👥 [Admin] Unique user IDs:', uniqueUserIds);
-        
-        // Manually fetch user emails by querying a view or using raw SQL
-        // Create a map of user IDs to emails
-        const userEmailMap = new Map<string, string>();
-        
-        // Try to fetch user data using a custom query
-        for (const userId of uniqueUserIds) {
-          try {
-            // Use raw SQL to query auth.users (requires proper RLS policies)
-            const { data: userData, error: userError } = await supabase
-              .rpc('get_user_email', { user_id: userId });
-            
-            if (!userError && userData) {
-              userEmailMap.set(userId, userData);
-              console.log(`✅ [Admin] Fetched email for ${userId}: ${userData}`);
-            } else {
-              console.log(`⚠️ [Admin] Could not fetch email for ${userId}`);
-            }
-          } catch (err) {
-            console.error(`❌ [Admin] Error fetching user ${userId}:`, err);
-          }
-        }
-        
-        // Map bets with emails
         const bets: PlacedBet[] = (betsData || []).map((bet: any) => ({
           id: bet.id,
           userId: bet.user_id,
-          userEmail: userEmailMap.get(bet.user_id),
+          userEmail: undefined,
+          userName: undefined,
           game: bet.game_data as Game,
           betType: bet.bet_type as PlacedBet['betType'],
           odds: Number(bet.odds),
@@ -153,7 +130,7 @@ export default function Admin() {
         }));
         
         setAllBets(bets);
-        console.log('✅ [Admin] Processed bets with fallback:', bets.map(b => ({ userId: b.userId, email: b.userEmail })));
+        console.log('✅ [Admin] Processed bets with fallback');
       } catch (error) {
         console.error('❌ [Admin] Exception fetching bets:', error);
       } finally {
@@ -188,12 +165,14 @@ export default function Admin() {
         .reduce((sum, bet) => sum + (bet.payout || 0), 0);
       const netProfit = totalWon - userBets.filter(bet => bet.status === 'lost').reduce((sum, bet) => sum + bet.stake, 0);
 
-      // Get email from the first bet of this user (they all have the same email)
+      // Get email and name from the first bet of this user
       const email = userBets[0]?.userEmail || `User ${userId.substring(0, 8)}...`;
+      const userName = userBets[0]?.userName || 'Unknown';
 
       return {
         userId,
         email,
+        userName,
         balance: 0,
         totalBets: userBets.length,
         wins,
@@ -284,6 +263,7 @@ export default function Admin() {
                       <TableHeader>
                         <TableRow className="border-[#2a2d2f] hover:bg-[#2a2d2f]">
                           <TableHead className="text-[#b1bad3]">Email</TableHead>
+                          <TableHead className="text-[#b1bad3]">UserName</TableHead>
                           <TableHead className="text-[#b1bad3]">Total Bets</TableHead>
                           <TableHead className="text-[#b1bad3]">Wins</TableHead>
                           <TableHead className="text-[#b1bad3]">Losses</TableHead>
@@ -299,6 +279,7 @@ export default function Admin() {
                             onClick={() => setSelectedUserId(stats.userId)}
                           >
                             <TableCell className="text-white font-medium">{stats.email}</TableCell>
+                            <TableCell className="text-white">{stats.userName}</TableCell>
                             <TableCell className="text-white">{stats.totalBets}</TableCell>
                             <TableCell className="text-green-400">{stats.wins}</TableCell>
                             <TableCell className="text-red-400">{stats.losses}</TableCell>
@@ -385,7 +366,7 @@ export default function Admin() {
                 <ChevronLeft className="h-4 w-4 mr-2" />
                 Back to Users
               </Button>
-              <h1 className="text-3xl font-bold text-white">User Details: {selectedUserStats?.email}</h1>
+              <h1 className="text-3xl font-bold text-white">User Details: {selectedUserStats?.userName} ({selectedUserStats?.email})</h1>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
