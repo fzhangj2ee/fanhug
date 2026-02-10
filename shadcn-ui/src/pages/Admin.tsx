@@ -53,6 +53,22 @@ interface Message {
   read: boolean;
 }
 
+interface BetRecord {
+  id: string;
+  user_id: string;
+  user_email?: string;
+  user_name?: string;
+  game_data: unknown;
+  bet_type: string;
+  odds: number;
+  stake: number;
+  spread_value?: number;
+  total_value?: number;
+  status: string;
+  payout?: number;
+  placed_at: string;
+}
+
 export default function Admin() {
   const { user } = useAuth();
   const { messages, unreadCount, markAsRead } = useMessages();
@@ -77,7 +93,7 @@ export default function Admin() {
         if (!rpcError && rpcData) {
           console.log('✅ [Admin] RPC succeeded - Total bets fetched:', rpcData.length);
           
-          const bets: PlacedBet[] = rpcData.map((bet: any) => ({
+          const bets: PlacedBet[] = (rpcData as BetRecord[]).map((bet) => ({
             id: bet.id,
             userId: bet.user_id,
             userEmail: bet.user_email,
@@ -113,7 +129,7 @@ export default function Admin() {
         
         console.log('✅ [Admin] Fetched bets:', betsData?.length || 0);
         
-        const bets: PlacedBet[] = (betsData || []).map((bet: any) => ({
+        const bets: PlacedBet[] = ((betsData || []) as BetRecord[]).map((bet) => ({
           id: bet.id,
           userId: bet.user_id,
           userEmail: undefined,
