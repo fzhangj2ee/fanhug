@@ -528,7 +528,7 @@ const { data, error } = await supabase.auth.updateUser({
 1. Go to https://supabase.com and sign up
 2. Click "New Project"
 3. Enter project details:
-   - Name: "Sports Betting Platform"
+   - Name: "Sports Prediction Platform"
    - Database Password: (generate strong password)
    - Region: Choose closest to your users
 4. Wait for project to be created (~2 minutes)
@@ -584,7 +584,7 @@ const { data, error } = await supabase.auth.updateUser({
 
 1. Go to https://github.com/settings/developers
 2. New OAuth App
-3. Application name: "Sports Betting Platform"
+3. Application name: "Sports Prediction Platform"
 4. Homepage URL: Your app URL
 5. Authorization callback URL: `https://your-project.supabase.co/auth/v1/callback`
 6. Copy Client ID and generate Client Secret

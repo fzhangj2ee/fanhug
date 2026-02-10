@@ -12,7 +12,7 @@ This guide will help you set up Supabase authentication with OAuth2 social login
 1. Go to https://supabase.com and sign in
 2. Click "New Project"
 3. Fill in the project details:
-   - **Name**: Sports Betting Platform (or your preferred name)
+   - **Name**: Sports Prediction Platform (or your preferred name)
    - **Database Password**: Generate a strong password (save it securely)
    - **Region**: Choose the closest region to your users
    - **Pricing Plan**: Free tier is sufficient for development
@@ -52,7 +52,7 @@ This guide will help you set up Supabase authentication with OAuth2 social login
    - Go to **APIs & Services** → **Credentials**
    - Click **Create Credentials** → **OAuth 2.0 Client ID**
    - Application type: **Web application**
-   - Name: Sports Betting Platform
+   - Name: Sports Prediction Platform
    - **Authorized redirect URIs**: Add `https://your-project-id.supabase.co/auth/v1/callback`
    - Click **Create**
 5. Copy the **Client ID** and **Client Secret**
@@ -107,7 +107,7 @@ This guide will help you set up Supabase authentication with OAuth2 social login
 1. Go to [GitHub Settings](https://github.com/settings/developers)
 2. Click **New OAuth App**
 3. Fill in the details:
-   - **Application name**: Sports Betting Platform
+   - **Application name**: Sports Prediction Platform
    - **Homepage URL**: Your app URL
    - **Authorization callback URL**: `https://your-project-id.supabase.co/auth/v1/callback`
 4. Click **Register application**

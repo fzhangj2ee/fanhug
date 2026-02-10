@@ -1,4 +1,4 @@
-# Sports Betting Platform - Development Plan
+# Sports Prediction Platform - Development Plan
 
 ## Design Guidelines
 
