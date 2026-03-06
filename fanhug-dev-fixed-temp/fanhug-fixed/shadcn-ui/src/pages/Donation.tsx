@@ -1,0 +1,69 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Heart, ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+export default function Donation() {
+  const paypalLink = 'https://www.paypal.com/donate/?business=GDERQZQ5Y7XDL&no_recurring=0&item_name=FanHug+offers+safe+play-money+sports+prediction%2C+fun+and+risk-free%2C+while+supporting+responsible+gaming+and+addiction+recovery.%0A&currency_code=USD';
+
+  const handleDonate = () => {
+    window.open(paypalLink, '_blank', 'noopener,noreferrer');
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-950 p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <Card className="border-gray-700 bg-gray-800/50 backdrop-blur">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-white flex items-center gap-2">
+              <Heart className="h-6 w-6 fill-red-500 text-red-500" />
+              Support FanHug
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <p className="text-gray-300 text-lg">
+                FanHug is a passion project built to bring the excitement of sports prediction to everyone, completely free. 
+                Your support helps us keep the lights on and continue improving the platform.
+              </p>
+
+              {/* Professional Player Message */}
+              <Card className="border-yellow-500/30 bg-yellow-500/5">
+                <CardContent className="pt-6">
+                  <p className="text-gray-300 text-base">
+                    If you are a professional player whose integrity has been impacted by real-money betting, we invite you to consider a donation to support our mission of restoring clean, fair sports.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <p className="text-gray-400">
+                We're committed to keeping FanHug free and ad-free. If you enjoy using the platform and want to help 
+                cover our server costs and API fees, any contribution is greatly appreciated!
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center gap-4 pt-4">
+              <Button
+                onClick={handleDonate}
+                className="bg-green-500 hover:bg-green-600 text-black font-bold text-lg px-8 py-6 flex items-center gap-2"
+              >
+                <Heart className="h-5 w-5 fill-current" />
+                Donate via PayPal
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+              
+              <p className="text-gray-500 text-sm text-center">
+                You'll be redirected to PayPal to complete your donation securely.
+              </p>
+            </div>
+
+            <div className="text-center pt-4">
+              <p className="text-gray-400 text-sm">
+                Thank you for being part of the FanHug community! 🙏
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

@@ -53,22 +53,6 @@ interface Message {
   read: boolean;
 }
 
-interface BetRecord {
-  id: string;
-  user_id: string;
-  user_email?: string;
-  user_name?: string;
-  game_data: unknown;
-  bet_type: string;
-  odds: number;
-  stake: number;
-  spread_value?: number;
-  total_value?: number;
-  status: string;
-  payout?: number;
-  placed_at: string;
-}
-
 export default function Admin() {
   const { user } = useAuth();
   const { messages, unreadCount, markAsRead } = useMessages();
@@ -85,15 +69,13 @@ export default function Admin() {
       
       setIsLoading(true);
       try {
-        console.log('🔍 [Admin] Fetching ALL bets with user emails from Supabase...');
         
         // Try to use the RPC function first
         const { data: rpcData, error: rpcError } = await supabase.rpc('get_all_bets_with_emails');
         
         if (!rpcError && rpcData) {
-          console.log('✅ [Admin] RPC succeeded - Total bets fetched:', rpcData.length);
           
-          const bets: PlacedBet[] = (rpcData as BetRecord[]).map((bet) => ({
+          const bets: PlacedBet[] = rpcData.map((bet: Record<string, unknown>) => ({
             id: bet.id,
             userId: bet.user_id,
             userEmail: bet.user_email,
@@ -110,11 +92,9 @@ export default function Admin() {
           }));
           
           setAllBets(bets);
-          console.log('✅ [Admin] Processed bets with emails:', bets.map(b => ({ userId: b.userId, email: b.userEmail, name: b.userName })));
           return;
         }
         
-        console.log('⚠️ [Admin] RPC failed, using fallback method:', rpcError);
         
         // Fallback: Fetch bets without emails
         const { data: betsData, error: betsError } = await supabase
@@ -127,9 +107,8 @@ export default function Admin() {
           return;
         }
         
-        console.log('✅ [Admin] Fetched bets:', betsData?.length || 0);
         
-        const bets: PlacedBet[] = ((betsData || []) as BetRecord[]).map((bet) => ({
+        const bets: PlacedBet[] = (betsData || []).map((bet: Record<string, unknown>) => ({
           id: bet.id,
           userId: bet.user_id,
           userEmail: undefined,
@@ -146,7 +125,6 @@ export default function Admin() {
         }));
         
         setAllBets(bets);
-        console.log('✅ [Admin] Processed bets with fallback');
       } catch (error) {
         console.error('❌ [Admin] Exception fetching bets:', error);
       } finally {
@@ -423,6 +401,7 @@ export default function Admin() {
                     <TableHeader>
                       <TableRow className="border-[#2a2d2f] hover:bg-[#2a2d2f]">
                         <TableHead className="text-[#b1bad3]">Game</TableHead>
+                        <TableHead className="text-[#b1bad3]">Game Date</TableHead>
                         <TableHead className="text-[#b1bad3]">Bet</TableHead>
                         <TableHead className="text-[#b1bad3]">Odds</TableHead>
                         <TableHead className="text-[#b1bad3]">Stake</TableHead>
@@ -437,6 +416,16 @@ export default function Admin() {
                             <div>
                               <p className="font-medium">{bet.game.homeTeam} vs {bet.game.awayTeam}</p>
                               <p className="text-sm text-[#b1bad3]">{bet.game.sport}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-[#b1bad3] whitespace-nowrap">
+                            <div>
+                              <p className="text-white text-sm">
+                                {new Date(bet.game.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              </p>
+                              <p className="text-xs text-[#b1bad3]">
+                                {new Date(bet.game.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                              </p>
                             </div>
                           </TableCell>
                           <TableCell className="text-white">{getBetDescription(bet)}</TableCell>
