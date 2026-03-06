@@ -340,11 +340,11 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       updatedBetSlip[existingBetIndex] = newBet;
       setBetSlip(updatedBetSlip);
     } else {
-      // Append the new bet to the end of the bet slip
+      // Append the new bet to the end of the pick slip
       setBetSlip([...safeBetSlip, newBet]);
     }
 
-    toast.success('Added to bet slip');
+    toast.success('Added to pick slip');
   };
 
   const removeFromBetSlip = (gameId: string) => {
@@ -392,7 +392,7 @@ export function BettingProvider({ children }: { children: ReactNode }) {
     });
     
     if (invalidBets.length > 0) {
-      toast.error('Cannot bet on completed or cancelled games. Please remove them from your bet slip.');
+      toast.error('Cannot bet on completed or cancelled games. Please remove them from your pick slip.');
       return false;
     }
 
@@ -425,7 +425,7 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       return false;
     }
 
-    // Convert bet slip items to placed bets
+    // Convert pick slip items to placed bets
     const newPlacedBets: PlacedBet[] = safeBetSlip.map((item) => ({
       ...item,
       id: crypto.randomUUID(),
@@ -445,10 +445,10 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       const updatedBets = [...safeAllPlacedBets, ...newPlacedBets];
       setAllPlacedBets(updatedBets);
       
-      // Save current bet slip as recently placed bets
+      // Save current pick slip as recently placed bets
       setRecentlyPlacedBets([...safeBetSlip]);
       
-      // Clear bet slip for new bets
+      // Clear pick slip for new bets
       setBetSlip([]);
       
       return true;

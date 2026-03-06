@@ -23,7 +23,7 @@ export default function BetSlip() {
   const safeBetSlip = betSlip || [];
   const safeRecentlyPlacedBets = recentlyPlacedBets || [];
 
-  // Sort bet slip by game start time (soonest games first)
+  // Sort pick slip by game start time (soonest games first)
   const sortedBetSlip = [...safeBetSlip].sort((a, b) => 
     new Date(a.game.startTime).getTime() - new Date(b.game.startTime).getTime()
   );

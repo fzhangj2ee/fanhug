@@ -1,11 +1,11 @@
 {
-  "timeline_index": 1958,
+  "timeline_index": 1977,
   "planner": {
     "Team Leader": {
       "1": {
         "task_id": "1",
         "dependent_task_ids": [],
-        "instruction": "The user cannot see a new build to publish. Investigate the Atoms platform deployment mechanism and help the user deploy the fixed admin dashboard code to fanhug.atoms.world. Check if the build needs to be in a specific location or format for Atoms platform to recognize it. Verify the dist folder contents and provide clear deployment instructions.",
+        "instruction": "1. In /workspace/shadcn-ui/src/contexts/BettingContext.tsx, line 347, change 'Added to bet slip' to 'Added to pick slip'. Also search the entire src/ directory for any other occurrences of \"bet slip\" (case-insensitive) and replace them with \"pick slip\".\n2. In /workspace/shadcn-ui/src/lib/sportsApi.ts (or wherever the odds-api key is defined), replace the current API key with c8e5155794a017d6eb1e721942e01a31.\n3. Rebuild the project with `pnpm run build`.",
         "task_type": "general",
         "code": "",
         "result": "",
@@ -13,7 +13,7 @@
         "is_finished": true,
         "assignee": "Alex",
         "start_at": 1767988534.840743,
-        "end_at": 1768916401.1382785
+        "end_at": 1772808129.5953507
       },
       "current_task_id": "1",
       "2": {
@@ -2692,7 +2692,26 @@
     "1955": 1,
     "1956": 1,
     "1957": 1,
-    "1958": 1
+    "1958": 1,
+    "1959": 1,
+    "1960": 1,
+    "1961": 1,
+    "1962": 1,
+    "1963": 1,
+    "1964": 1,
+    "1965": 1,
+    "1966": 1,
+    "1967": 1,
+    "1968": 1,
+    "1969": 1,
+    "1970": 1,
+    "1971": 1,
+    "1972": 1,
+    "1973": 1,
+    "1974": 1,
+    "1975": 1,
+    "1976": 1,
+    "1977": 1
   },
   "preview_servers": {},
   "preview_server": {
@@ -2702,5 +2721,5 @@
     "timeline_index": 77
   },
   "last_build_failed": false,
-  "last_user_recipient": "Alex"
+  "last_user_recipient": null
 }
