@@ -426,3 +426,234 @@ export async function fetchGamesBySport(sport: string): Promise<Game[]> {
   
   return fetchGamesFromAPI(sportKey);
 }
+// ─── Player Props ────────────────────────────────────────────────────────────
+
+export interface PlayerProp {
+  playerId: string;       // synthetic key: player name slug
+  playerName: string;
+  teamName: string;
+  description: string;   // e.g. "Points"
+  statLine: number;      // the line value (e.g. 27.5)
+  overOdds: number;      // American odds
+  underOdds: number;
+  gameId: string;
+  homeTeam: string;
+  awayTeam: string;
+  commenceTime: Date;
+  sport: string;
+}
+
+export interface PlayerPropsGame {
+  gameId: string;
+  homeTeam: string;
+  awayTeam: string;
+  commenceTime: Date;
+  sport: string;
+  marketGroups: {
+    [market: string]: PlayerProp[];   // keyed by friendly label
+  };
+}
+
+const PLAYER_PROP_MARKET_LABELS: Record<string, string> = {
+  player_points:           'Points',
+  player_threes:           'Threes',
+  player_rebounds:         'Rebounds',
+  player_assists:          'Assists',
+  player_points_rebounds_assists: 'Pts + Reb + Ast',
+  player_double_double:    'Double-Double',
+  player_triple_double:    'Triple-Double',
+  player_pass_tds:         'Pass TDs',
+  player_pass_yds:         'Pass Yds',
+  player_rush_yds:         'Rush Yds',
+  player_receptions:       'Receptions',
+  player_reception_yds:    'Rec Yds',
+  player_anytime_td:       'Anytime TD',
+};
+
+const PROP_SPORT_KEYS: Record<string, string> = {
+  NBA: 'basketball_nba',
+  NFL: 'americanfootball_nfl',
+  MLB: 'baseball_mlb',
+  NHL: 'icehockey_nhl',
+};
+
+export async function fetchPlayerProps(sport: string = 'NBA'): Promise<PlayerPropsGame[]> {
+  const sportKey = PROP_SPORT_KEYS[sport] || PROP_SPORT_KEYS.NBA;
+  const markets = sport === 'NBA'
+    ? 'player_points,player_threes,player_rebounds,player_assists,player_points_rebounds_assists'
+    : 'player_pass_tds,player_pass_yds,player_rush_yds,player_receptions,player_anytime_td';
+
+  try {
+    const response = await fetch(
+      `${ODDS_API_BASE}/sports/${sportKey}/events?apiKey=${ODDS_API_KEY}`
+    );
+    if (!response.ok) throw new Error(`Events API error: ${response.status}`);
+    const events: Array<{ id: string; home_team: string; away_team: string; commence_time: string }> = await response.json();
+
+    // Take first 3 upcoming games to keep API calls reasonable
+    const upcoming = events
+      .filter(e => new Date(e.commence_time) > new Date())
+      .slice(0, 3);
+
+    const results: PlayerPropsGame[] = [];
+
+    for (const event of upcoming) {
+      try {
+        const propsRes = await fetch(
+          `${ODDS_API_BASE}/sports/${sportKey}/events/${event.id}/odds?apiKey=${ODDS_API_KEY}&regions=us&markets=${markets}&bookmakers=draftkings`
+        );
+        if (!propsRes.ok) continue;
+        const propsData = await propsRes.json();
+
+        const bookmaker = propsData.bookmakers?.[0];
+        if (!bookmaker) continue;
+
+        const marketGroups: PlayerPropsGame['marketGroups'] = {};
+
+        for (const market of bookmaker.markets) {
+          const label = PLAYER_PROP_MARKET_LABELS[market.key];
+          if (!label) continue;
+
+          // Group outcomes by player
+          const byPlayer: Record<string, { over?: number; under?: number; line?: number; description?: string }> = {};
+
+          for (const outcome of market.outcomes) {
+            const player = outcome.description || outcome.name;
+            if (!byPlayer[player]) byPlayer[player] = {};
+            if (outcome.name === 'Over') {
+              byPlayer[player].over = outcome.price;
+              byPlayer[player].line = outcome.point;
+              byPlayer[player].description = outcome.description;
+            } else if (outcome.name === 'Under') {
+              byPlayer[player].under = outcome.price;
+              if (!byPlayer[player].line) byPlayer[player].line = outcome.point;
+            } else {
+              // Yes/No style (double-double, triple-double, anytime TD)
+              byPlayer[player].over = outcome.price;
+              byPlayer[player].line = undefined;
+            }
+          }
+
+          const props: PlayerProp[] = Object.entries(byPlayer).map(([playerName, data]) => ({
+            playerId: `${playerName.toLowerCase().replace(/\s+/g, '-')}-${event.id}`,
+            playerName,
+            teamName: '',
+            description: label,
+            statLine: data.line ?? 0,
+            overOdds: data.over ?? -110,
+            underOdds: data.under ?? -110,
+            gameId: event.id,
+            homeTeam: event.home_team,
+            awayTeam: event.away_team,
+            commenceTime: new Date(event.commence_time),
+            sport,
+          }));
+
+          if (props.length > 0) marketGroups[label] = props;
+        }
+
+        if (Object.keys(marketGroups).length > 0) {
+          results.push({
+            gameId: event.id,
+            homeTeam: event.home_team,
+            awayTeam: event.away_team,
+            commenceTime: new Date(event.commence_time),
+            sport,
+            marketGroups,
+          });
+        }
+      } catch (err) {
+        console.error(`Error fetching props for event ${event.id}:`, err);
+      }
+    }
+
+    return results;
+  } catch (err) {
+    console.error('fetchPlayerProps error:', err);
+    return [];
+  }
+}
+
+// ─── Futures ─────────────────────────────────────────────────────────────────
+
+export interface FuturesOutcome {
+  name: string;   // team or player name
+  odds: number;   // American odds
+}
+
+export interface FuturesMarket {
+  key: string;
+  label: string;
+  description: string;
+  outcomes: FuturesOutcome[];
+  sport: string;
+  lastUpdate: string;
+}
+
+const FUTURES_MARKET_LABELS: Record<string, string> = {
+  championship_winner:    'Champion',
+  division_winner:        'Division Winner',
+  conference_winner:      'Conference Winner',
+  wins:                   'Season Wins',
+  season_player_props:    'Player Awards',
+  outright_winner:        'Winner',
+};
+
+const FUTURES_SPORT_KEYS: Record<string, { key: string; markets: string }> = {
+  NBA: { key: 'basketball_nba', markets: 'championship_winner,conference_winner,division_winner' },
+  NFL: { key: 'americanfootball_nfl', markets: 'championship_winner,conference_winner,division_winner' },
+  MLB: { key: 'baseball_mlb', markets: 'championship_winner,division_winner' },
+  NHL: { key: 'icehockey_nhl', markets: 'championship_winner,conference_winner,division_winner' },
+};
+
+export async function fetchFutures(sport: string = 'NBA'): Promise<FuturesMarket[]> {
+  const config = FUTURES_SPORT_KEYS[sport] || FUTURES_SPORT_KEYS.NBA;
+
+  try {
+    const response = await fetch(
+      `${ODDS_API_BASE}/sports/${config.key}/odds?apiKey=${ODDS_API_KEY}&regions=us&markets=${config.markets}&bookmakers=draftkings&oddsFormat=american`
+    );
+    if (!response.ok) throw new Error(`Futures API error: ${response.status}`);
+
+    const data = await response.json();
+
+    // The futures endpoint returns a single event (or array) with markets
+    const events = Array.isArray(data) ? data : [data];
+
+    const marketsMap: Record<string, FuturesMarket> = {};
+
+    for (const event of events) {
+      const bookmaker = event.bookmakers?.find((b: Record<string, unknown>) => b.key === 'draftkings') || event.bookmakers?.[0];
+      if (!bookmaker) continue;
+
+      for (const market of bookmaker.markets) {
+        const label = FUTURES_MARKET_LABELS[market.key] || market.key;
+        const key = market.key;
+
+        const outcomes: FuturesOutcome[] = market.outcomes
+          .map((o: Record<string, unknown>) => ({ name: o.name as string, odds: o.price as number }))
+          .sort((a: FuturesOutcome, b: FuturesOutcome) => a.odds - b.odds);
+
+        if (!marketsMap[key]) {
+          marketsMap[key] = {
+            key,
+            label,
+            description: `${sport} ${label}`,
+            outcomes,
+            sport,
+            lastUpdate: bookmaker.last_update || new Date().toISOString(),
+          };
+        } else {
+          // Merge outcomes from multiple events (e.g. multiple division winners)
+          marketsMap[key].outcomes.push(...outcomes);
+          marketsMap[key].outcomes.sort((a, b) => a.odds - b.odds);
+        }
+      }
+    }
+
+    return Object.values(marketsMap);
+  } catch (err) {
+    console.error('fetchFutures error:', err);
+    return [];
+  }
+}

@@ -274,8 +274,7 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       
       if (hasUpdates) {
         setAllPlacedBets(updatedBets);
-      } else {
-        // No updates needed
+      } else { // No updates needed
       }
     } catch (error) {
       console.error('Error grading bets:', error);

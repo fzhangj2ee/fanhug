@@ -21,6 +21,8 @@ import NotFound from './pages/NotFound';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import LiveBetting from './pages/LiveBetting';
+import Props from './pages/Props';
+import Futures from './pages/Futures';
 import Navbar from './components/Navbar';
 import BetSlip from './components/BetSlip';
 
@@ -55,6 +57,8 @@ const App = () => (
                             <Route path="/signup" element={<Signup />} />
                             <Route path="/profile" element={<Profile />} />
                             <Route path="/live-betting" element={<LiveBetting />} />
+                            <Route path="/props" element={<Props />} />
+                            <Route path="/futures" element={<Futures />} />
                             <Route path="*" element={<NotFound />} />
                           </Routes>
                         </div>
