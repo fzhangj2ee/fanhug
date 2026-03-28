@@ -35,6 +35,7 @@ interface BettingContextType {
   clearBetSlip: () => void;
   getAllUserBets: (userId: string) => PlacedBet[];
   gradePendingBets: () => Promise<void>;
+  allPlacedBets: PlacedBet[];
 }
 
 const BettingContext = createContext<BettingContextType | undefined>(undefined);
@@ -47,12 +48,13 @@ export function BettingProvider({ children }: { children: ReactNode }) {
   const [recentlyPlacedBets, setRecentlyPlacedBets] = useState<BetSlipItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load bets from Supabase
+  // Load bets from Supabase - only current user's bets
   const loadBetsFromSupabase = useCallback(async () => {
     if (!user) return;
     
     setIsLoading(true);
     try {
+      // Fetch only current user's bets
       const { data, error } = await supabase
         .from('bets')
         .select('*')
@@ -60,11 +62,12 @@ export function BettingProvider({ children }: { children: ReactNode }) {
         .order('placed_at', { ascending: false });
       
       if (error) {
-        console.error('Error loading bets:', error);
+        console.error('Supabase error:', error);
         return;
       }
       
-      const bets: PlacedBet[] = data.map(bet => ({
+      // Map to PlacedBet objects
+      const bets: PlacedBet[] = (data || []).map(bet => ({
         id: bet.id,
         userId: bet.user_id,
         game: bet.game_data as Game,
@@ -79,9 +82,8 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       }));
       
       setAllPlacedBets(bets);
-      console.log('Loaded bets from Supabase:', bets.length);
     } catch (error) {
-      console.error('Error loading bets:', error);
+      console.error('Exception in loadBetsFromSupabase:', error);
     } finally {
       setIsLoading(false);
     }
@@ -144,14 +146,13 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       
       try {
         const parsed = JSON.parse(savedBets);
-        const userBets = parsed.filter((bet: PlacedBet) => bet.userId === user.id);
+        const userBets = Array.isArray(parsed) ? parsed.filter((bet: PlacedBet) => bet.userId === user.id) : [];
         
         if (userBets.length === 0) {
           localStorage.setItem('supabase_migration_done', 'true');
           return;
         }
         
-        console.log(`Migrating ${userBets.length} bets to Supabase...`);
         
         for (const bet of userBets) {
           try {
@@ -186,12 +187,14 @@ export function BettingProvider({ children }: { children: ReactNode }) {
     }
   }, [user, loadBetsFromSupabase]);
 
-  // Get current user's bets
-  const placedBets = user ? allPlacedBets.filter(bet => bet.userId === user.id) : [];
+  // Get current user's bets with safety check
+  const placedBets = user && Array.isArray(allPlacedBets) 
+    ? allPlacedBets.filter(bet => bet.userId === user.id) 
+    : [];
 
   // Grade pending bets by checking completed games
   const gradePendingBets = useCallback(async () => {
-    if (!user) return;
+    if (!user || !Array.isArray(allPlacedBets)) return;
     
     try {
       // Fetch all completed games from Odds API
@@ -202,6 +205,7 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       
       if (pendingBets.length === 0) return;
       
+      
       let hasUpdates = false;
       const updatedBets = [...allPlacedBets];
       
@@ -211,9 +215,15 @@ export function BettingProvider({ children }: { children: ReactNode }) {
         
         // Check if this bet's game is completed
         const completedGame = completedGames.get(bet.game.id);
-        if (!completedGame || completedGame.homeScore === undefined || completedGame.awayScore === undefined) {
+        
+        // CRITICAL: Only grade if game is truly completed with valid scores
+        if (!completedGame || 
+            completedGame.status !== 'final' ||
+            completedGame.homeScore === undefined || 
+            completedGame.awayScore === undefined) {
           continue;
         }
+        
         
         // Determine if bet won based on bet type
         let won = false;
@@ -235,6 +245,7 @@ export function BettingProvider({ children }: { children: ReactNode }) {
         // Calculate payout for winning bets
         const payout = won ? bet.stake * bet.odds : 0;
         
+        
         // Update bet status
         updatedBets[i] = {
           ...bet,
@@ -249,8 +260,8 @@ export function BettingProvider({ children }: { children: ReactNode }) {
             payout: won ? payout : undefined,
           });
           
-          // Update wallet for winning bets
-          if (won) {
+          // Update wallet for winning bets (only for the bet owner)
+          if (won && bet.userId === user.id) {
             addFunds(payout);
             toast.success(`Bet won! +$${payout.toFixed(2)} added to your balance`);
           }
@@ -263,23 +274,24 @@ export function BettingProvider({ children }: { children: ReactNode }) {
       
       if (hasUpdates) {
         setAllPlacedBets(updatedBets);
+      } else { // No updates needed
       }
     } catch (error) {
       console.error('Error grading bets:', error);
     }
   }, [allPlacedBets, addFunds, user]);
 
-  // Set up automatic grading every 60 seconds
+  // Set up automatic grading every 2 minutes (reduced frequency)
   useEffect(() => {
     if (!user) return;
     
     // Grade bets immediately on mount
     gradePendingBets();
     
-    // Set up interval to grade bets every 60 seconds
+    // Set up interval to grade bets every 2 minutes instead of 1 minute
     const intervalId = setInterval(() => {
       gradePendingBets();
-    }, 60000); // 60 seconds
+    }, 120000); // 120 seconds = 2 minutes
     
     return () => clearInterval(intervalId);
   }, [gradePendingBets, user]);
@@ -287,6 +299,18 @@ export function BettingProvider({ children }: { children: ReactNode }) {
   const addToBetSlip = (game: Game, betType: BetSlipItem['betType'], odds: number, value?: number) => {
     if (!user) {
       toast.error('Please login to place bets');
+      return;
+    }
+
+    // Only block betting on completed/finished games
+    if (game.status === 'final' || game.status === 'completed' || game.status === 'cancelled' || game.status === 'postponed') {
+      toast.error('Cannot bet on completed or cancelled games');
+      return;
+    }
+    
+    // Also check if game has final scores (indicates completion)
+    if (game.homeScore !== undefined && game.awayScore !== undefined && !game.isLive) {
+      toast.error('This game has finished');
       return;
     }
 
@@ -300,87 +324,94 @@ export function BettingProvider({ children }: { children: ReactNode }) {
     };
 
     // Check if a bet for this game already exists
-    const existingBetIndex = betSlip.findIndex(item => item.game.id === game.id);
+    const safeBetSlip = Array.isArray(betSlip) ? betSlip : [];
+    const existingBetIndex = safeBetSlip.findIndex(item => item.game.id === game.id);
     
     if (existingBetIndex !== -1) {
       // Replace the existing bet for this game
-      const updatedBetSlip = [...betSlip];
+      const updatedBetSlip = [...safeBetSlip];
       updatedBetSlip[existingBetIndex] = newBet;
       setBetSlip(updatedBetSlip);
     } else {
       // Append the new bet to the end of the bet slip
-      setBetSlip([...betSlip, newBet]);
+      setBetSlip([...safeBetSlip, newBet]);
     }
 
     toast.success('Added to bet slip');
   };
 
   const removeFromBetSlip = (gameId: string) => {
-    setBetSlip(betSlip.filter((item) => item.game.id !== gameId));
+    const safeBetSlip = Array.isArray(betSlip) ? betSlip : [];
+    setBetSlip(safeBetSlip.filter((item) => item.game.id !== gameId));
   };
 
   const updateStake = (gameId: string, stake: number) => {
+    const safeBetSlip = Array.isArray(betSlip) ? betSlip : [];
     setBetSlip(
-      betSlip.map((item) =>
+      safeBetSlip.map((item) =>
         item.game.id === gameId ? { ...item, stake } : item
       )
     );
   };
 
   const placeBets = async (): Promise<boolean> => {
-    console.log('=== PLACE BETS START ===');
-    console.log('User:', user?.id);
-    console.log('Bet slip length:', betSlip.length);
-    console.log('Current wallet balance:', balance);
-    console.log('placeBet function type:', typeof placeBet);
-    console.log('placeBet function:', placeBet);
+    // Safety check for betSlip
+    const safeBetSlip = Array.isArray(betSlip) ? betSlip : [];
     
     if (!user) {
-      console.log('ERROR: No user logged in');
       toast.error('Please login to place bets');
       return false;
     }
 
-    if (betSlip.length === 0) {
-      console.log('ERROR: Bet slip is empty');
+    if (safeBetSlip.length === 0) {
       toast.error('No bets in slip');
       return false;
     }
 
-    // Check if all bets have valid stakes
-    const invalidBets = betSlip.filter((item) => item.stake <= 0);
+    // Validate that games are not completed/finished
+    const invalidBets = safeBetSlip.filter(item => {
+      // Block only completed, cancelled, or postponed games
+      const isCompleted = item.game.status === 'final' || 
+                         item.game.status === 'completed' || 
+                         item.game.status === 'cancelled' || 
+                         item.game.status === 'postponed';
+      
+      // Also check if game has final scores but is not live
+      const hasFinishedScores = item.game.homeScore !== undefined && 
+                               item.game.awayScore !== undefined && 
+                               !item.game.isLive;
+      
+      return isCompleted || hasFinishedScores;
+    });
+    
     if (invalidBets.length > 0) {
-      console.log('ERROR: Invalid stakes found:', invalidBets);
+      toast.error('Cannot bet on completed or cancelled games. Please remove them from your bet slip.');
+      return false;
+    }
+
+    // Check if all bets have valid stakes
+    const zeroStakeBets = safeBetSlip.filter((item) => item.stake <= 0);
+    if (zeroStakeBets.length > 0) {
       toast.error('Please enter valid stake amounts for all bets');
       return false;
     }
 
-    // Calculate total stake amount
-    const totalStake = betSlip.reduce((sum, item) => sum + item.stake, 0);
-    console.log('Total stake calculated:', totalStake);
-    console.log('Balance check:', balance, '>=', totalStake, '?', balance >= totalStake);
+    // Calculate total stake amount with safety check
+    const totalStake = safeBetSlip.reduce((sum, item) => sum + (Number(item.stake) || 0), 0);
     
     // Create bet description
-    const betDescription = betSlip.length === 1 
-      ? `Bet on ${betSlip[0].game.homeTeam} vs ${betSlip[0].game.awayTeam}`
-      : `${betSlip.length} bets placed`;
-    console.log('Bet description:', betDescription);
+    const betDescription = safeBetSlip.length === 1 
+      ? `Bet on ${safeBetSlip[0].game.homeTeam} vs ${safeBetSlip[0].game.awayTeam}`
+      : `${safeBetSlip.length} bets placed`;
     
     // Deduct balance from wallet first
-    console.log('Calling placeBet with amount:', totalStake, 'description:', betDescription);
-    
     try {
       const balanceDeducted = placeBet(totalStake, betDescription);
-      console.log('placeBet returned:', balanceDeducted);
       
       if (!balanceDeducted) {
-        console.log('ERROR: Balance deduction failed. Insufficient balance.');
-        console.log('Required:', totalStake, 'Available:', balance);
         toast.error(`Insufficient balance. You have $${balance.toFixed(2)} but need $${totalStake.toFixed(2)}`);
         return false;
       }
-      
-      console.log('Balance deducted successfully. New balance should be:', balance - totalStake);
     } catch (error) {
       console.error('ERROR: Exception during placeBet call:', error);
       toast.error('Failed to deduct balance. Please try again.');
@@ -388,45 +419,37 @@ export function BettingProvider({ children }: { children: ReactNode }) {
     }
 
     // Convert bet slip items to placed bets
-    const newPlacedBets: PlacedBet[] = betSlip.map((item) => ({
+    const newPlacedBets: PlacedBet[] = safeBetSlip.map((item) => ({
       ...item,
       id: crypto.randomUUID(),
       userId: user.id,
       placedAt: new Date(),
       status: 'pending',
     }));
-    console.log('Created', newPlacedBets.length, 'new placed bets');
 
     try {
-      console.log('Saving bets to Supabase...');
       // Save all bets to Supabase
       for (const bet of newPlacedBets) {
         await saveBetToSupabase(bet);
       }
-      console.log('All bets saved to Supabase successfully');
       
       // Update local state immediately
-      const updatedBets = [...allPlacedBets, ...newPlacedBets];
+      const safeAllPlacedBets = Array.isArray(allPlacedBets) ? allPlacedBets : [];
+      const updatedBets = [...safeAllPlacedBets, ...newPlacedBets];
       setAllPlacedBets(updatedBets);
-      console.log('Local state updated. Total bets now:', updatedBets.length);
       
       // Save current bet slip as recently placed bets
-      setRecentlyPlacedBets([...betSlip]);
-      console.log('Recently placed bets saved');
+      setRecentlyPlacedBets([...safeBetSlip]);
       
       // Clear bet slip for new bets
       setBetSlip([]);
-      console.log('Bet slip cleared');
       
-      console.log('=== PLACE BETS SUCCESS ===');
       return true;
     } catch (error) {
       console.error('ERROR: Failed to save bets to Supabase:', error);
       // If saving to Supabase fails, refund the balance
-      console.log('Refunding balance:', totalStake);
       addFunds(totalStake);
       toast.error('Failed to place bets. Your balance has been refunded.');
-      console.log('=== PLACE BETS FAILED ===');
       return false;
     }
   };
@@ -436,13 +459,14 @@ export function BettingProvider({ children }: { children: ReactNode }) {
   };
 
   const getAllUserBets = (userId: string): PlacedBet[] => {
-    return allPlacedBets.filter(bet => bet.userId === userId);
+    const safeAllPlacedBets = Array.isArray(allPlacedBets) ? allPlacedBets : [];
+    return safeAllPlacedBets.filter(bet => bet.userId === userId);
   };
 
   const value = {
-    betSlip,
+    betSlip: Array.isArray(betSlip) ? betSlip : [],
     placedBets,
-    recentlyPlacedBets,
+    recentlyPlacedBets: Array.isArray(recentlyPlacedBets) ? recentlyPlacedBets : [],
     addToBetSlip,
     removeFromBetSlip,
     updateStake,
@@ -450,6 +474,7 @@ export function BettingProvider({ children }: { children: ReactNode }) {
     clearBetSlip,
     getAllUserBets,
     gradePendingBets,
+    allPlacedBets: Array.isArray(allPlacedBets) ? allPlacedBets : [],
   };
 
   return <BettingContext.Provider value={value}>{children}</BettingContext.Provider>;

@@ -1,6 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useBetting } from '@/contexts/BettingContext';
 import { useMessages } from '@/contexts/MessagesContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -11,9 +10,29 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Mail, MailOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PlayMoney from '@/components/PlayMoney';
+import { supabase } from '@/lib/supabase';
+import { Game } from '@/types/betting';
+
+interface PlacedBet {
+  id: string;
+  userId: string;
+  userEmail?: string;
+  userName?: string;
+  game: Game;
+  betType: 'home' | 'away' | 'spread-home' | 'spread-away' | 'over' | 'under';
+  odds: number;
+  stake: number;
+  spreadValue?: number;
+  totalValue?: number;
+  placedAt: Date;
+  status: 'pending' | 'won' | 'lost';
+  payout?: number;
+}
 
 interface UserStats {
+  userId: string;
   email: string;
+  userName: string;
   balance: number;
   totalBets: number;
   wins: number;
@@ -35,45 +54,139 @@ interface Message {
 }
 
 export default function Admin() {
-  const { user, users } = useAuth();
-  const { getAllUserBets } = useBetting();
+  const { user } = useAuth();
   const { messages, unreadCount, markAsRead } = useMessages();
   const navigate = useNavigate();
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [allBets, setAllBets] = useState<PlacedBet[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Fetch ALL bets with user emails from Supabase (admin only)
+  useEffect(() => {
+    const fetchAllBetsWithEmails = async () => {
+      if (!user || user.email !== 'fzhangj2ee@gmail.com') return;
+      
+      setIsLoading(true);
+      try {
+        
+        // Try to use the RPC function first
+        const { data: rpcData, error: rpcError } = await supabase.rpc('get_all_bets_with_emails');
+        
+        if (!rpcError && rpcData) {
+          
+          const bets: PlacedBet[] = rpcData.map((bet: Record<string, unknown>) => ({
+            id: bet.id,
+            userId: bet.user_id,
+            userEmail: bet.user_email,
+            userName: bet.user_name,
+            game: bet.game_data as Game,
+            betType: bet.bet_type as PlacedBet['betType'],
+            odds: Number(bet.odds),
+            stake: Number(bet.stake),
+            spreadValue: bet.spread_value ? Number(bet.spread_value) : undefined,
+            totalValue: bet.total_value ? Number(bet.total_value) : undefined,
+            status: bet.status as PlacedBet['status'],
+            payout: bet.payout ? Number(bet.payout) : undefined,
+            placedAt: new Date(bet.placed_at),
+          }));
+          
+          setAllBets(bets);
+          return;
+        }
+        
+        
+        // Fallback: Fetch bets without emails
+        const { data: betsData, error: betsError } = await supabase
+          .from('bets')
+          .select('*')
+          .order('placed_at', { ascending: false });
+        
+        if (betsError) {
+          console.error('❌ [Admin] Supabase error:', betsError);
+          return;
+        }
+        
+        
+        const bets: PlacedBet[] = (betsData || []).map((bet: Record<string, unknown>) => ({
+          id: bet.id,
+          userId: bet.user_id,
+          userEmail: undefined,
+          userName: undefined,
+          game: bet.game_data as Game,
+          betType: bet.bet_type as PlacedBet['betType'],
+          odds: Number(bet.odds),
+          stake: Number(bet.stake),
+          spreadValue: bet.spread_value ? Number(bet.spread_value) : undefined,
+          totalValue: bet.total_value ? Number(bet.total_value) : undefined,
+          status: bet.status as PlacedBet['status'],
+          payout: bet.payout ? Number(bet.payout) : undefined,
+          placedAt: new Date(bet.placed_at),
+        }));
+        
+        setAllBets(bets);
+      } catch (error) {
+        console.error('❌ [Admin] Exception fetching bets:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchAllBetsWithEmails();
+  }, [user]);
+
+  // Get unique user IDs from all bets
+  const uniqueUserIds = useMemo(() => {
+    return [...new Set(allBets.map(bet => bet.userId))];
+  }, [allBets]);
+
+  // Get bets for a specific user
+  const getUserBets = (userId: string): PlacedBet[] => {
+    return allBets.filter(bet => bet.userId === userId);
+  };
+
+  // Calculate stats for each user who has placed bets
+  const userStats: UserStats[] = useMemo(() => {
+    return uniqueUserIds.map((userId) => {
+      const userBets = getUserBets(userId);
+      
+      const wins = userBets.filter(bet => bet.status === 'won').length;
+      const losses = userBets.filter(bet => bet.status === 'lost').length;
+      const pending = userBets.filter(bet => bet.status === 'pending').length;
+      const totalWagered = userBets.reduce((sum, bet) => sum + bet.stake, 0);
+      const totalWon = userBets
+        .filter(bet => bet.status === 'won')
+        .reduce((sum, bet) => sum + (bet.payout || 0), 0);
+      const netProfit = totalWon - userBets.filter(bet => bet.status === 'lost').reduce((sum, bet) => sum + bet.stake, 0);
+
+      // Get email and name from the first bet of this user
+      const email = userBets[0]?.userEmail || `User ${userId.substring(0, 8)}...`;
+      const userName = userBets[0]?.userName || 'Unknown';
+
+      return {
+        userId,
+        email,
+        userName,
+        balance: 0,
+        totalBets: userBets.length,
+        wins,
+        losses,
+        pending,
+        totalWagered,
+        totalWon,
+        netProfit,
+      };
+    });
+  }, [uniqueUserIds, allBets]);
+
+  // Check admin access after all hooks
   if (!user || user.email !== 'fzhangj2ee@gmail.com') {
     navigate('/');
     return null;
   }
 
-  const userStats: UserStats[] = users.map((u) => {
-    const userBets = getAllUserBets(u.id);
-    const wins = userBets.filter(bet => bet.status === 'won').length;
-    const losses = userBets.filter(bet => bet.status === 'lost').length;
-    const pending = userBets.filter(bet => bet.status === 'pending').length;
-    const totalWagered = userBets.reduce((sum, bet) => sum + bet.stake, 0);
-    const totalWon = userBets
-      .filter(bet => bet.status === 'won')
-      .reduce((sum, bet) => sum + (bet.payout || 0), 0);
-    const netProfit = totalWon - userBets.filter(bet => bet.status === 'lost').reduce((sum, bet) => sum + bet.stake, 0);
-
-    return {
-      email: u.email || '',
-      balance: 0,
-      totalBets: userBets.length,
-      wins,
-      losses,
-      pending,
-      totalWagered,
-      totalWon,
-      netProfit,
-    };
-  });
-
-  const selectedUserData = selectedUser ? users.find(u => u.email === selectedUser) : null;
-  const selectedUserBets = selectedUserData ? getAllUserBets(selectedUserData.id) : [];
-  const selectedUserStats = userStats.find(s => s.email === selectedUser);
+  const selectedUserBets = selectedUserId ? getUserBets(selectedUserId) : [];
+  const selectedUserStats = userStats.find(s => s.userId === selectedUserId);
 
   const formatOdds = (odds: number) => {
     if (odds >= 2.0) {
@@ -83,7 +196,7 @@ export default function Admin() {
     }
   };
 
-  const getBetDescription = (bet: typeof selectedUserBets[0]) => {
+  const getBetDescription = (bet: PlacedBet) => {
     const { betType, spreadValue, totalValue } = bet;
     
     if (betType === 'home') return bet.game.homeTeam;
@@ -106,13 +219,13 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-[#0d0f10]">
       <div className="container mx-auto px-4 py-6">
-        {!selectedUser ? (
+        {!selectedUserId ? (
           <Tabs defaultValue="users" className="w-full">
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
               <TabsList className="bg-[#1a1d1f]">
                 <TabsTrigger value="users" className="data-[state=active]:bg-[#2a2d2f]">
-                  Users
+                  Users ({userStats.length})
                 </TabsTrigger>
                 <TabsTrigger value="messages" className="data-[state=active]:bg-[#2a2d2f]">
                   Messages
@@ -128,39 +241,51 @@ export default function Admin() {
             <TabsContent value="users">
               <Card className="bg-[#1a1d1f] border-[#2a2d2f]">
                 <CardHeader>
-                  <CardTitle className="text-white">All Users</CardTitle>
+                  <CardTitle className="text-white">All Users with Bets</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-[#2a2d2f] hover:bg-[#2a2d2f]">
-                        <TableHead className="text-[#b1bad3]">Email</TableHead>
-                        <TableHead className="text-[#b1bad3]">Total Bets</TableHead>
-                        <TableHead className="text-[#b1bad3]">Wins</TableHead>
-                        <TableHead className="text-[#b1bad3]">Losses</TableHead>
-                        <TableHead className="text-[#b1bad3]">Pending</TableHead>
-                        <TableHead className="text-[#b1bad3]">Net Profit</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {userStats.map((stats) => (
-                        <TableRow
-                          key={stats.email}
-                          className="border-[#2a2d2f] hover:bg-[#2a2d2f] cursor-pointer"
-                          onClick={() => setSelectedUser(stats.email)}
-                        >
-                          <TableCell className="text-white font-medium">{stats.email}</TableCell>
-                          <TableCell className="text-white">{stats.totalBets}</TableCell>
-                          <TableCell className="text-green-400">{stats.wins}</TableCell>
-                          <TableCell className="text-red-400">{stats.losses}</TableCell>
-                          <TableCell className="text-yellow-400">{stats.pending}</TableCell>
-                          <TableCell className={stats.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}>
-                            <PlayMoney amount={stats.netProfit} />
-                          </TableCell>
+                  {isLoading ? (
+                    <div className="text-center py-8 text-[#b1bad3]">
+                      Loading bets and user information...
+                    </div>
+                  ) : userStats.length === 0 ? (
+                    <div className="text-center py-8 text-[#b1bad3]">
+                      No users have placed bets yet
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-[#2a2d2f] hover:bg-[#2a2d2f]">
+                          <TableHead className="text-[#b1bad3]">Email</TableHead>
+                          <TableHead className="text-[#b1bad3]">UserName</TableHead>
+                          <TableHead className="text-[#b1bad3]">Total Bets</TableHead>
+                          <TableHead className="text-[#b1bad3]">Wins</TableHead>
+                          <TableHead className="text-[#b1bad3]">Losses</TableHead>
+                          <TableHead className="text-[#b1bad3]">Pending</TableHead>
+                          <TableHead className="text-[#b1bad3]">Net Profit</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {userStats.map((stats) => (
+                          <TableRow
+                            key={stats.userId}
+                            className="border-[#2a2d2f] hover:bg-[#2a2d2f] cursor-pointer"
+                            onClick={() => setSelectedUserId(stats.userId)}
+                          >
+                            <TableCell className="text-white font-medium">{stats.email}</TableCell>
+                            <TableCell className="text-white">{stats.userName}</TableCell>
+                            <TableCell className="text-white">{stats.totalBets}</TableCell>
+                            <TableCell className="text-green-400">{stats.wins}</TableCell>
+                            <TableCell className="text-red-400">{stats.losses}</TableCell>
+                            <TableCell className="text-yellow-400">{stats.pending}</TableCell>
+                            <TableCell className={stats.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}>
+                              <PlayMoney amount={stats.netProfit} />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -228,14 +353,14 @@ export default function Admin() {
           <>
             <div className="flex items-center gap-4 mb-6">
               <Button
-                onClick={() => setSelectedUser(null)}
+                onClick={() => setSelectedUserId(null)}
                 variant="ghost"
                 className="text-white hover:bg-[#1a1d1f]"
               >
                 <ChevronLeft className="h-4 w-4 mr-2" />
                 Back to Users
               </Button>
-              <h1 className="text-3xl font-bold text-white">User Details: {selectedUser}</h1>
+              <h1 className="text-3xl font-bold text-white">User Details: {selectedUserStats?.userName} ({selectedUserStats?.email})</h1>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -276,6 +401,7 @@ export default function Admin() {
                     <TableHeader>
                       <TableRow className="border-[#2a2d2f] hover:bg-[#2a2d2f]">
                         <TableHead className="text-[#b1bad3]">Game</TableHead>
+                        <TableHead className="text-[#b1bad3]">Game Date</TableHead>
                         <TableHead className="text-[#b1bad3]">Bet</TableHead>
                         <TableHead className="text-[#b1bad3]">Odds</TableHead>
                         <TableHead className="text-[#b1bad3]">Stake</TableHead>
@@ -290,6 +416,16 @@ export default function Admin() {
                             <div>
                               <p className="font-medium">{bet.game.homeTeam} vs {bet.game.awayTeam}</p>
                               <p className="text-sm text-[#b1bad3]">{bet.game.sport}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-[#b1bad3] whitespace-nowrap">
+                            <div>
+                              <p className="text-white text-sm">
+                                {new Date(bet.game.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              </p>
+                              <p className="text-xs text-[#b1bad3]">
+                                {new Date(bet.game.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                              </p>
                             </div>
                           </TableCell>
                           <TableCell className="text-white">{getBetDescription(bet)}</TableCell>

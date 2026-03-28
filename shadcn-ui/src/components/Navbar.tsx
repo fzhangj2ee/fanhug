@@ -75,6 +75,30 @@ export default function Navbar() {
               <Button
                 variant="ghost"
                 size="sm"
+                onClick={() => navigate('/props')}
+                className={`${
+                  isActive('/props')
+                    ? 'text-white bg-gray-800'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                }`}
+              >
+                Props
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/futures')}
+                className={`${
+                  isActive('/futures')
+                    ? 'text-white bg-gray-800'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                }`}
+              >
+                Futures
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => navigate('/my-bets')}
                 className={`${
                   isActive('/my-bets')
@@ -82,7 +106,7 @@ export default function Navbar() {
                     : 'text-gray-400 hover:text-white hover:bg-gray-800'
                 }`}
               >
-                My Bets
+                My Picks
               </Button>
               <Button
                 variant="ghost"
@@ -94,7 +118,7 @@ export default function Navbar() {
                     : 'text-gray-400 hover:text-white hover:bg-gray-800'
                 }`}
               >
-                Wallet
+                Balance
               </Button>
               <Button
                 variant="ghost"
